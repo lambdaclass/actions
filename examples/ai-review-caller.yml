@@ -19,49 +19,17 @@ on:
     types: [created]
 
 jobs:
-  # Kimi review - triggers on PR open or /kimi comment
   kimi-review:
-    if: |
-      (github.event_name == 'pull_request') ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/kimi'))
     uses: lambdaclass/actions/.github/workflows/ai-review-kimi.yml@main
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
-    # Optional: customize the review
-    # with:
-    #   model: 'moonshot-v1-128k'
-    #   max_diff_lines: 10000
-    #   max_tokens: 4096
-    #   temperature: 0.3
-    #   prompt: |
-    #     Your custom prompt here...
 
-  # Codex review - triggers on PR open or /codex comment
   codex-review:
-    if: |
-      (github.event_name == 'pull_request') ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/codex'))
     uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@main
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    # Optional: customize the review
-    # with:
-    #   safety_strategy: 'drop-sudo'
-    #   prompt: |
-    #     Your custom prompt here...
 
-  # Claude review - triggers on PR open or /claude comment
   claude-review:
-    if: |
-      (github.event_name == 'pull_request') ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/claude'))
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-    # Optional: customize the review
-    # with:
-    #   model: 'sonnet'
-    #   max_turns: 30
-    #   prompt: |
-    #     Your custom prompt here...
-    #   allowed_tools: 'mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Read,Glob,Grep'

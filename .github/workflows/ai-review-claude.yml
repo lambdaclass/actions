@@ -46,6 +46,9 @@ on:
 
 jobs:
   claude-review:
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/claude'))
     runs-on: ubuntu-latest
     permissions:
       contents: read

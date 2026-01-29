@@ -41,6 +41,9 @@ permissions:
 jobs:
   codex:
     name: Codex Code Review
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/codex'))
     runs-on: ubuntu-latest
     outputs:
       final_message: ${{ steps.codex.outputs.final-message }}

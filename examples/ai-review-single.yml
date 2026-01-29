@@ -11,9 +11,6 @@ on:
 
 jobs:
   claude-review:
-    if: |
-      (github.event_name == 'pull_request') ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/claude'))
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
