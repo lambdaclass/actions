@@ -90,18 +90,13 @@ jobs:
 
 ### Default Review Focus
 
-All workflows use a default prompt that focuses on:
+All workflows use a generic default prompt that focuses on:
 
 1. **Security vulnerabilities** - Labeled by criticality (Critical/High/Medium/Low)
-   - Solidity: reentrancy, access control, integer issues
-   - Rust: unsafe blocks, error handling, panics
-   - Web/API: SQL injection, auth bypass, input validation, CORS/CSRF
+2. **Bugs** - Logic errors, edge cases, incorrect behavior
+3. **Significant performance issues** - Only obvious problems like O(n²) loops
 
-2. **Potential bugs** - Logic errors, edge cases, race conditions
-
-3. **Performance issues** - Only significant ones (O(n²) on unbounded input, N+1 queries)
-
-4. **Simplicity** - Prefers simple, readable code over clever abstractions
+Customize the `prompt` input to tailor reviews for your specific tech stack (Rust, Solidity, TypeScript, etc.).
 
 ### Using Multiple Reviewers
 

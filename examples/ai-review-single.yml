@@ -1,5 +1,5 @@
-# Example: Using only one AI reviewer with a custom prompt
-# This example shows how to use Claude with a Rust-focused review prompt.
+# Example: Using one AI reviewer with a custom prompt
+# This shows how to customize the review prompt for your specific tech stack.
 
 name: Claude Code Review
 
@@ -15,11 +15,10 @@ jobs:
     with:
       model: 'sonnet'
       prompt: |
-        Review this Rust pull request focusing on:
+        Review this pull request focusing on:
 
-        1. **Memory safety** - unsafe blocks, lifetime issues, borrowing violations
-        2. **Error handling** - proper use of Result/Option, panic risks
-        3. **Performance** - unnecessary allocations, inefficient iterations
-        4. **Idiomatic Rust** - proper trait usage, ownership patterns
+        1. **Security** - SQL injection, XSS, auth issues, input validation
+        2. **Bugs** - Logic errors, null checks, edge cases
+        3. **Performance** - N+1 queries, unnecessary allocations
 
         Be concise. Only flag real issues.
