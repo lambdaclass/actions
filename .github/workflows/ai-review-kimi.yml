@@ -100,7 +100,10 @@ jobs:
             exit 0
           fi
 
-          USER_PROMPT="Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
+          USER_PROMPT="REPO: ${{ github.repository }}
+          PR NUMBER: ${{ github.event.pull_request.number }}
+
+          Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
 
           PAYLOAD=$(jq -n \
             --arg model "$MODEL" \

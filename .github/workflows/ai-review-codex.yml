@@ -62,15 +62,12 @@ jobs:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           safety-strategy: ${{ inputs.safety_strategy }}
           prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
             ${{ inputs.prompt }}
 
-            Context:
-            - Repository: ${{ github.repository }}
-            - PR Number: #${{ github.event.pull_request.number }}
-            - Base SHA: ${{ github.event.pull_request.base.sha }}
-            - Head SHA: ${{ github.event.pull_request.head.sha }}
-
-            Run: git diff ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
+            To see the PR changes, run: git diff ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
 
   post_feedback:
     runs-on: ubuntu-latest
