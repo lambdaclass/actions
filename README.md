@@ -29,13 +29,25 @@ name: AI Code Review
 on:
   pull_request:
     types: [opened, ready_for_review]
+  issue_comment:
+    types: [created]
 
 jobs:
   claude-review:
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/claude'))
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
+
+### On-Demand Reviews
+
+Trigger reviews by commenting on a PR:
+- `/kimi` - Trigger Kimi review
+- `/codex` - Trigger Codex review
+- `/claude` - Trigger Claude review
 
 ### Customization
 

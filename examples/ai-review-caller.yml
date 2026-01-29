@@ -1,6 +1,10 @@
 # Example: How to use AI code review workflows in your repository
 # Copy this file to your repo's .github/workflows/ directory and customize as needed.
 #
+# Triggers:
+# - Automatically on PR open/ready_for_review
+# - On-demand via PR comments: /kimi, /codex, /claude
+#
 # Required secrets (configure in your repo's Settings > Secrets and variables > Actions):
 # - KIMI_API_KEY: For Kimi reviews (https://platform.moonshot.ai/)
 # - OPENAI_API_KEY: For Codex reviews (https://platform.openai.com/)
@@ -11,10 +15,15 @@ name: AI Code Review
 on:
   pull_request:
     types: [opened, ready_for_review]
+  issue_comment:
+    types: [created]
 
 jobs:
-  # Option 1: Use Kimi (Moonshot AI) for code review
+  # Kimi review - triggers on PR open or /kimi comment
   kimi-review:
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/kimi'))
     uses: lambdaclass/actions/.github/workflows/ai-review-kimi.yml@main
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
@@ -27,8 +36,11 @@ jobs:
     #   prompt: |
     #     Your custom prompt here...
 
-  # Option 2: Use OpenAI Codex for code review
+  # Codex review - triggers on PR open or /codex comment
   codex-review:
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/codex'))
     uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@main
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -38,8 +50,11 @@ jobs:
     #   prompt: |
     #     Your custom prompt here...
 
-  # Option 3: Use Claude (Anthropic) for code review
+  # Claude review - triggers on PR open or /claude comment
   claude-review:
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/claude'))
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
