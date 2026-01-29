@@ -10,7 +10,7 @@ on:
         description: 'Kimi model to use'
         required: false
         type: string
-        default: 'kimi-k2.5'
+        default: 'kimi-k2-0905-Preview'
       prompt:
         description: 'Custom review prompt (system prompt for the AI)'
         required: false
