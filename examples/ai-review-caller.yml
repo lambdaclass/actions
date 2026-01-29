@@ -3,12 +3,14 @@
 #
 # Triggers:
 # - Automatically on PR open/ready_for_review
-# - On-demand via PR comments: /kimi, /codex, /claude
+# - On-demand via PR comments: /kimi, /codex, /claude (requires write access)
 #
 # Required secrets (configure in your repo's Settings > Secrets and variables > Actions):
 # - KIMI_API_KEY: For Kimi reviews (https://platform.moonshot.ai/)
 # - OPENAI_API_KEY: For Codex reviews (https://platform.openai.com/)
 # - ANTHROPIC_API_KEY: For Claude reviews (https://console.anthropic.com/)
+#
+# Security note: For production, pin to a specific tag (e.g., @v1) instead of @main
 
 name: AI Code Review
 
