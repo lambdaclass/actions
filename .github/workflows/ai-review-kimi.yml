@@ -1,0 +1,200 @@
+# Reusable workflow for Kimi (Moonshot AI) code review
+# Usage: See examples/ai-review-caller.yml
+
+name: Kimi Code Review
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        description: 'Kimi model to use'
+        required: false
+        type: string
+        default: 'moonshot-v1-128k'
+      prompt:
+        description: 'Custom review prompt (system prompt for the AI)'
+        required: false
+        type: string
+        default: |
+          You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
+
+          Focus on:
+
+          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
+             - Solidity: e.g. reentrancy, access control, integer issues, etc.
+             - Rust: e.g. unsafe blocks, error handling, panics, etc.
+             - Web/API: e.g. SQL injection, auth bypass, input validation, sensitive data exposure, CORS/CSRF, etc.
+
+          2. **Potential bugs** - Logic errors, edge cases, incorrect behavior, race conditions
+
+          3. **Performance issues** - Only significant: e.g. O(n²) on unbounded input, N+1 queries, unbounded memory growth
+
+          4. **Simplicity** - Prefer simple, readable code over clever abstractions
+
+          Guidelines:
+          - Be concise and to the point
+          - Do NOT suggest micro-optimizations or premature abstractions
+          - Always prefer simplicity over complexity when performance gains are marginal
+          - Focus on real issues, not hypothetical improvements
+          - Be concise and actionable
+
+          If no issues found, say so briefly.
+      max_diff_lines:
+        description: 'Maximum lines of diff to send to API'
+        required: false
+        type: number
+        default: 10000
+      max_tokens:
+        description: 'Maximum tokens for AI response'
+        required: false
+        type: number
+        default: 4096
+      temperature:
+        description: 'AI temperature setting'
+        required: false
+        type: number
+        default: 0.3
+    secrets:
+      KIMI_API_KEY:
+        description: 'Moonshot AI API key'
+        required: true
+
+jobs:
+  review:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get PR diff
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAX_LINES: ${{ inputs.max_diff_lines }}
+        run: |
+          gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} > /tmp/pr_diff.txt
+
+          TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
+
+          # Truncate if too large (Kimi has context limits)
+          head -n $MAX_LINES /tmp/pr_diff.txt > /tmp/pr_diff_truncated.txt
+
+          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
+            echo "truncated=true" >> "$GITHUB_OUTPUT"
+            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
+            echo "::warning::Diff truncated from $TOTAL_LINES to $MAX_LINES lines. Some changes were not reviewed."
+          else
+            echo "truncated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Call Kimi API for review
+        id: kimi_review
+        env:
+          KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
+          MODEL: ${{ inputs.model }}
+          SYSTEM_PROMPT: ${{ inputs.prompt }}
+          MAX_TOKENS: ${{ inputs.max_tokens }}
+          TEMPERATURE: ${{ inputs.temperature }}
+        run: |
+          echo "::add-mask::$KIMI_API_KEY"
+
+          if [ -z "$KIMI_API_KEY" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=KIMI_API_KEY secret is not set" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          USER_PROMPT="Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
+
+          PAYLOAD=$(jq -n \
+            --arg model "$MODEL" \
+            --arg system "$SYSTEM_PROMPT" \
+            --arg user "$USER_PROMPT" \
+            --argjson max_tokens "$MAX_TOKENS" \
+            --argjson temperature "$TEMPERATURE" \
+            --rawfile diff /tmp/pr_diff_truncated.txt \
+            '{
+              model: $model,
+              messages: [
+                { role: "system", content: $system },
+                { role: "user", content: ($user + "\n\nDiff:\n" + $diff) }
+              ],
+              temperature: $temperature,
+              max_tokens: $max_tokens
+            }')
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.moonshot.ai/v1/chat/completions" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $KIMI_API_KEY" \
+            -d "$PAYLOAD")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Kimi API request failed with status $HTTP_CODE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          HAS_ERROR=$(echo "$BODY" | jq -e '.error.message' > /dev/null 2>&1 && echo "yes" || echo "no")
+          if [ "$HAS_ERROR" = "yes" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Kimi API returned an error response" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // "Error: Unexpected API response"')
+          echo "$REVIEW" > /tmp/review.txt
+          echo "success=true" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        if: steps.kimi_review.outputs.success == 'true'
+        uses: actions/github-script@v7
+        env:
+          TRUNCATED: ${{ steps.diff.outputs.truncated }}
+          TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
+          MAX_LINES: ${{ inputs.max_diff_lines }}
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const truncated = process.env.TRUNCATED === 'true';
+            const totalLines = process.env.TOTAL_LINES;
+            const maxLines = process.env.MAX_LINES;
+
+            let truncationWarning = '';
+            if (truncated) {
+              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${maxLines} lines. Some changes were not reviewed.\n`;
+            }
+
+            if (review && review.trim() !== '') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `## 🤖 Kimi Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI)*`
+              });
+            }
+
+      - name: Post error comment
+        if: steps.kimi_review.outputs.error == 'true'
+        uses: actions/github-script@v7
+        env:
+          ERROR_MESSAGE: ${{ steps.kimi_review.outputs.error_message }}
+        with:
+          script: |
+            const errorMessage = process.env.ERROR_MESSAGE || 'Unknown error';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 Kimi Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by Kimi (Moonshot AI)*`
+            });

@@ -1,0 +1,109 @@
+# Reusable workflow for OpenAI Codex code review
+# Reference: https://github.com/openai/codex-action
+# Usage: See examples/ai-review-caller.yml
+
+name: Codex Code Review
+
+on:
+  workflow_call:
+    inputs:
+      prompt:
+        description: 'Custom review prompt for Codex'
+        required: false
+        type: string
+        default: |
+          You are a code reviewer. Review ONLY the changes in this pull request diff, not the entire codebase.
+
+          To see only the PR changes, run:
+          git diff $BASE_SHA...$HEAD_SHA
+
+          Focus on:
+
+          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
+             - Solidity: e.g. reentrancy, access control, integer issues, etc.
+             - Rust: e.g. unsafe blocks, error handling, panics, etc.
+             - Web/API: e.g. SQL injection, auth bypass, input validation, sensitive data exposure, CORS/CSRF, etc.
+
+          2. **Potential bugs** - Logic errors, edge cases, incorrect behavior, race conditions
+
+          3. **Performance issues** - Only significant: e.g. O(n²) on unbounded input, N+1 queries, unbounded memory growth
+
+          4. **Simplicity** - Prefer simple, readable code over clever abstractions
+
+          Guidelines:
+          - Be concise and to the point
+          - Do NOT suggest micro-optimizations or premature abstractions
+          - Always prefer simplicity over complexity when performance gains are marginal
+          - Focus on real issues, not hypothetical improvements
+          - Be concise and actionable
+
+          If no issues found, say so briefly.
+      safety_strategy:
+        description: 'Codex safety strategy (drop-sudo, permissive, etc.)'
+        required: false
+        type: string
+        default: 'drop-sudo'
+    secrets:
+      OPENAI_API_KEY:
+        description: 'OpenAI API key'
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  codex:
+    name: Codex Code Review
+    runs-on: ubuntu-latest
+    outputs:
+      final_message: ${{ steps.codex.outputs.final-message }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+
+      - name: Pre-fetch base and head refs for the PR
+        run: |
+          git fetch --no-tags origin \
+            ${{ github.event.pull_request.base.ref }} \
+            +refs/pull/${{ github.event.pull_request.number }}/head
+
+      - name: Run Codex Code Review
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          safety-strategy: ${{ inputs.safety_strategy }}
+          prompt: |
+            ${{ inputs.prompt }}
+
+            Context:
+            - Repository: ${{ github.repository }}
+            - PR Number: #${{ github.event.pull_request.number }}
+            - Base SHA: ${{ github.event.pull_request.base.sha }}
+            - Head SHA: ${{ github.event.pull_request.head.sha }}
+
+            Run: git diff ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
+
+  post_feedback:
+    runs-on: ubuntu-latest
+    needs: codex
+    if: needs.codex.outputs.final_message != ''
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Report Codex feedback
+        uses: actions/github-script@v7
+        env:
+          CODEX_FINAL_MESSAGE: ${{ needs.codex.outputs.final_message }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `## 🤖 Codex Code Review\n\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex*`,
+            });

@@ -1,0 +1,25 @@
+# Example: Using only one AI reviewer with a custom prompt
+# This example shows how to use Claude with a Rust-focused review prompt.
+
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  claude-review:
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    with:
+      model: 'sonnet'
+      prompt: |
+        Review this Rust pull request focusing on:
+
+        1. **Memory safety** - unsafe blocks, lifetime issues, borrowing violations
+        2. **Error handling** - proper use of Result/Option, panic risks
+        3. **Performance** - unnecessary allocations, inefficient iterations
+        4. **Idiomatic Rust** - proper trait usage, ownership patterns
+
+        Be concise. Only flag real issues.
