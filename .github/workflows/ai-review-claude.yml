@@ -76,8 +76,6 @@ jobs:
           - Reference specific file names and line numbers
           - Only flag real issues, not style preferences
           - If no issues found, say so briefly
-
-          The PR branch is already checked out. Use `gh pr comment` for top-level feedback and `mcp__github_inline_comment__create_inline_comment` for inline comments.
           PROMPT_EOF
           fi
           echo "content<<EOF" >> $GITHUB_OUTPUT
@@ -99,6 +97,8 @@ jobs:
             PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
             ${{ steps.prompt.outputs.content }}
+
+            IMPORTANT: After completing your review, post your findings as a PR comment using `gh pr comment ${{ github.event.pull_request.number || github.event.issue.number }} --body "your review here"`
 
       - name: Post review comment
         if: always() && steps.claude-review.outputs.conclusion != ''
