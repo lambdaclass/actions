@@ -12,22 +12,10 @@ on:
         type: string
         default: 'kimi-k2-0711-preview'
       prompt:
-        description: 'Custom review prompt (system prompt for the AI)'
+        description: 'Custom review prompt (overrides prompt file if provided)'
         required: false
         type: string
-        default: |
-          You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
-
-          Focus on:
-          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
-          2. **Bugs** - Logic errors, edge cases, incorrect behavior
-          3. **Significant performance issues** - Only flag obvious problems like O(n²) loops on large inputs
-
-          Guidelines:
-          - Be concise and actionable
-          - Reference specific file names and line numbers
-          - Only flag real issues, not style preferences
-          - If no issues found, say so briefly
+        default: ''
       max_diff_lines:
         description: 'Maximum lines of diff to send to API'
         required: false
@@ -66,13 +54,39 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Load prompt
+        run: |
+          if [ -n "${{ inputs.prompt }}" ]; then
+            cat << 'PROMPT_EOF' > /tmp/prompt.txt
+          ${{ inputs.prompt }}
+          PROMPT_EOF
+          elif [ -f ".github/prompts/ai-review.md" ]; then
+            cat .github/prompts/ai-review.md > /tmp/prompt.txt
+          else
+            cat << 'PROMPT_EOF' > /tmp/prompt.txt
+          You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
+
+          Focus on:
+          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
+          2. **Bugs** - Logic errors, edge cases, incorrect behavior
+          3. **Significant performance issues** - Only flag obvious problems
+
+          Guidelines:
+          - Be concise and actionable
+          - Reference specific file names and line numbers
+          - Only flag real issues, not style preferences
+          - If no issues found, say so briefly
+          PROMPT_EOF
+          fi
+
       - name: Get PR diff
         id: diff
         env:
           GH_TOKEN: ${{ github.token }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} > /tmp/pr_diff.txt
+          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff.txt
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
 
@@ -92,10 +106,10 @@ jobs:
         env:
           KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
           MODEL: ${{ inputs.model }}
-          SYSTEM_PROMPT: ${{ inputs.prompt }}
           MAX_TOKENS: ${{ inputs.max_tokens }}
           TEMPERATURE: ${{ inputs.temperature }}
         run: |
+          SYSTEM_PROMPT=$(cat /tmp/prompt.txt)
           echo "::add-mask::$KIMI_API_KEY"
 
           if [ -z "$KIMI_API_KEY" ]; then
@@ -105,7 +119,7 @@ jobs:
           fi
 
           USER_PROMPT="REPO: ${{ github.repository }}
-          PR NUMBER: ${{ github.event.pull_request.number }}
+          PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
           Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
 

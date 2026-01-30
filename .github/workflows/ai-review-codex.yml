@@ -8,22 +8,10 @@ on:
   workflow_call:
     inputs:
       prompt:
-        description: 'Custom review prompt for Codex'
+        description: 'Custom review prompt (overrides prompt file if provided)'
         required: false
         type: string
-        default: |
-          You are a code reviewer. Review ONLY the changes in this pull request diff, not the entire codebase.
-
-          Focus on:
-          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
-          2. **Bugs** - Logic errors, edge cases, incorrect behavior
-          3. **Significant performance issues** - Only flag obvious problems like O(n²) loops on large inputs
-
-          Guidelines:
-          - Be concise and actionable
-          - Reference specific file names and line numbers
-          - Only flag real issues, not style preferences
-          - If no issues found, say so briefly
+        default: ''
       safety_strategy:
         description: 'Codex safety strategy (drop-sudo, permissive, etc.)'
         required: false
@@ -52,13 +40,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          ref: refs/pull/${{ github.event.pull_request.number || github.event.issue.number }}/merge
+
+      - name: Load prompt
+        id: prompt
+        run: |
+          if [ -n "${{ inputs.prompt }}" ]; then
+            PROMPT="${{ inputs.prompt }}"
+          elif [ -f ".github/prompts/ai-review.md" ]; then
+            PROMPT=$(cat .github/prompts/ai-review.md)
+          else
+            PROMPT="You are a code reviewer. Review ONLY the changes in this pull request diff, not the entire codebase.
+
+          Focus on:
+          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
+          2. **Bugs** - Logic errors, edge cases, incorrect behavior
+          3. **Significant performance issues** - Only flag obvious problems
+
+          Guidelines:
+          - Be concise and actionable
+          - Reference specific file names and line numbers
+          - Only flag real issues, not style preferences
+          - If no issues found, say so briefly"
+          fi
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$PROMPT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Pre-fetch base and head refs for the PR
         run: |
           git fetch --no-tags origin \
             ${{ github.event.pull_request.base.ref }} \
-            +refs/pull/${{ github.event.pull_request.number }}/head
+            +refs/pull/${{ github.event.pull_request.number || github.event.issue.number }}/head
 
       - name: Run Codex Code Review
         id: codex
@@ -68,9 +81,9 @@ jobs:
           safety-strategy: ${{ inputs.safety_strategy }}
           prompt: |
             REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
-            ${{ inputs.prompt }}
+            ${{ steps.prompt.outputs.content }}
 
             To see the PR changes, run: git diff ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
 
@@ -92,6 +105,6 @@ jobs:
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
+              issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
               body: `## 🤖 Codex Code Review\n\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex*`,
             });
