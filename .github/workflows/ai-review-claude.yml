@@ -98,3 +98,20 @@ jobs:
             PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
             ${{ steps.prompt.outputs.content }}
+
+      - name: Post review comment
+        if: always() && steps.claude-review.outputs.conclusion != ''
+        uses: actions/github-script@v7
+        env:
+          CLAUDE_RESULT: ${{ steps.claude-review.outputs.conclusion }}
+        with:
+          script: |
+            const review = process.env.CLAUDE_RESULT;
+            if (review && review.trim() !== '') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
+                body: `## 🤖 Claude Code Review\n\n${review}\n\n---\n*Automated review by Claude (Anthropic)*`
+              });
+            }
