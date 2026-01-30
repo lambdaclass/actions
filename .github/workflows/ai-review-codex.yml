@@ -41,7 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ github.event.pull_request.number || github.event.issue.number }}/merge
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
 
       - name: Load prompt
         id: prompt
@@ -71,11 +72,14 @@ jobs:
           echo "$PROMPT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Pre-fetch base and head refs for the PR
+      - name: Get PR diff
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          git fetch --no-tags origin \
-            ${{ github.event.pull_request.base.ref }} \
-            +refs/pull/${{ github.event.pull_request.number || github.event.issue.number }}/head
+          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff.txt
+          echo "Diff has $(wc -l < /tmp/pr_diff.txt) lines"
 
       - name: Run Codex Code Review
         id: codex
@@ -89,7 +93,7 @@ jobs:
 
             ${{ steps.prompt.outputs.content }}
 
-            To see the PR changes, run: git diff ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
+            The PR diff is available at /tmp/pr_diff.txt. Read it with: cat /tmp/pr_diff.txt
 
   post_feedback:
     runs-on: ubuntu-latest
@@ -107,7 +111,8 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const promptNote = process.env.PROMPT_SOURCE === 'custom' ? ' · custom prompt' : '';
+            const source = process.env.PROMPT_SOURCE;
+            const promptNote = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

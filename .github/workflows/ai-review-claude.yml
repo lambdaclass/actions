@@ -101,21 +101,36 @@ jobs:
 
             ${{ steps.prompt.outputs.content }}
 
-            IMPORTANT: After completing your review, post your findings as a PR comment using `gh pr comment ${{ github.event.pull_request.number || github.event.issue.number }} --body "your review here"`. End the comment with a footer: "---\n*Automated review by Claude (Anthropic)${{ steps.prompt.outputs.source == 'custom' && ' · custom prompt' || '' }}*"
+            Output your review findings in markdown format. Do NOT post a PR comment yourself - just output the review content.
 
       - name: Post review comment
-        if: always() && steps.claude-review.outputs.conclusion != ''
+        if: steps.claude-review.outputs.execution_file != ''
         uses: actions/github-script@v7
         env:
-          CLAUDE_RESULT: ${{ steps.claude-review.outputs.conclusion }}
+          EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
+          PROMPT_SOURCE: ${{ steps.prompt.outputs.source }}
         with:
           script: |
-            const review = process.env.CLAUDE_RESULT;
+            const fs = require('fs');
+            const execFile = process.env.EXECUTION_FILE;
+            const source = process.env.PROMPT_SOURCE;
+            const customPrompt = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
+
+            if (!execFile || !fs.existsSync(execFile)) {
+              console.log('No execution file found');
+              return;
+            }
+
+            const data = JSON.parse(fs.readFileSync(execFile, 'utf8'));
+            // Find the result message (last message with type "result")
+            const resultMsg = data.filter(m => m.type === 'result').pop();
+            const review = resultMsg?.result || '';
+
             if (review && review.trim() !== '') {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-                body: `## 🤖 Claude Code Review\n\n${review}\n\n---\n*Automated review by Claude (Anthropic)*`
+                body: `## 🤖 Claude Code Review\n\n${review}\n\n---\n*Automated review by Claude (Anthropic)${customPrompt}*`
               });
             }
