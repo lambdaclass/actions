@@ -37,6 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       final_message: ${{ steps.codex.outputs.final-message }}
+      prompt_source: ${{ steps.prompt.outputs.source }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,8 +48,10 @@ jobs:
         run: |
           if [ -n "${{ inputs.prompt }}" ]; then
             PROMPT="${{ inputs.prompt }}"
+            echo "source=input" >> $GITHUB_OUTPUT
           elif [ -f ".github/prompts/ai-review.md" ]; then
             PROMPT=$(cat .github/prompts/ai-review.md)
+            echo "source=custom" >> $GITHUB_OUTPUT
           else
             PROMPT="You are a code reviewer. Review ONLY the changes in this pull request diff, not the entire codebase.
 
@@ -62,6 +65,7 @@ jobs:
           - Reference specific file names and line numbers
           - Only flag real issues, not style preferences
           - If no issues found, say so briefly"
+            echo "source=default" >> $GITHUB_OUTPUT
           fi
           echo "content<<EOF" >> $GITHUB_OUTPUT
           echo "$PROMPT" >> $GITHUB_OUTPUT
@@ -99,12 +103,14 @@ jobs:
         uses: actions/github-script@v7
         env:
           CODEX_FINAL_MESSAGE: ${{ needs.codex.outputs.final_message }}
+          PROMPT_SOURCE: ${{ needs.codex.outputs.prompt_source }}
         with:
           github-token: ${{ github.token }}
           script: |
+            const promptNote = process.env.PROMPT_SOURCE === 'custom' ? ' · custom prompt' : '';
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-              body: `## 🤖 Codex Code Review\n\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex*`,
+              body: `## 🤖 Codex Code Review\n\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex${promptNote}*`,
             });

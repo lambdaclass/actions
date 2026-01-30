@@ -62,8 +62,10 @@ jobs:
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
           ${{ inputs.prompt }}
           PROMPT_EOF
+            echo "source=input" >> $GITHUB_OUTPUT
           elif [ -f ".github/prompts/ai-review.md" ]; then
             cat .github/prompts/ai-review.md > /tmp/prompt.txt
+            echo "source=custom" >> $GITHUB_OUTPUT
           else
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
           Review this pull request focusing on:
@@ -77,6 +79,7 @@ jobs:
           - Only flag real issues, not style preferences
           - If no issues found, say so briefly
           PROMPT_EOF
+            echo "source=default" >> $GITHUB_OUTPUT
           fi
           echo "content<<EOF" >> $GITHUB_OUTPUT
           cat /tmp/prompt.txt >> $GITHUB_OUTPUT
@@ -98,7 +101,7 @@ jobs:
 
             ${{ steps.prompt.outputs.content }}
 
-            IMPORTANT: After completing your review, post your findings as a PR comment using `gh pr comment ${{ github.event.pull_request.number || github.event.issue.number }} --body "your review here"`
+            IMPORTANT: After completing your review, post your findings as a PR comment using `gh pr comment ${{ github.event.pull_request.number || github.event.issue.number }} --body "your review here"`. End the comment with a footer: "---\n*Automated review by Claude (Anthropic)${{ steps.prompt.outputs.source == 'custom' && ' · custom prompt' || '' }}*"
 
       - name: Post review comment
         if: always() && steps.claude-review.outputs.conclusion != ''

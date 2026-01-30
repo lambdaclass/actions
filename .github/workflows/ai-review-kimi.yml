@@ -56,13 +56,16 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
 
       - name: Load prompt
+        id: load_prompt
         run: |
           if [ -n "${{ inputs.prompt }}" ]; then
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
           ${{ inputs.prompt }}
           PROMPT_EOF
+            echo "source=input" >> $GITHUB_OUTPUT
           elif [ -f ".github/prompts/ai-review.md" ]; then
             cat .github/prompts/ai-review.md > /tmp/prompt.txt
+            echo "source=custom" >> $GITHUB_OUTPUT
           else
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
           You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
@@ -78,6 +81,7 @@ jobs:
           - Only flag real issues, not style preferences
           - If no issues found, say so briefly
           PROMPT_EOF
+            echo "source=default" >> $GITHUB_OUTPUT
           fi
 
       - name: Get PR diff
@@ -173,6 +177,7 @@ jobs:
           TRUNCATED: ${{ steps.diff.outputs.truncated }}
           TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
+          PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
         with:
           script: |
             const fs = require('fs');
@@ -180,18 +185,21 @@ jobs:
             const truncated = process.env.TRUNCATED === 'true';
             const totalLines = process.env.TOTAL_LINES;
             const maxLines = process.env.MAX_LINES;
+            const promptSource = process.env.PROMPT_SOURCE;
 
             let truncationWarning = '';
             if (truncated) {
               truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${maxLines} lines. Some changes were not reviewed.\n`;
             }
 
+            let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
+
             if (review && review.trim() !== '') {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `## 🤖 Kimi Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI)*`
+                body: `## 🤖 Kimi Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI)${promptNote}*`
               });
             }
 
