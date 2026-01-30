@@ -1,7 +1,11 @@
 # Example: Using one AI reviewer with a custom prompt
-# Triggers on PR open/ready or /claude comment (requires write access)
 #
-# Security note: For production, pin to a specific tag (e.g., @v1) instead of @main
+# Triggers:
+# - Automatically on PR open/ready_for_review
+# - On-demand via /claude comment (requires write access)
+#
+# Custom prompts:
+# - The 'prompt' input overrides .github/prompts/ai-review.md if both exist
 
 name: Claude Code Review
 
@@ -13,7 +17,7 @@ on:
 
 jobs:
   claude-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:

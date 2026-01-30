@@ -1,16 +1,17 @@
-# Example: How to use AI code review workflows in your repository
-# Copy this file to your repo's .github/workflows/ directory and customize as needed.
+# Example: Using all AI code reviewers
 #
 # Triggers:
 # - Automatically on PR open/ready_for_review
 # - On-demand via PR comments: /kimi, /codex, /claude (requires write access)
 #
-# Required secrets (configure in your repo's Settings > Secrets and variables > Actions):
+# Custom prompts:
+# - Create .github/prompts/ai-review.md in your repo to customize the review focus
+# - Or pass a custom prompt via the 'prompt' input
+#
+# Required secrets (configure in Settings > Secrets and variables > Actions):
 # - KIMI_API_KEY: For Kimi reviews (https://platform.moonshot.ai/)
 # - OPENAI_API_KEY: For Codex reviews (https://platform.openai.com/)
 # - ANTHROPIC_API_KEY: For Claude reviews (https://console.anthropic.com/)
-#
-# Security note: For production, pin to a specific tag (e.g., @v1) instead of @main
 
 name: AI Code Review
 
@@ -22,16 +23,16 @@ on:
 
 jobs:
   kimi-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-kimi.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-kimi.yml@v1
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
 
   codex-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@v1
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   claude-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

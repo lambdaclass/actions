@@ -10,7 +10,7 @@ Automated PR code review using various AI providers. Each workflow posts review 
 
 | Workflow | Provider | Model |
 |----------|----------|-------|
-| `ai-review-kimi.yml` | [Moonshot AI](https://platform.moonshot.ai/) | moonshot-v1-128k |
+| `ai-review-kimi.yml` | [Moonshot AI](https://platform.moonshot.ai/) | kimi-k2-0711-preview |
 | `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | Codex |
 | `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | Claude Sonnet |
 
@@ -34,7 +34,7 @@ on:
 
 jobs:
   claude-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
@@ -46,25 +46,53 @@ Trigger reviews by commenting on a PR:
 - `/codex` - Trigger Codex review
 - `/claude` - Trigger Claude review
 
-### Customization
+**Note:** Slash commands require write access to the repository.
 
-All workflows accept optional inputs to customize behavior:
+### Custom Prompts
+
+You can customize the review prompt in three ways (in order of priority):
+
+1. **`prompt` input** - Pass a custom prompt directly in the workflow
+2. **`.github/prompts/ai-review.md`** - Create this file in your repo with custom instructions
+3. **Default prompt** - Generic security/bugs/performance review
+
+When a custom prompt is used, the review footer will show "· custom prompt".
+
+#### Example: Custom prompt file
+
+Create `.github/prompts/ai-review.md` in your repository:
+
+```markdown
+You are a DevOps-focused code reviewer.
+
+Review the pull request changes with special attention to:
+1. **Infrastructure security** - AWS credentials, secrets exposure, IAM permissions
+2. **CI/CD reliability** - Workflow syntax errors, missing error handling
+3. **Terraform/IaC issues** - State management, resource naming, cost implications
+
+Guidelines:
+- Be concise and actionable
+- Reference specific file names and line numbers
+- Only flag real issues, not style preferences
+- If no issues found, say "LGTM from DevOps perspective"
+```
+
+### Workflow Options
 
 #### Kimi (`ai-review-kimi.yml`)
 
 ```yaml
 jobs:
   kimi-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-kimi.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-kimi.yml@v1
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
     with:
-      model: 'moonshot-v1-128k'      # Kimi model
-      max_diff_lines: 10000           # Max lines of diff to review
-      max_tokens: 4096                # Max response tokens
-      temperature: 0.3                # AI temperature
-      prompt: |                       # Custom system prompt
-        Your custom review instructions...
+      model: 'kimi-k2-0711-preview'   # Kimi model
+      max_diff_lines: 10000            # Max lines of diff to review
+      max_tokens: 4096                 # Max response tokens
+      temperature: 0.3                 # AI temperature
+      prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
 #### Codex (`ai-review-codex.yml`)
@@ -72,13 +100,12 @@ jobs:
 ```yaml
 jobs:
   codex-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@v1
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     with:
       safety_strategy: 'drop-sudo'    # Codex safety strategy
-      prompt: |                       # Custom review prompt
-        Your custom review instructions...
+      prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
 #### Claude (`ai-review-claude.yml`)
@@ -86,26 +113,23 @@ jobs:
 ```yaml
 jobs:
   claude-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
       model: 'sonnet'                 # sonnet, opus, or haiku
       max_turns: 30                   # Max agentic turns
       allowed_tools: '...'            # Allowed Claude tools
-      prompt: |                       # Custom review prompt
-        Your custom review instructions...
+      prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
 ### Default Review Focus
 
-All workflows use a generic default prompt that focuses on:
+All workflows use a default prompt that focuses on:
 
 1. **Security vulnerabilities** - Labeled by criticality (Critical/High/Medium/Low)
 2. **Bugs** - Logic errors, edge cases, incorrect behavior
 3. **Significant performance issues** - Only obvious problems like O(n²) loops
-
-Customize the `prompt` input to tailor reviews for your specific tech stack (Rust, Solidity, TypeScript, etc.).
 
 ### Using Multiple Reviewers
 
@@ -117,22 +141,34 @@ name: AI Code Review
 on:
   pull_request:
     types: [opened, ready_for_review]
+  issue_comment:
+    types: [created]
 
 jobs:
   kimi:
-    uses: lambdaclass/actions/.github/workflows/ai-review-kimi.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-kimi.yml@v1
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
 
+  codex:
+    uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@v1
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
   claude:
-    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@main
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
+### Security
+
+- **Fork protection**: Reviews will not run on PRs from forks (to protect secrets)
+- **Access control**: Slash commands only work for users with write access
+
 ### Versioning
 
-For production use, pin to a specific tag instead of `@main`:
+Pin to a release tag (e.g., `@v1`) or a specific commit SHA:
 
 ```yaml
 uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
