@@ -128,7 +128,7 @@ jobs:
 
           Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
 
-          PAYLOAD=$(jq -n \
+          jq -n \
             --arg model "$MODEL" \
             --arg system "$SYSTEM_PROMPT" \
             --arg user "$USER_PROMPT" \
@@ -143,12 +143,12 @@ jobs:
               ],
               temperature: $temperature,
               max_tokens: $max_tokens
-            }')
+            }' > /tmp/payload.json
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.moonshot.ai/v1/chat/completions" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $KIMI_API_KEY" \
-            -d "$PAYLOAD")
+            -d @/tmp/payload.json)
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
           BODY=$(echo "$RESPONSE" | sed '$d')
