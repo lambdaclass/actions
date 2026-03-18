@@ -154,8 +154,9 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed '$d')
 
           if [ "$HTTP_CODE" != "200" ]; then
+            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | head -c 500)
             echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=Kimi API request failed with status $HTTP_CODE" >> $GITHUB_OUTPUT
+            echo "error_message=Kimi API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
             exit 0
           fi
 
