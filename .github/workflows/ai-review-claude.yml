@@ -83,6 +83,7 @@ jobs:
           fi
           echo "content<<EOF" >> $GITHUB_OUTPUT
           cat /tmp/prompt.txt >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Claude Code Review
