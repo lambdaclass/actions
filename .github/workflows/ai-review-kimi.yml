@@ -10,7 +10,7 @@ on:
         description: 'Kimi model to use'
         required: false
         type: string
-        default: 'kimi-k2-0711-preview'
+        default: 'kimi-k2.5'
       prompt:
         description: 'Custom review prompt (overrides prompt file if provided)'
         required: false
@@ -30,7 +30,7 @@ on:
         description: 'AI temperature setting'
         required: false
         type: number
-        default: 0.3
+        default: 1
     secrets:
       KIMI_API_KEY:
         description: 'Moonshot AI API key'
@@ -154,8 +154,9 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed '$d')
 
           if [ "$HTTP_CODE" != "200" ]; then
+            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | head -c 500)
             echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=Kimi API request failed with status $HTTP_CODE" >> $GITHUB_OUTPUT
+            echo "error_message=Kimi API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -178,6 +179,7 @@ jobs:
           TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
           PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
+          MODEL: ${{ inputs.model }}
         with:
           script: |
             const fs = require('fs');
@@ -186,6 +188,7 @@ jobs:
             const totalLines = process.env.TOTAL_LINES;
             const maxLines = process.env.MAX_LINES;
             const promptSource = process.env.PROMPT_SOURCE;
+            const model = process.env.MODEL;
 
             let truncationWarning = '';
             if (truncated) {
@@ -199,7 +202,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `## 🤖 Kimi Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI)${promptNote}*`
+                body: `## 🤖 Kimi Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI) · ${model}${promptNote}*`
               });
             }
 

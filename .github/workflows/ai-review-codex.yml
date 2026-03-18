@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: ''
+      model:
+        description: 'Codex model to use'
+        required: false
+        type: string
+        default: 'gpt-5.4'
       safety_strategy:
         description: 'Codex safety strategy (drop-sudo, permissive, etc.)'
         required: false
@@ -86,6 +91,7 @@ jobs:
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          model: ${{ inputs.model }}
           safety-strategy: ${{ inputs.safety_strategy }}
           prompt: |
             REPO: ${{ github.repository }}
@@ -108,14 +114,16 @@ jobs:
         env:
           CODEX_FINAL_MESSAGE: ${{ needs.codex.outputs.final_message }}
           PROMPT_SOURCE: ${{ needs.codex.outputs.prompt_source }}
+          MODEL: ${{ inputs.model }}
         with:
           github-token: ${{ github.token }}
           script: |
             const source = process.env.PROMPT_SOURCE;
+            const model = process.env.MODEL;
             const promptNote = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-              body: `## 🤖 Codex Code Review\n\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex${promptNote}*`,
+              body: `## 🤖 Codex Code Review\n\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`,
             });
