@@ -179,6 +179,7 @@ jobs:
           TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
           PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
+          MODEL: ${{ inputs.model }}
         with:
           script: |
             const fs = require('fs');
@@ -187,6 +188,7 @@ jobs:
             const totalLines = process.env.TOTAL_LINES;
             const maxLines = process.env.MAX_LINES;
             const promptSource = process.env.PROMPT_SOURCE;
+            const model = process.env.MODEL;
 
             let truncationWarning = '';
             if (truncated) {
@@ -200,7 +202,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `## 🤖 Kimi Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI)${promptNote}*`
+                body: `## 🤖 Kimi Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI) · ${model}${promptNote}*`
               });
             }
 
