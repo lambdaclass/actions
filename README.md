@@ -10,9 +10,9 @@ Automated PR code review using various AI providers. Each workflow posts review 
 
 | Workflow | Provider | Model |
 |----------|----------|-------|
-| `ai-review-kimi.yml` | [Moonshot AI](https://platform.moonshot.ai/) | kimi-k2-0711-preview |
-| `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | Codex |
-| `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | Claude Sonnet |
+| `ai-review-kimi.yml` | [Moonshot AI](https://platform.moonshot.ai/) | kimi-k2.5 |
+| `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | gpt-5.4 |
+| `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | sonnet |
 
 ### Quick Start
 
@@ -88,10 +88,10 @@ jobs:
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
     with:
-      model: 'kimi-k2-0711-preview'   # Kimi model
+      model: 'kimi-k2.5'              # Kimi model
       max_diff_lines: 10000            # Max lines of diff to review
       max_tokens: 4096                 # Max response tokens
-      temperature: 0.3                 # AI temperature
+      temperature: 1                   # AI temperature (1 required for reasoning models)
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
@@ -104,6 +104,7 @@ jobs:
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     with:
+      model: 'gpt-5.4'                # Codex model
       safety_strategy: 'drop-sudo'    # Codex safety strategy
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
