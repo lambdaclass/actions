@@ -30,7 +30,7 @@ on:
         description: 'AI temperature setting'
         required: false
         type: number
-        default: 0.3
+        default: 1
     secrets:
       KIMI_API_KEY:
         description: 'Moonshot AI API key'
