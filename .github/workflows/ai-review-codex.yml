@@ -13,10 +13,10 @@ on:
         type: string
         default: ''
       model:
-        description: 'Codex model to use (leave empty for default)'
+        description: 'Codex model to use'
         required: false
         type: string
-        default: ''
+        default: 'gpt-5.4'
       safety_strategy:
         description: 'Codex safety strategy (drop-sudo, permissive, etc.)'
         required: false
