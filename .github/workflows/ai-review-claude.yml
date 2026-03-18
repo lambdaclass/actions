@@ -110,11 +110,13 @@ jobs:
         env:
           EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
           PROMPT_SOURCE: ${{ steps.prompt.outputs.source }}
+          MODEL: ${{ inputs.model }}
         with:
           script: |
             const fs = require('fs');
             const execFile = process.env.EXECUTION_FILE;
             const source = process.env.PROMPT_SOURCE;
+            const model = process.env.MODEL;
             const customPrompt = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
 
             if (!execFile || !fs.existsSync(execFile)) {
@@ -132,6 +134,6 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-                body: `## 🤖 Claude Code Review\n\n${review}\n\n---\n*Automated review by Claude (Anthropic)${customPrompt}*`
+                body: `## 🤖 Claude Code Review\n\n${review}\n\n---\n*Automated review by Claude (Anthropic) · ${model}${customPrompt}*`
               });
             }
