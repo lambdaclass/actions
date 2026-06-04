@@ -16,21 +16,6 @@ on:
         required: false
         type: string
         default: ''
-      max_diff_lines:
-        description: 'Maximum lines of diff to send to API'
-        required: false
-        type: number
-        default: 10000
-      max_tokens:
-        description: 'Maximum tokens for AI response'
-        required: false
-        type: number
-        default: 4096
-      temperature:
-        description: 'AI temperature setting'
-        required: false
-        type: number
-        default: 1
     secrets:
       KIMI_API_KEY:
         description: 'Moonshot AI API key'
@@ -56,9 +41,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
 
       - name: Load prompt
-        id: load_prompt
+        id: prompt
+        env:
+          INPUT_PROMPT: ${{ inputs.prompt }}
         run: |
-          if [ -n "${{ inputs.prompt }}" ]; then
+          if [ -n "$INPUT_PROMPT" ]; then
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
           ${{ inputs.prompt }}
           PROMPT_EOF
@@ -83,140 +70,113 @@ jobs:
           PROMPT_EOF
             echo "source=default" >> $GITHUB_OUTPUT
           fi
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/prompt.txt >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get PR diff
         id: diff
         env:
           GH_TOKEN: ${{ github.token }}
-          MAX_LINES: ${{ inputs.max_diff_lines }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff.txt
+          gh pr diff "$PR_NUMBER" --repo "${{ github.repository }}" > /tmp/pr_diff.txt
+          echo "Diff has $(wc -l < /tmp/pr_diff.txt) lines"
 
-          TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
-
-          # Truncate if too large (Kimi has context limits)
-          head -n $MAX_LINES /tmp/pr_diff.txt > /tmp/pr_diff_truncated.txt
-
-          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
-            echo "truncated=true" >> "$GITHUB_OUTPUT"
-            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
-            echo "::warning::Diff truncated from $TOTAL_LINES to $MAX_LINES lines. Some changes were not reviewed."
-          else
-            echo "truncated=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Call Kimi API for review
-        id: kimi_review
+      - name: Install opencode
         env:
-          KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
-          MODEL: ${{ inputs.model }}
-          MAX_TOKENS: ${{ inputs.max_tokens }}
-          TEMPERATURE: ${{ inputs.temperature }}
+          OPENCODE_VERSION: '1.15.13'
+          OPENCODE_SHA256: '51785a07c009f27c5125a5235c5a0ff78433dace07f73fbc44eb672ead4b3d79'
         run: |
-          SYSTEM_PROMPT=$(cat /tmp/prompt.txt)
-          echo "::add-mask::$KIMI_API_KEY"
+          url="https://github.com/anomalyco/opencode/releases/download/v${OPENCODE_VERSION}/opencode-linux-x64.tar.gz"
+          curl -fsSL "$url" -o /tmp/opencode.tar.gz
+          echo "${OPENCODE_SHA256}  /tmp/opencode.tar.gz" | sha256sum -c -
+          mkdir -p "$HOME/.opencode/bin"
+          tar -xzf /tmp/opencode.tar.gz -C "$HOME/.opencode/bin"
+          chmod 755 "$HOME/.opencode/bin/opencode"
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
 
-          if [ -z "$KIMI_API_KEY" ]; then
-            echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=KIMI_API_KEY secret is not set" >> $GITHUB_OUTPUT
-            exit 0
+      - name: Run Kimi Code Review
+        id: kimi-review
+        # No GITHUB_TOKEN here: the agent emits, the next step posts.
+        env:
+          MOONSHOT_API_KEY: ${{ secrets.KIMI_API_KEY }}
+          MODEL: ${{ inputs.model }}
+          PROMPT_CONTENT: ${{ steps.prompt.outputs.content }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          mkdir -p .opencode
+          cat > opencode.json << 'OPENCODE_EOF'
+          {
+            "$schema": "https://opencode.ai/config.json",
+            "provider": {
+              "moonshotai": {
+                "npm": "@ai-sdk/openai-compatible",
+                "name": "Moonshot AI",
+                "options": { "baseURL": "https://api.moonshot.ai/v1" }
+              }
+            }
+          }
+          OPENCODE_EOF
+
+          {
+            printf 'REPO: %s\nPR NUMBER: %s\n\n' "$REPO" "$PR_NUMBER"
+            printf '%s\n\n' "$PROMPT_CONTENT"
+            echo "The PR diff is available at /tmp/pr_diff.txt. Read it with: cat /tmp/pr_diff.txt"
+            echo "Output your review findings in markdown. Do NOT post a PR comment yourself - just output the review content."
+          } > /tmp/agent_prompt.txt
+
+          set -o pipefail
+          opencode run --format json -m "moonshotai/${MODEL}" "$(cat /tmp/agent_prompt.txt)" > /tmp/events.jsonl
+
+          # Each line is {type,timestamp,sessionID,...}; completed assistant text
+          # arrives as {"type":"text","part":{"text":"..."}} events.
+          jq -rs 'map(select(.type == "text") | .part.text) | join("\n")' /tmp/events.jsonl > /tmp/review.txt
+
+          if [ -s /tmp/review.txt ]; then
+            echo "success=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "error=true" >> "$GITHUB_OUTPUT"
+            echo "error_message=opencode produced no review text" >> "$GITHUB_OUTPUT"
           fi
-
-          USER_PROMPT="REPO: ${{ github.repository }}
-          PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-
-          Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
-
-          jq -n \
-            --arg model "$MODEL" \
-            --arg system "$SYSTEM_PROMPT" \
-            --arg user "$USER_PROMPT" \
-            --argjson max_tokens "$MAX_TOKENS" \
-            --argjson temperature "$TEMPERATURE" \
-            --rawfile diff /tmp/pr_diff_truncated.txt \
-            '{
-              model: $model,
-              messages: [
-                { role: "system", content: $system },
-                { role: "user", content: ($user + "\n\nDiff:\n" + $diff) }
-              ],
-              temperature: $temperature,
-              max_tokens: $max_tokens
-            }' > /tmp/payload.json
-
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.moonshot.ai/v1/chat/completions" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $KIMI_API_KEY" \
-            -d @/tmp/payload.json)
-
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
-
-          if [ "$HTTP_CODE" != "200" ]; then
-            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | head -c 500)
-            echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=Kimi API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          HAS_ERROR=$(echo "$BODY" | jq -e '.error.message' > /dev/null 2>&1 && echo "yes" || echo "no")
-          if [ "$HAS_ERROR" = "yes" ]; then
-            echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=Kimi API returned an error response" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // "Error: Unexpected API response"')
-          echo "$REVIEW" > /tmp/review.txt
-          echo "success=true" >> $GITHUB_OUTPUT
 
       - name: Post review comment
-        if: steps.kimi_review.outputs.success == 'true'
+        if: steps.kimi-review.outputs.success == 'true'
         uses: actions/github-script@v7
         env:
-          TRUNCATED: ${{ steps.diff.outputs.truncated }}
-          TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
-          MAX_LINES: ${{ inputs.max_diff_lines }}
-          PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
+          PROMPT_SOURCE: ${{ steps.prompt.outputs.source }}
           MODEL: ${{ inputs.model }}
         with:
+          github-token: ${{ github.token }}
           script: |
             const fs = require('fs');
             const review = fs.readFileSync('/tmp/review.txt', 'utf8');
-            const truncated = process.env.TRUNCATED === 'true';
-            const totalLines = process.env.TOTAL_LINES;
-            const maxLines = process.env.MAX_LINES;
-            const promptSource = process.env.PROMPT_SOURCE;
             const model = process.env.MODEL;
-
-            let truncationWarning = '';
-            if (truncated) {
-              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${maxLines} lines. Some changes were not reviewed.\n`;
-            }
-
-            let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
-
+            const source = process.env.PROMPT_SOURCE;
+            const promptNote = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
             if (review && review.trim() !== '') {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: `## 🤖 Kimi Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI) · ${model}${promptNote}*`
+                issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
+                body: `## 🤖 Kimi Code Review\n\n${review}\n\n---\n*Automated review by Kimi (Moonshot AI) · ${model}${promptNote}*`,
               });
             }
 
       - name: Post error comment
-        if: steps.kimi_review.outputs.error == 'true'
+        if: steps.kimi-review.outputs.error == 'true'
         uses: actions/github-script@v7
         env:
-          ERROR_MESSAGE: ${{ steps.kimi_review.outputs.error_message }}
+          ERROR_MESSAGE: ${{ steps.kimi-review.outputs.error_message }}
         with:
+          github-token: ${{ github.token }}
           script: |
             const errorMessage = process.env.ERROR_MESSAGE || 'Unknown error';
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `## 🤖 Kimi Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by Kimi (Moonshot AI)*`
+              issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
+              body: `## 🤖 Kimi Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by Kimi (Moonshot AI)*`,
             });
