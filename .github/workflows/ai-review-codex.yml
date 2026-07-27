@@ -16,7 +16,7 @@ on:
         description: 'Codex model to use'
         required: false
         type: string
-        default: 'gpt-5.4'
+        default: 'gpt-5.6-terra'
       safety_strategy:
         description: 'Codex safety strategy (drop-sudo, permissive, etc.)'
         required: false
@@ -48,6 +48,18 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
+
+      # Codex runs with --sandbox workspace-write, which keeps .git read-only.
+      # checkout leaves LFS-tracked files as pointers, so in repos that use LFS
+      # every git command runs the LFS filters, which write to .git/lfs/tmp and
+      # fail with "read-only file system" (exit 128). Detach the filters here,
+      # outside the sandbox; the review only needs to read files.
+      - name: Detach git LFS filters
+        run: git lfs uninstall --local || true
+
+      # Without it, codex logs a warning and falls back to its bundled copy.
+      - name: Install bubblewrap
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
 
       - name: Load prompt
         id: prompt

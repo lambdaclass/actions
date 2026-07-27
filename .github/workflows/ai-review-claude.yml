@@ -16,7 +16,7 @@ on:
         description: 'Maximum agentic turns'
         required: false
         type: number
-        default: 30
+        default: 35
       prompt:
         description: 'Custom review prompt (overrides prompt file if provided)'
         required: false
@@ -104,8 +104,11 @@ jobs:
 
             Output your review findings in markdown format. Do NOT post a PR comment yourself - just output the review content.
 
+      # always(): a run that hits --max-turns fails the step above, and without
+      # this the review it already wrote is thrown away and the PR just gets a
+      # red check with no comment.
       - name: Post review comment
-        if: steps.claude-review.outputs.execution_file != ''
+        if: always() && steps.claude-review.outputs.execution_file != ''
         uses: actions/github-script@v7
         env:
           EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
@@ -127,13 +130,27 @@ jobs:
             const data = JSON.parse(fs.readFileSync(execFile, 'utf8'));
             // Find the result message (last message with type "result")
             const resultMsg = data.filter(m => m.type === 'result').pop();
-            const review = resultMsg?.result || '';
+            let review = resultMsg?.result || '';
+            let note = '';
+
+            // A failed run (error_max_turns, API error) carries no `result`, so
+            // fall back to the last thing Claude wrote and flag it as partial.
+            if (review.trim() === '') {
+              const texts = data
+                .filter(m => m.type === 'assistant')
+                .flatMap(m => (m.message?.content || [])
+                  .filter(c => c.type === 'text')
+                  .map(c => c.text || ''));
+              review = texts.pop() || '';
+              const reason = resultMsg?.errors?.join('; ') || resultMsg?.subtype || 'run did not finish';
+              note = `\n\n> Partial review: ${reason}.`;
+            }
 
             if (review && review.trim() !== '') {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-                body: `## 🤖 Claude Code Review\n\n${review}\n\n---\n*Automated review by Claude (Anthropic) · ${model}${customPrompt}*`
+                body: `## 🤖 Claude Code Review\n\n${review}${note}\n\n---\n*Automated review by Claude (Anthropic) · ${model}${customPrompt}*`
               });
             }
