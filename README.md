@@ -11,7 +11,7 @@ Automated PR code review using various AI providers. Each workflow posts review 
 | Workflow | Provider | Model |
 |----------|----------|-------|
 | `ai-review-kimi.yml` | [Moonshot AI](https://platform.moonshot.ai/) | kimi-k2.5 |
-| `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | gpt-5.4 |
+| `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | gpt-5.6-terra |
 | `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | sonnet |
 
 ### Quick Start
@@ -104,7 +104,7 @@ jobs:
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     with:
-      model: 'gpt-5.4'                # Codex model
+      model: 'gpt-5.6-terra'          # Codex model
       safety_strategy: 'drop-sudo'    # Codex safety strategy
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
@@ -119,7 +119,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
       model: 'sonnet'                 # sonnet, opus, or haiku
-      max_turns: 30                   # Max agentic turns
+      max_turns: 35                   # Max agentic turns
       allowed_tools: '...'            # Allowed Claude tools
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
