@@ -10,7 +10,7 @@ on:
         description: 'Kimi model to use'
         required: false
         type: string
-        default: 'kimi-k2.5'
+        default: 'kimi-k2.7-code'
       prompt:
         description: 'Custom review prompt (overrides prompt file if provided)'
         required: false
