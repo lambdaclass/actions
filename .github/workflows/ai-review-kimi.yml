@@ -10,7 +10,16 @@ on:
         description: 'Kimi model to use'
         required: false
         type: string
-        default: 'kimi-k2.7-code'
+        default: 'kimi-k2.6'
+      thinking:
+        description: >-
+          Thinking mode for the model: 'disabled', 'enabled', or '' to omit the
+          field entirely. kimi-k2.6 accepts both; kimi-k2.7-code only accepts
+          'enabled'; kimi-k3 always reasons and uses reasoning_effort instead,
+          so pass '' for it.
+        required: false
+        type: string
+        default: 'disabled'
       prompt:
         description: 'Custom review prompt (overrides prompt file if provided)'
         required: false
@@ -111,6 +120,7 @@ jobs:
         env:
           KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
           MODEL: ${{ inputs.model }}
+          THINKING: ${{ inputs.thinking }}
           MAX_TOKENS: ${{ inputs.max_tokens }}
           TEMPERATURE: ${{ inputs.temperature }}
         run: |
@@ -134,6 +144,7 @@ jobs:
             --arg user "$USER_PROMPT" \
             --argjson max_tokens "$MAX_TOKENS" \
             --argjson temperature "$TEMPERATURE" \
+            --arg thinking "$THINKING" \
             --rawfile diff /tmp/pr_diff_truncated.txt \
             '{
               model: $model,
@@ -143,7 +154,8 @@ jobs:
               ],
               temperature: $temperature,
               max_tokens: $max_tokens
-            }' > /tmp/payload.json
+            }
+            + (if $thinking == "" then {} else { thinking: { type: $thinking } } end)' > /tmp/payload.json
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.moonshot.ai/v1/chat/completions" \
             -H "Content-Type: application/json" \
@@ -167,7 +179,20 @@ jobs:
             exit 0
           fi
 
-          REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // "Error: Unexpected API response"')
+          REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // ""')
+
+          # A thinking model can burn the whole max_tokens budget on
+          # reasoning_content and return an empty content field with HTTP 200.
+          # Without this branch the review step succeeds and posts nothing,
+          # leaving a green run and a silent PR.
+          if [ -z "$(printf '%s' "$REVIEW" | tr -d '[:space:]')" ]; then
+            FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"')
+            HAS_REASONING=$(echo "$BODY" | jq -r 'if (.choices[0].message.reasoning_content // "") == "" then "no" else "yes" end')
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Kimi returned an empty content field (finish_reason=$FINISH, reasoning_content present=$HAS_REASONING). If the model reasons, raise max_tokens or set the thinking input to 'disabled'." >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           echo "$REVIEW" > /tmp/review.txt
           echo "success=true" >> $GITHUB_OUTPUT
 
