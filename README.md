@@ -10,7 +10,7 @@ Automated PR code review using various AI providers. Each workflow posts review 
 
 | Workflow | Provider | Model |
 |----------|----------|-------|
-| `ai-review-kimi.yml` | [Moonshot AI](https://platform.moonshot.ai/) | kimi-k2.5 |
+| `ai-review-kimi.yml` | [Moonshot AI](https://platform.kimi.ai/) | kimi-k2.7-code |
 | `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | gpt-5.4 |
 | `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | sonnet |
 
@@ -88,7 +88,7 @@ jobs:
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
     with:
-      model: 'kimi-k2.5'              # Kimi model
+      model: 'kimi-k2.7-code'          # Kimi model
       max_diff_lines: 10000            # Max lines of diff to review
       max_tokens: 4096                 # Max response tokens
       temperature: 1                   # AI temperature (1 required for reasoning models)
