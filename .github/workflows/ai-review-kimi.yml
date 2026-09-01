@@ -36,10 +36,15 @@ on:
         type: number
         default: 4096
       temperature:
-        description: 'AI temperature setting'
+        description: >-
+          Sampling temperature as a string, or '' (the default) to omit the
+          field and let the model apply its own. Kimi pins this per model:
+          kimi-k3 and kimi-k2.7-code are fixed at 1.0, and kimi-k2.6 requires
+          1.0 with thinking enabled but 0.6 with it disabled. Any other value
+          is a 400, so omitting it is the only value correct for every model.
         required: false
-        type: number
-        default: 1
+        type: string
+        default: ''
     secrets:
       KIMI_API_KEY:
         description: 'Moonshot AI API key'
@@ -143,7 +148,7 @@ jobs:
             --arg system "$SYSTEM_PROMPT" \
             --arg user "$USER_PROMPT" \
             --argjson max_tokens "$MAX_TOKENS" \
-            --argjson temperature "$TEMPERATURE" \
+            --arg temperature "$TEMPERATURE" \
             --arg thinking "$THINKING" \
             --rawfile diff /tmp/pr_diff_truncated.txt \
             '{
@@ -152,10 +157,10 @@ jobs:
                 { role: "system", content: $system },
                 { role: "user", content: ($user + "\n\nDiff:\n" + $diff) }
               ],
-              temperature: $temperature,
               max_tokens: $max_tokens
             }
-            + (if $thinking == "" then {} else { thinking: { type: $thinking } } end)' > /tmp/payload.json
+            + (if $thinking == "" then {} else { thinking: { type: $thinking } } end)
+            + (if $temperature == "" then {} else { temperature: ($temperature | tonumber) } end)' > /tmp/payload.json
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.moonshot.ai/v1/chat/completions" \
             -H "Content-Type: application/json" \

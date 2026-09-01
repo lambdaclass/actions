@@ -92,7 +92,7 @@ jobs:
       thinking: 'disabled'             # 'disabled', 'enabled', or '' to omit
       max_diff_lines: 10000            # Max lines of diff to review
       max_tokens: 4096                 # Max response tokens
-      temperature: 1                   # AI temperature (1 required for reasoning models)
+      temperature: ''                  # '' omits it; Kimi pins temperature per model
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
