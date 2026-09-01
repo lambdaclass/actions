@@ -105,12 +105,24 @@ jobs:
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     with:
-      model: 'gpt-5.4'                # Codex model
-      safety_strategy: 'drop-sudo'    # Codex safety strategy
-      max_diff_lines: 10000            # Max lines of diff to review
+      model: 'gpt-5.4'                 # Codex model
+      safety_strategy: 'drop-sudo'     # Codex safety strategy
+      max_diff_lines: 10000            # Advisory: agent can regenerate the diff
       timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
+
+> **Two caveats on the Codex failure notice.**
+>
+> `max_diff_lines` bounds what is written to `/tmp/pr_diff.txt`, but the agent has the
+> repository checked out at `fetch-depth: 0` and can regenerate the full diff with
+> `git diff`. Treat it as advisory. The kimi input of the same name *is* a hard cap,
+> because there the diff is the request payload.
+>
+> The workflow comments whenever the review job does not report for itself, and a
+> cancel is a cancel: if a consumer sets `concurrency: cancel-in-progress: true`,
+> every superseded run posts a "did not complete" comment. No Actions expression
+> distinguishes a timeout-cancel from a concurrency-cancel.
 
 #### Claude (`ai-review-claude.yml`)
 

@@ -171,7 +171,11 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed '$d')
 
           if [ "$HTTP_CODE" != "200" ]; then
-            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | head -c 500)
+            # The `// .` fallback pretty-prints the whole body when it carries no
+            # .error key, and head -c does not collapse it. Embedded newlines would
+            # break the GITHUB_OUTPUT line and let response content masquerade as
+            # further output assignments, so flatten before writing.
+            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | tr '\n' ' ' | head -c 500)
             echo "error=true" >> $GITHUB_OUTPUT
             echo "error_message=Kimi API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
             exit 0
