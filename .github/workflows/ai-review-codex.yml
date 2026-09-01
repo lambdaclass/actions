@@ -113,7 +113,7 @@ jobs:
           # then drop the full copy so it is not sitting next to it. This bounds
           # what we hand the agent; it does not bound what the agent can reach,
           # since fetch-depth 0 lets it regenerate the diff with git diff.
-          head -n $MAX_LINES /tmp/pr_diff_full.txt > /tmp/pr_diff.txt
+          head -n "$MAX_LINES" /tmp/pr_diff_full.txt > /tmp/pr_diff.txt
           rm -f /tmp/pr_diff_full.txt
 
           if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
