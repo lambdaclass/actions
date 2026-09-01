@@ -22,6 +22,20 @@ on:
         required: false
         type: string
         default: 'drop-sudo'
+      max_diff_lines:
+        description: >-
+          Lines of diff written to /tmp/pr_diff.txt. Advisory, not a hard bound:
+          the agent has the repo checked out at fetch-depth 0 and can regenerate
+          the full diff with git diff. Unlike the kimi input of the same name,
+          which is a hard cap on the request payload.
+        required: false
+        type: number
+        default: 10000
+      timeout_minutes:
+        description: 'Minutes before the review job is cancelled'
+        required: false
+        type: number
+        default: 20
     secrets:
       OPENAI_API_KEY:
         description: 'OpenAI API key'
@@ -40,6 +54,16 @@ jobs:
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/codex') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
+    # Whether this job already told the PR what happened. A step outcome is a
+    # fixed enum, never a candidate for secret masking, so unlike #13's
+    # final_message this output cannot be silently dropped. A cancelled job sets
+    # nothing, which is exactly the case report_failure must cover.
+    outputs:
+      reported: ${{ steps.review.outcome == 'success' || steps.error.outcome == 'success' }}
+    # Without this a hung review can burn hours: the action exposes no timeout of
+    # its own, so nothing else bounds it. A cancel skips every step-level guard,
+    # which is why the report_failure job below is what actually reports it.
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,10 +102,29 @@ jobs:
         id: diff
         env:
           GH_TOKEN: ${{ github.token }}
+          MAX_LINES: ${{ inputs.max_diff_lines }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff.txt
-          echo "Diff has $(wc -l < /tmp/pr_diff.txt) lines"
+          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff_full.txt
+
+          TOTAL_LINES=$(wc -l < /tmp/pr_diff_full.txt)
+
+          # Truncate into the path the prompt points at, so the prompt stays as-is,
+          # then drop the full copy so it is not sitting next to it. This bounds
+          # what we hand the agent; it does not bound what the agent can reach,
+          # since fetch-depth 0 lets it regenerate the diff with git diff.
+          head -n "$MAX_LINES" /tmp/pr_diff_full.txt > /tmp/pr_diff.txt
+          rm -f /tmp/pr_diff_full.txt
+
+          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
+            echo "truncated=true" >> "$GITHUB_OUTPUT"
+            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
+            echo "::warning::Diff truncated from $TOTAL_LINES to $MAX_LINES lines. Some changes were not reviewed."
+          else
+            echo "truncated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "Diff has $TOTAL_LINES lines, sending $(wc -l < /tmp/pr_diff.txt)"
 
       - name: Run Codex Code Review
         id: codex
@@ -99,27 +142,38 @@ jobs:
             The PR diff is available at /tmp/pr_diff.txt. Read it with: cat /tmp/pr_diff.txt
 
       - name: Post review comment
+        id: review
         if: steps.codex.outputs.final-message != ''
         uses: actions/github-script@v7
         env:
           CODEX_FINAL_MESSAGE: ${{ steps.codex.outputs.final-message }}
           PROMPT_SOURCE: ${{ steps.prompt.outputs.source }}
           MODEL: ${{ inputs.model }}
+          TRUNCATED: ${{ steps.diff.outputs.truncated }}
+          TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
+          MAX_LINES: ${{ inputs.max_diff_lines }}
         with:
           github-token: ${{ github.token }}
           script: |
             const source = process.env.PROMPT_SOURCE;
             const model = process.env.MODEL;
             const promptNote = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
+            const truncationWarning = process.env.TRUNCATED === 'true'
+              ? `\n> ⚠️ **Warning:** Diff was truncated from ${process.env.TOTAL_LINES} to ${process.env.MAX_LINES} lines. Some changes were not reviewed.\n`
+              : '';
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-              body: `## 🤖 Codex Code Review\n\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`,
+              body: `## 🤖 Codex Code Review\n${truncationWarning}\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`,
             });
 
+      # Narrowed to the one case a step-level guard can serve: the job ran green but
+      # Codex returned nothing. Any step failure, cancel or timeout falls through to
+      # the report_failure job instead, so exactly one comment is posted either way.
       - name: Post error comment
-        if: ${{ !cancelled() && steps.codex.outputs.final-message == '' }}
+        id: error
+        if: ${{ success() && steps.codex.outputs.final-message == '' }}
         uses: actions/github-script@v7
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -131,4 +185,45 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
               body: `## 🤖 Codex Code Review\n\n⚠️ Review failed: the run produced no final message. [See the job log](${process.env.RUN_URL})\n\n---\n*Automated review by OpenAI Codex*`,
+            });
+
+      # Matches ai-review-kimi.yml: a review that did not happen must not leave a
+      # green run. Runs after the comment so the PR is told first.
+      - name: Fail the job if no review was produced
+        if: ${{ success() && steps.codex.outputs.final-message == '' }}
+        run: |
+          echo "::error::Codex produced no final message"
+          exit 1
+
+  # A job that dies mid-step runs none of its remaining steps, so the step-level
+  # error comment above cannot report a cancel, a timeout or a lost runner.
+  #
+  # This does read a job output, which is what #13 removed -- but `reported` is a
+  # boolean built from step outcomes, not model text. The runner only drops an
+  # output it believes holds a secret, and 'true'/'false' never will, so the
+  # silent-drop failure #13 hit cannot recur here. No review text crosses the job
+  # boundary; the comment body is built from the run URL alone.
+  #
+  # 'skipped' must be excluded: the codex job is skipped on fork PRs and on every
+  # /kimi comment, and always() runs a dependent job even when its dependency was
+  # skipped.
+  report_failure:
+    name: Report review failure
+    needs: codex
+    if: ${{ always() && needs.codex.result != 'skipped' && needs.codex.outputs.reported != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post failure comment
+        uses: actions/github-script@v7
+        env:
+          CODEX_RESULT: ${{ needs.codex.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
+              body: `## 🤖 Codex Code Review\n\n⚠️ The review job did not complete (result: ${process.env.CODEX_RESULT}). [See the job log](${process.env.RUN_URL})\n\n---\n*Automated review by OpenAI Codex*`,
             });

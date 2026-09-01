@@ -171,7 +171,11 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed '$d')
 
           if [ "$HTTP_CODE" != "200" ]; then
-            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | head -c 500)
+            # The `// .` fallback pretty-prints the whole body when it carries no
+            # .error key, and head -c does not collapse it. Embedded newlines would
+            # break the GITHUB_OUTPUT line and let response content masquerade as
+            # further output assignments, so flatten before writing.
+            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | tr '\n' ' ' | head -c 500)
             echo "error=true" >> $GITHUB_OUTPUT
             echo "error_message=Kimi API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
             exit 0
@@ -250,3 +254,16 @@ jobs:
               issue_number: context.issue.number,
               body: `## 🤖 Kimi Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by Kimi (Moonshot AI)*`
             });
+
+      # The API step exits 0 so the comment above can post, which left a failed
+      # review showing as a green run -- visible only if someone read the PR.
+      # Fail here, after the comment, so the run reflects reality.
+      - name: Fail the job if the review did not run
+        if: steps.kimi_review.outputs.error == 'true'
+        env:
+          # Via env, never interpolated into the run body: this string is built
+          # from an API response and must not reach the shell as code.
+          ERROR_MESSAGE: ${{ steps.kimi_review.outputs.error_message }}
+        run: |
+          echo "::error::$ERROR_MESSAGE"
+          exit 1
