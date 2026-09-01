@@ -123,6 +123,11 @@ jobs:
 > cancel is a cancel: if a consumer sets `concurrency: cancel-in-progress: true`,
 > every superseded run posts a "did not complete" comment. No Actions expression
 > distinguishes a timeout-cancel from a concurrency-cancel.
+>
+> A review that does not happen now **fails the run**, in both `ai-review-codex.yml`
+> and `ai-review-kimi.yml` -- an empty model response is red, not a green run with an
+> explanatory comment. The comment is still posted first. If you gate merges on these
+> workflows, note that a provider outage will now block, where previously it passed.
 
 #### Claude (`ai-review-claude.yml`)
 
