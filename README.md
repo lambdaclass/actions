@@ -107,6 +107,8 @@ jobs:
     with:
       model: 'gpt-5.4'                # Codex model
       safety_strategy: 'drop-sudo'    # Codex safety strategy
+      max_diff_lines: 10000            # Max lines of diff to review
+      timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
