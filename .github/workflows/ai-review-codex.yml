@@ -16,7 +16,7 @@ on:
         description: 'Codex model to use'
         required: false
         type: string
-        default: 'gpt-5.4'
+        default: 'gpt-6.1-sol'
       safety_strategy:
         description: 'Codex safety strategy (drop-sudo, permissive, etc.)'
         required: false

@@ -10,8 +10,9 @@ Automated PR code review using various AI providers. Each workflow posts review 
 
 | Workflow | Provider | Model |
 |----------|----------|-------|
-| `ai-review-kimi.yml` | [Moonshot AI](https://platform.kimi.ai/) | kimi-k2.6 |
-| `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | gpt-5.4 |
+| `ai-review-kimi.yml` | [Moonshot AI](https://platform.kimi.ai/) | kimi-k3.1-pro |
+| `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | gpt-6.1-sol |
+| `ai-review-deepseek.yml` | [DeepSeek](https://platform.deepseek.com/) | deepseek-v4-pro |
 | `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | sonnet |
 
 ### Quick Start
@@ -19,6 +20,7 @@ Automated PR code review using various AI providers. Each workflow posts review 
 1. **Add the required secret** to your repository (Settings > Secrets and variables > Actions):
    - `KIMI_API_KEY` for Kimi
    - `OPENAI_API_KEY` for Codex
+   - `DEEPSEEK_API_KEY` for DeepSeek
    - `ANTHROPIC_API_KEY` for Claude
 
 2. **Create a workflow file** in your repo at `.github/workflows/ai-review.yml`:
@@ -44,6 +46,7 @@ jobs:
 Trigger reviews by commenting on a PR:
 - `/kimi` - Trigger Kimi review
 - `/codex` - Trigger Codex review
+- `/deepseek` - Trigger DeepSeek review
 - `/claude` - Trigger Claude review
 
 **Note:** Slash commands require write access to the repository.
@@ -88,11 +91,36 @@ jobs:
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
     with:
-      model: 'kimi-k2.6'               # Kimi model
-      thinking: 'disabled'             # 'disabled', 'enabled', or '' to omit
+      model: 'kimi-k3.1-pro'           # Kimi model
+      reasoning_effort: 'high'         # 'low', 'high', 'max', or '' to omit (K2 models)
+      thinking: ''                     # '' omits it; K2 models take 'disabled' or 'enabled'
       max_diff_lines: 10000            # Max lines of diff to review
-      max_tokens: 4096                 # Max response tokens
+      max_tokens: 65536                # Max response tokens, reasoning included
       temperature: ''                  # '' omits it; Kimi pins temperature per model
+      timeout_minutes: 20              # Cancel the review job after this long
+      prompt: ''                       # Custom prompt (overrides prompt file)
+```
+
+The K3 models always reason: `thinking` stays empty and `reasoning_effort` sets
+how much. Moonshot retires the K2 series at the end of December 2026; a repo still
+on `kimi-k2.6` or `kimi-k2.7-code` passes `reasoning_effort: ''` and the `thinking`
+value that model accepts.
+
+#### DeepSeek (`ai-review-deepseek.yml`)
+
+```yaml
+jobs:
+  deepseek-review:
+    uses: lambdaclass/actions/.github/workflows/ai-review-deepseek.yml@v1
+    secrets:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    with:
+      model: 'deepseek-v4-pro'         # deepseek-v4-pro or deepseek-flash
+      reasoning_effort: 'high'         # 'none' disables thinking; 'low', 'high', 'max'; '' omits
+      max_diff_lines: 10000            # Max lines of diff to review
+      max_tokens: 65536                # Max response tokens, reasoning included
+      temperature: ''                  # '' omits it; ignored in thinking mode anyway
+      timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
@@ -105,7 +133,7 @@ jobs:
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     with:
-      model: 'gpt-5.4'                 # Codex model
+      model: 'gpt-6.1-sol'             # Codex model
       safety_strategy: 'drop-sudo'     # Codex safety strategy
       max_diff_lines: 10000            # Advisory: agent can regenerate the diff
       timeout_minutes: 20              # Cancel the review job after this long
@@ -124,8 +152,8 @@ jobs:
 > every superseded run posts a "did not complete" comment. No Actions expression
 > distinguishes a timeout-cancel from a concurrency-cancel.
 >
-> A review that does not happen now **fails the run**, in both `ai-review-codex.yml`
-> and `ai-review-kimi.yml` -- an empty model response is red, not a green run with an
+> A review that does not happen now **fails the run**, in `ai-review-codex.yml`,
+> `ai-review-kimi.yml` and `ai-review-deepseek.yml` -- an empty model response is red, not a green run with an
 > explanatory comment. The comment is still posted first. If you gate merges on these
 > workflows, note that a provider outage will now block, where previously it passed.
 
@@ -175,6 +203,11 @@ jobs:
     uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@v1
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  deepseek:
+    uses: lambdaclass/actions/.github/workflows/ai-review-deepseek.yml@v1
+    secrets:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
   claude:
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1

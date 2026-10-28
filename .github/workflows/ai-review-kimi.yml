@@ -10,16 +10,25 @@ on:
         description: 'Kimi model to use'
         required: false
         type: string
-        default: 'kimi-k2.6'
+        default: 'kimi-k3.1-pro'
       thinking:
         description: >-
-          Thinking mode for the model: 'disabled', 'enabled', or '' to omit the
-          field entirely. kimi-k2.6 accepts both; kimi-k2.7-code only accepts
-          'enabled'; kimi-k3 always reasons and uses reasoning_effort instead,
-          so pass '' for it.
+          Thinking mode for the model: 'disabled', 'enabled', or '' (the default)
+          to omit the field. The K3 models always reason and take
+          reasoning_effort instead, so leave it empty for them. kimi-k2.6
+          accepts both values and kimi-k2.7-code only 'enabled'; Moonshot
+          retires the K2 series at the end of December 2026.
         required: false
         type: string
-        default: 'disabled'
+        default: ''
+      reasoning_effort:
+        description: >-
+          Reasoning effort for the K3 models: 'low', 'high' or 'max' (Moonshot's
+          own default), or '' to omit the field. K2 models do not take it, so
+          pass '' with them.
+        required: false
+        type: string
+        default: 'high'
       prompt:
         description: 'Custom review prompt (overrides prompt file if provided)'
         required: false
@@ -31,10 +40,17 @@ on:
         type: number
         default: 10000
       max_tokens:
-        description: 'Maximum tokens for AI response'
+        description: >-
+          Maximum tokens for the response. Reasoning counts against it, so a
+          thinking model needs far more than the final review takes.
         required: false
         type: number
-        default: 4096
+        default: 65536
+      timeout_minutes:
+        description: 'Minutes before the review job is cancelled'
+        required: false
+        type: number
+        default: 20
       temperature:
         description: >-
           Sampling temperature as a string, or '' (the default) to omit the
@@ -58,6 +74,7 @@ jobs:
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/kimi') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     permissions:
       contents: read
       pull-requests: write
@@ -126,6 +143,7 @@ jobs:
           KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
           MODEL: ${{ inputs.model }}
           THINKING: ${{ inputs.thinking }}
+          REASONING_EFFORT: ${{ inputs.reasoning_effort }}
           MAX_TOKENS: ${{ inputs.max_tokens }}
           TEMPERATURE: ${{ inputs.temperature }}
         run: |
@@ -150,6 +168,7 @@ jobs:
             --argjson max_tokens "$MAX_TOKENS" \
             --arg temperature "$TEMPERATURE" \
             --arg thinking "$THINKING" \
+            --arg reasoning_effort "$REASONING_EFFORT" \
             --rawfile diff /tmp/pr_diff_truncated.txt \
             '{
               model: $model,
@@ -160,6 +179,7 @@ jobs:
               max_tokens: $max_tokens
             }
             + (if $thinking == "" then {} else { thinking: { type: $thinking } } end)
+            + (if $reasoning_effort == "" then {} else { reasoning_effort: $reasoning_effort } end)
             + (if $temperature == "" then {} else { temperature: ($temperature | tonumber) } end)' > /tmp/payload.json
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.moonshot.ai/v1/chat/completions" \
@@ -198,7 +218,7 @@ jobs:
             FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"')
             HAS_REASONING=$(echo "$BODY" | jq -r 'if (.choices[0].message.reasoning_content // "") == "" then "no" else "yes" end')
             echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=Kimi returned an empty content field (finish_reason=$FINISH, reasoning_content present=$HAS_REASONING). If the model reasons, raise max_tokens or set the thinking input to 'disabled'." >> $GITHUB_OUTPUT
+            echo "error_message=Kimi returned an empty content field (finish_reason=$FINISH, reasoning_content present=$HAS_REASONING). If the model reasons, raise max_tokens or lower reasoning_effort; on a K2 model, set the thinking input to 'disabled'." >> $GITHUB_OUTPUT
             exit 0
           fi
 
