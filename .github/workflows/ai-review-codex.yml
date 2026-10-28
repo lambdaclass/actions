@@ -1,7 +1,3 @@
-# Reusable workflow for OpenAI Codex code review
-# Reference: https://github.com/openai/codex-action
-# Usage: See examples/ai-review-caller.yml
-
 name: Codex Code Review
 
 on:
@@ -48,21 +44,12 @@ permissions:
 jobs:
   codex:
     name: Codex Code Review
-    # For pull_request: only run on same-repo PRs (not forks)
-    # For issue_comment: only allow users with write access (OWNER, MEMBER, COLLABORATOR)
     if: |
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/codex') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
-    # Whether this job already told the PR what happened. A step outcome is a
-    # fixed enum, never a candidate for secret masking, so unlike #13's
-    # final_message this output cannot be silently dropped. A cancelled job sets
-    # nothing, which is exactly the case report_failure must cover.
     outputs:
       reported: ${{ steps.review.outcome == 'success' || steps.error.outcome == 'success' }}
-    # Without this a hung review can burn hours: the action exposes no timeout of
-    # its own, so nothing else bounds it. A cancel skips every step-level guard,
-    # which is why the report_failure job below is what actually reports it.
     timeout-minutes: ${{ inputs.timeout_minutes }}
     steps:
       - uses: actions/checkout@v4
@@ -109,10 +96,6 @@ jobs:
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff_full.txt)
 
-          # Truncate into the path the prompt points at, so the prompt stays as-is,
-          # then drop the full copy so it is not sitting next to it. This bounds
-          # what we hand the agent; it does not bound what the agent can reach,
-          # since fetch-depth 0 lets it regenerate the diff with git diff.
           head -n "$MAX_LINES" /tmp/pr_diff_full.txt > /tmp/pr_diff.txt
           rm -f /tmp/pr_diff_full.txt
 
@@ -168,9 +151,6 @@ jobs:
               body: `## 🤖 Codex Code Review\n${truncationWarning}\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`,
             });
 
-      # Narrowed to the one case a step-level guard can serve: the job ran green but
-      # Codex returned nothing. Any step failure, cancel or timeout falls through to
-      # the report_failure job instead, so exactly one comment is posted either way.
       - name: Post error comment
         id: error
         if: ${{ success() && steps.codex.outputs.final-message == '' }}
@@ -187,26 +167,13 @@ jobs:
               body: `## 🤖 Codex Code Review\n\n⚠️ Review failed: the run produced no final message. [See the job log](${process.env.RUN_URL})\n\n---\n*Automated review by OpenAI Codex*`,
             });
 
-      # Matches ai-review-kimi.yml: a review that did not happen must not leave a
-      # green run. Runs after the comment so the PR is told first.
       - name: Fail the job if no review was produced
         if: ${{ success() && steps.codex.outputs.final-message == '' }}
         run: |
           echo "::error::Codex produced no final message"
           exit 1
 
-  # A job that dies mid-step runs none of its remaining steps, so the step-level
-  # error comment above cannot report a cancel, a timeout or a lost runner.
-  #
-  # This does read a job output, which is what #13 removed -- but `reported` is a
-  # boolean built from step outcomes, not model text. The runner only drops an
-  # output it believes holds a secret, and 'true'/'false' never will, so the
-  # silent-drop failure #13 hit cannot recur here. No review text crosses the job
-  # boundary; the comment body is built from the run URL alone.
-  #
-  # 'skipped' must be excluded: the codex job is skipped on fork PRs and on every
-  # /kimi comment, and always() runs a dependent job even when its dependency was
-  # skipped.
+  # always() also runs this when codex was skipped (fork PRs, /kimi comments), so skipped must be excluded.
   report_failure:
     name: Report review failure
     needs: codex

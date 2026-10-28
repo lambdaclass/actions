@@ -1,7 +1,3 @@
-# Reusable workflow for DeepSeek code review
-# Reference: https://api-docs.deepseek.com/
-# Usage: See examples/ai-review-caller.yml
-
 name: DeepSeek Code Review
 
 on:
@@ -56,8 +52,6 @@ on:
 
 jobs:
   review:
-    # For pull_request: only run on same-repo PRs (not forks)
-    # For issue_comment: only allow users with write access (OWNER, MEMBER, COLLABORATOR)
     if: |
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/deepseek') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
@@ -114,7 +108,6 @@ jobs:
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
 
-          # Truncate if too large: the diff is the request payload
           head -n $MAX_LINES /tmp/pr_diff.txt > /tmp/pr_diff_truncated.txt
 
           if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
@@ -176,10 +169,7 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed '$d')
 
           if [ "$HTTP_CODE" != "200" ]; then
-            # The `// .` fallback pretty-prints the whole body when it carries no
-            # .error key, and head -c does not collapse it. Embedded newlines would
-            # break the GITHUB_OUTPUT line and let response content masquerade as
-            # further output assignments, so flatten before writing.
+            # Newlines would end the GITHUB_OUTPUT line and let the response set further outputs.
             ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | tr '\n' ' ' | head -c 500)
             echo "error=true" >> $GITHUB_OUTPUT
             echo "error_message=DeepSeek API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
@@ -195,10 +185,6 @@ jobs:
 
           REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // ""')
 
-          # A thinking model can burn the whole max_tokens budget on
-          # reasoning_content and return an empty content field with HTTP 200.
-          # Without this branch the review step succeeds and posts nothing,
-          # leaving a green run and a silent PR.
           if [ -z "$(printf '%s' "$REVIEW" | tr -d '[:space:]')" ]; then
             FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"')
             HAS_REASONING=$(echo "$BODY" | jq -r 'if (.choices[0].message.reasoning_content // "") == "" then "no" else "yes" end')
@@ -260,14 +246,10 @@ jobs:
               body: `## 🤖 DeepSeek Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by DeepSeek*`
             });
 
-      # The API step exits 0 so the comment above can post, which left a failed
-      # review showing as a green run -- visible only if someone read the PR.
-      # Fail here, after the comment, so the run reflects reality.
       - name: Fail the job if the review did not run
         if: steps.deepseek_review.outputs.error == 'true'
         env:
-          # Via env, never interpolated into the run body: this string is built
-          # from an API response and must not reach the shell as code.
+          # Built from an API response: must reach the shell only through env, never interpolated into run.
           ERROR_MESSAGE: ${{ steps.deepseek_review.outputs.error_message }}
         run: |
           echo "::error::$ERROR_MESSAGE"
