@@ -2,7 +2,7 @@
 #
 # Triggers:
 # - Automatically on PR open/ready_for_review
-# - On-demand via PR comments: /kimi, /codex, /claude (requires write access)
+# - On-demand via PR comments: /kimi, /codex, /deepseek, /claude (requires write access)
 #
 # Custom prompts:
 # - Create .github/prompts/ai-review.md in your repo to customize the review focus
@@ -11,6 +11,7 @@
 # Required secrets (configure in Settings > Secrets and variables > Actions):
 # - KIMI_API_KEY: For Kimi reviews (https://platform.moonshot.ai/)
 # - OPENAI_API_KEY: For Codex reviews (https://platform.openai.com/)
+# - DEEPSEEK_API_KEY: For DeepSeek reviews (https://platform.deepseek.com/)
 # - ANTHROPIC_API_KEY: For Claude reviews (https://console.anthropic.com/)
 
 name: AI Code Review
@@ -31,6 +32,11 @@ jobs:
     uses: lambdaclass/actions/.github/workflows/ai-review-codex.yml@v1
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  deepseek-review:
+    uses: lambdaclass/actions/.github/workflows/ai-review-deepseek.yml@v1
+    secrets:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
   claude-review:
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1

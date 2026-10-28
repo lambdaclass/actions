@@ -1,0 +1,256 @@
+name: DeepSeek Code Review
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        description: 'DeepSeek model to use: deepseek-v4-pro or deepseek-flash'
+        required: false
+        type: string
+        default: 'deepseek-v4-pro'
+      reasoning_effort:
+        description: >-
+          'none' disables thinking; 'low', 'high' (DeepSeek's own default) or
+          'max' enable it at that effort; '' omits the field.
+        required: false
+        type: string
+        default: 'high'
+      prompt:
+        description: 'Custom review prompt (overrides prompt file if provided)'
+        required: false
+        type: string
+        default: ''
+      max_diff_lines:
+        description: 'Maximum lines of diff to send to API'
+        required: false
+        type: number
+        default: 10000
+      max_tokens:
+        description: >-
+          Maximum tokens for the response. Reasoning counts against it, so a
+          thinking model needs far more than the final review takes.
+        required: false
+        type: number
+        default: 65536
+      timeout_minutes:
+        description: 'Minutes before the review job is cancelled'
+        required: false
+        type: number
+        default: 20
+      temperature:
+        description: >-
+          Sampling temperature as a string, or '' (the default) to omit the
+          field. DeepSeek ignores it in thinking mode, so it only matters with
+          reasoning_effort 'none'.
+        required: false
+        type: string
+        default: ''
+    secrets:
+      DEEPSEEK_API_KEY:
+        description: 'DeepSeek API key'
+        required: true
+
+jobs:
+  review:
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/deepseek') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
+
+      - name: Load prompt
+        id: load_prompt
+        run: |
+          if [ -n "${{ inputs.prompt }}" ]; then
+            cat << 'PROMPT_EOF' > /tmp/prompt.txt
+          ${{ inputs.prompt }}
+          PROMPT_EOF
+            echo "source=input" >> $GITHUB_OUTPUT
+          elif [ -f ".github/prompts/ai-review.md" ]; then
+            cat .github/prompts/ai-review.md > /tmp/prompt.txt
+            echo "source=custom" >> $GITHUB_OUTPUT
+          else
+            cat << 'PROMPT_EOF' > /tmp/prompt.txt
+          You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
+
+          Focus on:
+          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
+          2. **Bugs** - Logic errors, edge cases, incorrect behavior
+          3. **Significant performance issues** - Only flag obvious problems
+
+          Guidelines:
+          - Be concise and actionable
+          - Reference specific file names and line numbers
+          - Only flag real issues, not style preferences
+          - If no issues found, say so briefly
+          PROMPT_EOF
+            echo "source=default" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get PR diff
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAX_LINES: ${{ inputs.max_diff_lines }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff.txt
+
+          TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
+
+          head -n $MAX_LINES /tmp/pr_diff.txt > /tmp/pr_diff_truncated.txt
+
+          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
+            echo "truncated=true" >> "$GITHUB_OUTPUT"
+            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
+            echo "::warning::Diff truncated from $TOTAL_LINES to $MAX_LINES lines. Some changes were not reviewed."
+          else
+            echo "truncated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Call DeepSeek API for review
+        id: deepseek_review
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          MODEL: ${{ inputs.model }}
+          REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+          MAX_TOKENS: ${{ inputs.max_tokens }}
+          TEMPERATURE: ${{ inputs.temperature }}
+        run: |
+          SYSTEM_PROMPT=$(cat /tmp/prompt.txt)
+          echo "::add-mask::$DEEPSEEK_API_KEY"
+
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=DEEPSEEK_API_KEY secret is not set" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          USER_PROMPT="REPO: ${{ github.repository }}
+          PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+
+          Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
+
+          jq -n \
+            --arg model "$MODEL" \
+            --arg system "$SYSTEM_PROMPT" \
+            --arg user "$USER_PROMPT" \
+            --argjson max_tokens "$MAX_TOKENS" \
+            --arg temperature "$TEMPERATURE" \
+            --arg reasoning_effort "$REASONING_EFFORT" \
+            --rawfile diff /tmp/pr_diff_truncated.txt \
+            '{
+              model: $model,
+              messages: [
+                { role: "system", content: $system },
+                { role: "user", content: ($user + "\n\nDiff:\n" + $diff) }
+              ],
+              max_tokens: $max_tokens
+            }
+            + (if $reasoning_effort == "" then {} else { reasoning_effort: $reasoning_effort } end)
+            + (if $temperature == "" then {} else { temperature: ($temperature | tonumber) } end)' > /tmp/payload.json
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.deepseek.com/chat/completions" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $DEEPSEEK_API_KEY" \
+            -d @/tmp/payload.json)
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            # Newlines would end the GITHUB_OUTPUT line and let the response set further outputs.
+            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | tr '\n' ' ' | head -c 500)
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=DeepSeek API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          HAS_ERROR=$(echo "$BODY" | jq -e '.error.message' > /dev/null 2>&1 && echo "yes" || echo "no")
+          if [ "$HAS_ERROR" = "yes" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=DeepSeek API returned an error response" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // ""')
+
+          if [ -z "$(printf '%s' "$REVIEW" | tr -d '[:space:]')" ]; then
+            FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"')
+            HAS_REASONING=$(echo "$BODY" | jq -r 'if (.choices[0].message.reasoning_content // "") == "" then "no" else "yes" end')
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=DeepSeek returned an empty content field (finish_reason=$FINISH, reasoning_content present=$HAS_REASONING). Raise max_tokens or lower reasoning_effort ('none' disables thinking)." >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "$REVIEW" > /tmp/review.txt
+          echo "success=true" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        if: steps.deepseek_review.outputs.success == 'true'
+        uses: actions/github-script@v7
+        env:
+          TRUNCATED: ${{ steps.diff.outputs.truncated }}
+          TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
+          MAX_LINES: ${{ inputs.max_diff_lines }}
+          PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
+          MODEL: ${{ inputs.model }}
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const truncated = process.env.TRUNCATED === 'true';
+            const totalLines = process.env.TOTAL_LINES;
+            const maxLines = process.env.MAX_LINES;
+            const promptSource = process.env.PROMPT_SOURCE;
+            const model = process.env.MODEL;
+
+            let truncationWarning = '';
+            if (truncated) {
+              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${maxLines} lines. Some changes were not reviewed.\n`;
+            }
+
+            let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
+
+            if (review && review.trim() !== '') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `## 🤖 DeepSeek Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by DeepSeek · ${model}${promptNote}*`
+              });
+            }
+
+      - name: Post error comment
+        if: steps.deepseek_review.outputs.error == 'true'
+        uses: actions/github-script@v7
+        env:
+          ERROR_MESSAGE: ${{ steps.deepseek_review.outputs.error_message }}
+        with:
+          script: |
+            const errorMessage = process.env.ERROR_MESSAGE || 'Unknown error';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 DeepSeek Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by DeepSeek*`
+            });
+
+      - name: Fail the job if the review did not run
+        if: steps.deepseek_review.outputs.error == 'true'
+        env:
+          # Built from an API response: must reach the shell only through env, never interpolated into run.
+          ERROR_MESSAGE: ${{ steps.deepseek_review.outputs.error_message }}
+        run: |
+          echo "::error::$ERROR_MESSAGE"
+          exit 1
