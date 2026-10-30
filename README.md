@@ -13,6 +13,7 @@ Automated PR code review using various AI providers. Each workflow posts review 
 | `ai-review-kimi.yml` | [Moonshot AI](https://platform.kimi.ai/) | kimi-k3.1-pro |
 | `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | gpt-6.1-sol |
 | `ai-review-deepseek.yml` | [DeepSeek](https://platform.deepseek.com/) | deepseek-v4-pro |
+| `ai-review-grok.yml` | [xAI](https://console.x.ai/) | grok-4.7 |
 | `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | sonnet |
 
 ### Quick Start
@@ -21,6 +22,7 @@ Automated PR code review using various AI providers. Each workflow posts review 
    - `KIMI_API_KEY` for Kimi
    - `OPENAI_API_KEY` for Codex
    - `DEEPSEEK_API_KEY` for DeepSeek
+   - `XAI_API_KEY` for Grok
    - `ANTHROPIC_API_KEY` for Claude
 
 2. **Create a workflow file** in your repo at `.github/workflows/ai-review.yml`:
@@ -47,6 +49,7 @@ Trigger reviews by commenting on a PR:
 - `/kimi` - Trigger Kimi review
 - `/codex` - Trigger Codex review
 - `/deepseek` - Trigger DeepSeek review
+- `/grok` - Trigger Grok review
 - `/claude` - Trigger Claude review
 
 **Note:** Slash commands require write access to the repository.
@@ -124,6 +127,28 @@ jobs:
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
+#### Grok (`ai-review-grok.yml`)
+
+```yaml
+jobs:
+  grok-review:
+    uses: lambdaclass/actions/.github/workflows/ai-review-grok.yml@v1
+    secrets:
+      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+    with:
+      model: 'grok-4.7'                # grok-4.7, grok-build-0.1 or grok-4.3
+      reasoning_effort: 'high'         # 'low', 'medium', 'high', 'xhigh'; '' omits; never off
+      max_diff_lines: 10000            # Max lines of diff to review
+      max_output_tokens: 16384         # Visible output only; reasoning does not count
+      temperature: ''                  # '' omits it
+      timeout_minutes: 20              # Cancel the review job after this long
+      prompt: ''                       # Custom prompt (overrides prompt file)
+```
+
+Grok uses xAI's Responses API (`/v1/responses`), since xAI deprecated Chat
+Completions. Requests are sent with `store: false` so xAI does not keep the diff
+as a retrievable response.
+
 #### Codex (`ai-review-codex.yml`)
 
 ```yaml
@@ -153,7 +178,7 @@ jobs:
 > distinguishes a timeout-cancel from a concurrency-cancel.
 >
 > A review that does not happen now **fails the run**, in `ai-review-codex.yml`,
-> `ai-review-kimi.yml` and `ai-review-deepseek.yml` -- an empty model response is red, not a green run with an
+> `ai-review-kimi.yml`, `ai-review-deepseek.yml` and `ai-review-grok.yml` -- an empty model response is red, not a green run with an
 > explanatory comment. The comment is still posted first. If you gate merges on these
 > workflows, note that a provider outage will now block, where previously it passed.
 
@@ -208,6 +233,11 @@ jobs:
     uses: lambdaclass/actions/.github/workflows/ai-review-deepseek.yml@v1
     secrets:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+
+  grok:
+    uses: lambdaclass/actions/.github/workflows/ai-review-grok.yml@v1
+    secrets:
+      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
 
   claude:
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
