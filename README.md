@@ -59,7 +59,7 @@ Trigger reviews by commenting on a PR:
 You can customize the review prompt in three ways (in order of priority):
 
 1. **`prompt` input** - Pass a custom prompt directly in the workflow
-2. **`.github/prompts/ai-review.md`** - Create this file in your repo with custom instructions
+2. **`.github/prompts/ai-review.md`** - Create this file in your repo with custom instructions. It is read from the PR's base branch, so a PR cannot change the prompt that reviews it
 3. **Default prompt** - Generic security/bugs/performance review
 
 When a custom prompt is used, the review footer will show "· custom prompt".
@@ -172,7 +172,8 @@ jobs:
 > `git diff`. Treat it as advisory. The kimi input of the same name *is* a hard cap,
 > because there the diff is the request payload.
 >
-> The workflow comments whenever the review job does not report for itself, and a
+> Every workflow comments whenever its review job does not report for itself (timeout,
+> cancel, failed checkout or diff), and a
 > cancel is a cancel: if a consumer sets `concurrency: cancel-in-progress: true`,
 > every superseded run posts a "did not complete" comment. No Actions expression
 > distinguishes a timeout-cancel from a concurrency-cancel.

@@ -57,14 +57,20 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
 
+      # The prompt file comes from the base branch, never the head: a PR could otherwise rewrite the prompt that reviews it.
       - name: Load prompt
         id: prompt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROMPT: ${{ inputs.prompt }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          if [ -n "${{ inputs.prompt }}" ]; then
-            PROMPT="${{ inputs.prompt }}"
+          if [ -n "$PROMPT" ]; then
             echo "source=input" >> $GITHUB_OUTPUT
-          elif [ -f ".github/prompts/ai-review.md" ]; then
-            PROMPT=$(cat .github/prompts/ai-review.md)
+          elif BASE=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefName --jq .baseRefName) &&
+               PROMPT=$(gh api "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE" --jq .content 2>/dev/null | tr -d '\n' | base64 -d) &&
+               [ -n "$PROMPT" ]; then
             echo "source=custom" >> $GITHUB_OUTPUT
           else
             PROMPT="You are a code reviewer. Review ONLY the changes in this pull request diff, not the entire codebase.
