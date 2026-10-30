@@ -17,7 +17,7 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
-      (startsWith(github.event.comment.body, '/kimi') || github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ')))
+      (startsWith(github.event.comment.body, '/kimi') || github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ') || startsWith(github.event.comment.body, fromJSON('"/review\n"')) || startsWith(github.event.comment.body, fromJSON('"/review\r"'))))
     uses: ./.github/workflows/ai-review-kimi.yml
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
@@ -28,7 +28,7 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
-      (startsWith(github.event.comment.body, '/codex') || github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ')))
+      (startsWith(github.event.comment.body, '/codex') || github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ') || startsWith(github.event.comment.body, fromJSON('"/review\n"')) || startsWith(github.event.comment.body, fromJSON('"/review\r"'))))
     uses: ./.github/workflows/ai-review-codex.yml
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -39,7 +39,7 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
-      (startsWith(github.event.comment.body, '/deepseek') || github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ')))
+      (startsWith(github.event.comment.body, '/deepseek') || github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ') || startsWith(github.event.comment.body, fromJSON('"/review\n"')) || startsWith(github.event.comment.body, fromJSON('"/review\r"'))))
     uses: ./.github/workflows/ai-review-deepseek.yml
     secrets:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -50,7 +50,7 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
-      (startsWith(github.event.comment.body, '/grok') || github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ')))
+      (startsWith(github.event.comment.body, '/grok') || github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ') || startsWith(github.event.comment.body, fromJSON('"/review\n"')) || startsWith(github.event.comment.body, fromJSON('"/review\r"'))))
     uses: ./.github/workflows/ai-review-grok.yml
     secrets:
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
