@@ -57,29 +57,32 @@ jobs:
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/deepseek') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout_minutes }}
+    outputs:
+      reported: ${{ steps.post_review.outcome == 'success' || steps.post_error.outcome == 'success' }}
     permissions:
       contents: read
       pull-requests: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
-
+      # The prompt file comes from the base branch, never the head: a PR could otherwise rewrite the prompt that reviews it.
       - name: Load prompt
         id: load_prompt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROMPT: ${{ inputs.prompt }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          if [ -n "${{ inputs.prompt }}" ]; then
-            cat << 'PROMPT_EOF' > /tmp/prompt.txt
-          ${{ inputs.prompt }}
-          PROMPT_EOF
+          if [ -n "$PROMPT" ]; then
+            printf '%s\n' "$PROMPT" > /tmp/prompt.txt
             echo "source=input" >> $GITHUB_OUTPUT
-          elif [ -f ".github/prompts/ai-review.md" ]; then
-            cat .github/prompts/ai-review.md > /tmp/prompt.txt
+            exit 0
+          fi
+
+          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
+          if gh api -H "Accept: application/vnd.github.raw+json" "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE_SHA" > /tmp/prompt.txt 2> /tmp/prompt_error.txt; then
             echo "source=custom" >> $GITHUB_OUTPUT
-          else
+          elif grep -q "HTTP 404" /tmp/prompt_error.txt; then
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
           You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
 
@@ -95,6 +98,10 @@ jobs:
           - If no issues found, say so briefly
           PROMPT_EOF
             echo "source=default" >> $GITHUB_OUTPUT
+          else
+            cat /tmp/prompt_error.txt
+            echo "::error::Could not read .github/prompts/ai-review.md from the base branch"
+            exit 1
           fi
 
       - name: Get PR diff
@@ -105,6 +112,11 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
           gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff.txt
+
+          if [ ! -s /tmp/pr_diff.txt ]; then
+            echo "::error::The PR diff is empty"
+            exit 1
+          fi
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
 
@@ -163,7 +175,12 @@ jobs:
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.deepseek.com/chat/completions" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $DEEPSEEK_API_KEY" \
-            -d @/tmp/payload.json)
+            -d @/tmp/payload.json) || {
+            CURL_EXIT=$?
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=DeepSeek API request failed: curl exit code $CURL_EXIT" >> $GITHUB_OUTPUT
+            exit 0
+          }
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
           BODY=$(echo "$RESPONSE" | sed '$d')
@@ -186,7 +203,7 @@ jobs:
           REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // ""')
 
           if [ -z "$(printf '%s' "$REVIEW" | tr -d '[:space:]')" ]; then
-            FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"')
+            FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"' | tr -d '\n\r')
             HAS_REASONING=$(echo "$BODY" | jq -r 'if (.choices[0].message.reasoning_content // "") == "" then "no" else "yes" end')
             echo "error=true" >> $GITHUB_OUTPUT
             echo "error_message=DeepSeek returned an empty content field (finish_reason=$FINISH, reasoning_content present=$HAS_REASONING). Raise max_tokens or lower reasoning_effort ('none' disables thinking)." >> $GITHUB_OUTPUT
@@ -197,6 +214,7 @@ jobs:
           echo "success=true" >> $GITHUB_OUTPUT
 
       - name: Post review comment
+        id: post_review
         if: steps.deepseek_review.outputs.success == 'true'
         uses: actions/github-script@v7
         env:
@@ -208,7 +226,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const review = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const raw = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const limit = 60000;
+            const review = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
             const truncated = process.env.TRUNCATED === 'true';
             const totalLines = process.env.TOTAL_LINES;
             const maxLines = process.env.MAX_LINES;
@@ -232,6 +252,7 @@ jobs:
             }
 
       - name: Post error comment
+        id: post_error
         if: steps.deepseek_review.outputs.error == 'true'
         uses: actions/github-script@v7
         env:
@@ -252,5 +273,28 @@ jobs:
           # Built from an API response: must reach the shell only through env, never interpolated into run.
           ERROR_MESSAGE: ${{ steps.deepseek_review.outputs.error_message }}
         run: |
-          echo "::error::$ERROR_MESSAGE"
+          echo "::error::${ERROR_MESSAGE//%/%25}"
           exit 1
+
+  # always() also runs this when review was skipped (fork PRs, other slash commands), so skipped must be excluded.
+  report_failure:
+    name: Report review failure
+    needs: review
+    if: ${{ always() && needs.review.result != 'skipped' && needs.review.outputs.reported != 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          RESULT: ${{ needs.review.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
+              body: `## 🤖 DeepSeek Code Review\n\n⚠️ The review job did not complete (result: ${process.env.RESULT}). [See the job log](${process.env.RUN_URL})\n\n---\n*Automated review by DeepSeek*`,
+            });
