@@ -77,12 +77,6 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
-
       # The prompt file comes from the base branch, never the head: a PR could otherwise rewrite the prompt that reviews it.
       - name: Load prompt
         id: load_prompt
@@ -95,11 +89,13 @@ jobs:
           if [ -n "$PROMPT" ]; then
             printf '%s\n' "$PROMPT" > /tmp/prompt.txt
             echo "source=input" >> $GITHUB_OUTPUT
-          elif BASE=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefName --jq .baseRefName) &&
-               gh api "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE" --jq .content 2>/dev/null | tr -d '\n' | base64 -d > /tmp/prompt.txt &&
-               [ -s /tmp/prompt.txt ]; then
+            exit 0
+          fi
+
+          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
+          if gh api -H "Accept: application/vnd.github.raw+json" "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE_SHA" > /tmp/prompt.txt 2> /tmp/prompt_error.txt; then
             echo "source=custom" >> $GITHUB_OUTPUT
-          else
+          elif grep -q "HTTP 404" /tmp/prompt_error.txt; then
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
           You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
 
@@ -115,6 +111,10 @@ jobs:
           - If no issues found, say so briefly
           PROMPT_EOF
             echo "source=default" >> $GITHUB_OUTPUT
+          else
+            cat /tmp/prompt_error.txt
+            echo "::error::Could not read .github/prompts/ai-review.md from the base branch"
+            exit 1
           fi
 
       - name: Get PR diff
@@ -219,7 +219,7 @@ jobs:
           REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // ""')
 
           if [ -z "$(printf '%s' "$REVIEW" | tr -d '[:space:]')" ]; then
-            FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"')
+            FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"' | tr -d '\n\r')
             HAS_REASONING=$(echo "$BODY" | jq -r 'if (.choices[0].message.reasoning_content // "") == "" then "no" else "yes" end')
             echo "error=true" >> $GITHUB_OUTPUT
             echo "error_message=Kimi returned an empty content field (finish_reason=$FINISH, reasoning_content present=$HAS_REASONING). If the model reasons, raise max_tokens or lower reasoning_effort; on a K2 model, set the thinking input to 'disabled'." >> $GITHUB_OUTPUT
@@ -242,7 +242,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const review = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const raw = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const limit = 60000;
+            const review = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
             const truncated = process.env.TRUNCATED === 'true';
             const totalLines = process.env.TOTAL_LINES;
             const maxLines = process.env.MAX_LINES;

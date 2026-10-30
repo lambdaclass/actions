@@ -68,12 +68,12 @@ jobs:
         run: |
           if [ -n "$PROMPT" ]; then
             echo "source=input" >> $GITHUB_OUTPUT
-          elif BASE=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefName --jq .baseRefName) &&
-               PROMPT=$(gh api "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE" --jq .content 2>/dev/null | tr -d '\n' | base64 -d) &&
-               [ -n "$PROMPT" ]; then
-            echo "source=custom" >> $GITHUB_OUTPUT
           else
-            PROMPT="You are a code reviewer. Review ONLY the changes in this pull request diff, not the entire codebase.
+            BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
+            if PROMPT=$(gh api -H "Accept: application/vnd.github.raw+json" "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE_SHA" 2> /tmp/prompt_error.txt); then
+              echo "source=custom" >> $GITHUB_OUTPUT
+            elif grep -q "HTTP 404" /tmp/prompt_error.txt; then
+              PROMPT="You are a code reviewer. Review ONLY the changes in this pull request diff, not the entire codebase.
 
           Focus on:
           1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
@@ -85,7 +85,12 @@ jobs:
           - Reference specific file names and line numbers
           - Only flag real issues, not style preferences
           - If no issues found, say so briefly"
-            echo "source=default" >> $GITHUB_OUTPUT
+              echo "source=default" >> $GITHUB_OUTPUT
+            else
+              cat /tmp/prompt_error.txt
+              echo "::error::Could not read .github/prompts/ai-review.md from the base branch"
+              exit 1
+            fi
           fi
           echo "content<<EOF" >> $GITHUB_OUTPUT
           echo "$PROMPT" >> $GITHUB_OUTPUT
@@ -147,6 +152,9 @@ jobs:
             const source = process.env.PROMPT_SOURCE;
             const model = process.env.MODEL;
             const promptNote = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
+            const raw = process.env.CODEX_FINAL_MESSAGE;
+            const limit = 60000;
+            const message = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
             const truncationWarning = process.env.TRUNCATED === 'true'
               ? `\n> ⚠️ **Warning:** Diff was truncated from ${process.env.TOTAL_LINES} to ${process.env.MAX_LINES} lines. Some changes were not reviewed.\n`
               : '';
@@ -154,7 +162,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-              body: `## 🤖 Codex Code Review\n${truncationWarning}\n${process.env.CODEX_FINAL_MESSAGE}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`,
+              body: `## 🤖 Codex Code Review\n${truncationWarning}\n${message}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`,
             });
 
       - name: Post error comment

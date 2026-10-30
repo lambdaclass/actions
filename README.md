@@ -36,6 +36,10 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   claude-review:
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
@@ -59,7 +63,7 @@ Trigger reviews by commenting on a PR:
 You can customize the review prompt in three ways (in order of priority):
 
 1. **`prompt` input** - Pass a custom prompt directly in the workflow
-2. **`.github/prompts/ai-review.md`** - Create this file in your repo with custom instructions. It is read from the PR's base branch, so a PR cannot change the prompt that reviews it
+2. **`.github/prompts/ai-review.md`** - Create this file in your repo with custom instructions. It is read from the PR's base branch, so a PR cannot change the prompt that reviews it; a fetch error other than a missing file fails the review rather than falling back to the default prompt
 3. **Default prompt** - Generic security/bugs/performance review
 
 When a custom prompt is used, the review footer will show "· custom prompt".
@@ -137,7 +141,7 @@ jobs:
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
     with:
       model: 'grok-4.7'                # grok-4.7, grok-build-0.1 or grok-4.3
-      reasoning_effort: 'high'         # 'low', 'medium', 'high', 'xhigh'; '' omits; never off
+      reasoning_effort: 'medium'       # 'low', 'medium', 'high', 'xhigh'; '' omits; never off
       max_diff_lines: 10000            # Max lines of diff to review
       max_output_tokens: 16384         # Visible output only; reasoning does not count
       temperature: ''                  # '' omits it
@@ -218,6 +222,10 @@ on:
     types: [opened, ready_for_review]
   issue_comment:
     types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   kimi:
