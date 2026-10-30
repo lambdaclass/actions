@@ -50,7 +50,7 @@ jobs:
 ### On-Demand Reviews
 
 Trigger reviews by commenting on a PR:
-- `/review` - Trigger every reviewer the repo has configured, in one comment
+- `/review` - Trigger every reviewer the repo has configured, in one comment (the bare command, or followed by a space)
 - `/kimi` - Trigger Kimi review
 - `/codex` - Trigger Codex review
 - `/deepseek` - Trigger DeepSeek review
