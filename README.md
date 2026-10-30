@@ -263,7 +263,9 @@ uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
 1. Create a branch
 2. Make changes
 3. Test in a real repo using `@your-branch`
-4. Open a PR
+4. Open a PR. Kimi, Codex, DeepSeek and Grok review it with the workflows at the
+   PR's own commit (`.github/workflows/ai-review.yml` calls them by local path),
+   and every PR here needs those four reviews before it merges.
 
 ## License
 
