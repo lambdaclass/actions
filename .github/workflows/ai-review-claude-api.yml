@@ -45,7 +45,8 @@ on:
       timeout_minutes:
         description: >-
           Minutes before the review job is cancelled. Parts are reviewed in
-          parallel and each request is cut off two minutes before this.
+          parallel, at most four requests at a time, and requests stop three
+          minutes before this so the comments can still be posted.
         required: false
         type: number
         default: 20
@@ -117,6 +118,7 @@ jobs:
           MAX_BYTES: ${{ inputs.max_diff_bytes }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
+          echo "REVIEW_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
           SHAS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid,headRefOid --jq '.baseRefOid + " " + .headRefOid')
           BASE_SHA=${SHAS% *}
           HEAD_SHA=${SHAS#* }
@@ -256,7 +258,8 @@ jobs:
           def cut_bytes(chunk, path):
               global warned
               if not warned:
-                  print(f"::warning::A single line of {path} is larger than {budget} bytes; it is cut across parts")
+                  safe = path.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace(":", "%3A")
+                  print(f"::warning::A single line of {safe} is larger than {budget} bytes; it is cut across parts")
                   warned = True
               i = 0
               while i < len(chunk):
@@ -309,7 +312,7 @@ jobs:
           os.makedirs(out_dir, exist_ok=True)
           for idx, p in enumerate(parts, 1):
               body = b"".join(p["chunks"])
-              name = os.path.join(out_dir, f"{prefix}{idx:03d}")
+              name = os.path.join(out_dir, f"{prefix}{idx:04d}")
               with open(name + ".diff", "wb") as f:
                   f.write(body)
               meta = {
@@ -358,11 +361,12 @@ jobs:
             exit 0
           fi
 
-          DEADLINE=$(( TIMEOUT_MINUTES * 60 - 180 ))
+          DEADLINE=$(( TIMEOUT_MINUTES * 60 - 180 - ($(date +%s) - REVIEW_STARTED_AT) ))
           MAX_PARALLEL=4
+          mkdir -p /tmp/slots
           OVERFLOW_RE='input_too_large|context_length_exceeded|exceeded model token limit|maximum context length is|prompt is too long|input token count.*exceeds the maximum'
 
-          one_line() { tr '\n\r' '  ' | sed 's/ *$//' | head -c "${1:-500}"; }
+          one_line() { tr '\n\r' '  ' | sed 's/ *$//' | head -c "${1:-500}" | iconv -f UTF-8 -t UTF-8 -c; }
           warn() { local m=$1; echo "::warning::${m//%/%25}"; }
           blank() { [ -z "$(tr -d '[:space:]' < "$1" 2> /dev/null)" ]; }
           error_detail() {
@@ -387,6 +391,19 @@ jobs:
                 fallbacks: "default"
               }
               + (if $effort == "" then {} else { output_config: { effort: $effort } } end)'
+          }
+
+          acquire_slot() {
+            local slot
+            while :; do
+              for slot in $(seq 1 "$MAX_PARALLEL"); do
+                if mkdir "/tmp/slots/$slot" 2> /dev/null; then
+                  echo "$slot"
+                  return
+                fi
+              done
+              sleep 1
+            done
           }
 
           call_api() {
@@ -416,7 +433,7 @@ jobs:
           }
 
           review_part() {
-            local name=$1 depth=$2 note=$3 d="/tmp/parts/$1" code rc attempt=0 wait_s start=$SECONDS mid mid_hunk left
+            local name=$1 depth=$2 note=$3 d="/tmp/parts/$1" code rc attempt=0 wait_s start=$SECONDS mid mid_hunk left slot
             mid=$(jq -r '.mid_file_path' "$d.meta")
             mid_hunk=$(jq -r '.mid_hunk // ""' "$d.meta")
             {
@@ -443,7 +460,10 @@ jobs:
                 return
               fi
               rc=0
+              slot=$(acquire_slot)
+              left=$(( DEADLINE - SECONDS ))
               code=$(call_api "$d" "$left") || rc=$?
+              rmdir "/tmp/slots/$slot"
               if { [ "$rc" -eq 0 ] && [[ "$code" =~ ^(429|500|502|503|504|529)$ ]]; } || [[ "$rc" =~ ^(6|7|35|52|55|56)$ ]]; then
                 wait_s=$(grep -i '^retry-after:' "$d.headers" 2> /dev/null | head -n1 | tr -dc '0-9')
                 if [ -z "$wait_s" ]; then
@@ -499,10 +519,10 @@ jobs:
               echo "could not split the part after the model rejected it as too long" > "$d.error"
               return
             fi
-            n=$(find /tmp/parts -name "$name-???.diff" | wc -l | tr -d ' ')
+            n=$(find /tmp/parts -name "$name-????.diff" | wc -l | tr -d ' ')
             warn "Part $name ($size bytes) is over the model's context window: $(error_detail "$d.resp"). Split into $n and retried."
             rm -f "$d.diff" "$d.meta" "$d.user" "$d.payload" "$d.resp" "$d.headers" "$d.seconds" "$d.usage"
-            for child in $(find /tmp/parts -name "$name-???.diff" | sort); do
+            for child in $(find /tmp/parts -name "$name-????.diff" | sort); do
               i=$(( i + 1 ))
               if [ -n "$note" ]; then
                 sub="$note This is sub-part $i of $n of that part, split again to fit the context window of the model."
@@ -525,7 +545,7 @@ jobs:
             i=$(( i + 1 ))
             note=""
             if [ "$N" -gt 1 ]; then
-              note="This is part $i of $N of the PR diff, split on file boundaries. Review only what is here; the other parts are reviewed separately."
+              note="This is part $i of $N of the PR diff, split to fit the context window of the model. Review only what is here; the other parts are reviewed separately."
             fi
             review_part "$(basename "$f" .diff)" 0 "$note" &
             sleep 1
@@ -591,22 +611,26 @@ jobs:
             const splitText = (text, budget) => {
               const out = [];
               let cur = null;
+              let fence = null;
+              const flush = () => {
+                if (cur === null) {
+                  return;
+                }
+                out.push(fence ? `${cur}\n\`\`\`` : cur);
+                cur = fence ? fence : null;
+              };
               for (let line of text.split('\n')) {
                 while (line.length > budget) {
-                  if (cur !== null) {
-                    out.push(cur);
-                    cur = null;
-                  }
+                  flush();
                   out.push(line.slice(0, budget));
                   line = line.slice(budget);
                 }
-                if (cur === null) {
-                  cur = line;
-                } else if (cur.length + 1 + line.length > budget) {
-                  out.push(cur);
-                  cur = line;
-                } else {
-                  cur = `${cur}\n${line}`;
+                if (cur !== null && cur.length + line.length + 5 > budget) {
+                  flush();
+                }
+                cur = cur === null ? line : `${cur}\n${line}`;
+                if (/^\s*```/.test(line)) {
+                  fence = fence ? null : line.trim();
                 }
               }
               if (cur !== null) {

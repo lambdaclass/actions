@@ -179,22 +179,26 @@ jobs:
             const budget = 60000 - footer.length - 200;
             const pieces = [];
             let cur = null;
+            let fence = null;
+            const flush = () => {
+              if (cur === null) {
+                return;
+              }
+              pieces.push(fence ? `${cur}\n\`\`\`` : cur);
+              cur = fence ? fence : null;
+            };
             for (let line of raw.split('\n')) {
               while (line.length > budget) {
-                if (cur !== null) {
-                  pieces.push(cur);
-                  cur = null;
-                }
+                flush();
                 pieces.push(line.slice(0, budget));
                 line = line.slice(budget);
               }
-              if (cur === null) {
-                cur = line;
-              } else if (cur.length + 1 + line.length > budget) {
-                pieces.push(cur);
-                cur = line;
-              } else {
-                cur = `${cur}\n${line}`;
+              if (cur !== null && cur.length + line.length + 5 > budget) {
+                flush();
+              }
+              cur = cur === null ? line : `${cur}\n${line}`;
+              if (/^\s*```/.test(line)) {
+                fence = fence ? null : line.trim();
               }
             }
             if (cur !== null) {

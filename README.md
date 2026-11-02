@@ -98,7 +98,7 @@ from the pulls API, which refuses diffs over 20000 lines. The whole diff is alwa
 
 - A diff over `max_diff_bytes` is split on file boundaries (then hunk, then line, only when a
   single file or hunk is larger than the budget) into parts. The parts are reviewed in parallel,
-  and each is posted as its own `(part i/N)` comment that names the files it covers.
+  at most four requests at a time, and each is posted as its own `(part i/N)` comment that names the files it covers.
 - A part the provider still rejects as over its context window is split in two and retried, at
   most twice; past that the job fails and names the part.
 - If any part fails, no review is posted: one error comment lists each failed part, and the job
