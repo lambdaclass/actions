@@ -17,6 +17,10 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/claude'))
     uses: ./.github/workflows/ai-review-claude-api.yml
+    with:
+      max_diff_bytes: 300000
+      timeout_minutes: 30
+      model: claude-haiku-5-5
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
@@ -26,17 +30,11 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/kimi'))
     uses: ./.github/workflows/ai-review-kimi.yml
+    with:
+      max_diff_bytes: 300000
+      timeout_minutes: 30
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
-
-  codex-review:
-    if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
-      github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/codex'))
-    uses: ./.github/workflows/ai-review-codex.yml
-    secrets:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   deepseek-review:
     if: >
@@ -44,6 +42,9 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/deepseek'))
     uses: ./.github/workflows/ai-review-deepseek.yml
+    with:
+      max_diff_bytes: 300000
+      timeout_minutes: 30
     secrets:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
@@ -53,6 +54,10 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/gemini'))
     uses: ./.github/workflows/ai-review-gemini.yml
+    with:
+      max_diff_bytes: 300000
+      timeout_minutes: 30
+      model: gemini-3.8-flash
     secrets:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
@@ -62,5 +67,8 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/grok'))
     uses: ./.github/workflows/ai-review-grok.yml
+    with:
+      max_diff_bytes: 300000
+      timeout_minutes: 30
     secrets:
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
