@@ -126,7 +126,7 @@ jobs:
       effort: 'high'                   # 'low', 'medium', 'high', 'xhigh', 'max'; '' omits (medium)
       max_diff_lines: 200000           # Ceiling: a larger diff fails the review instead of trimming it
       max_diff_bytes: 1800000          # Bytes per request; Claude's tokenizer is ~2.4 bytes/token on code; a larger diff is reviewed in parts
-      max_tokens: 32000                # Max response tokens, thinking included
+      max_tokens: 64000                # Max response tokens, thinking included
       timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```

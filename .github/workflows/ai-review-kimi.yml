@@ -346,7 +346,7 @@ jobs:
           PY
           if ! python3 /tmp/chunk.py "$MAX_BYTES" /tmp/pr_diff.txt /tmp/parts "" "" > /tmp/chunk.log 2>&1 || ! cat /tmp/parts/*.diff | cmp -s - /tmp/pr_diff.txt; then
             cat /tmp/chunk.log
-            MESSAGE="Could not split the diff into parts of max_diff_bytes ($MAX_BYTES): $(tail -n1 /tmp/chunk.log | tr -d '\r' | head -c 300)"
+            MESSAGE="Could not split the diff into parts of max_diff_bytes ($MAX_BYTES): $(tail -n1 /tmp/chunk.log | tr -d '\r' | cut -c1-300 || true)"
             echo "::error::${MESSAGE//%/%25}"
             echo "error=true" >> "$GITHUB_OUTPUT"
             echo "error_message=$MESSAGE" >> "$GITHUB_OUTPUT"
@@ -479,10 +479,15 @@ jobs:
               rc=0
               slot=$(acquire_slot)
               left=$(( DEADLINE - SECONDS ))
+              if [ "$left" -lt 60 ]; then
+                rmdir "/tmp/slots/$slot"
+                echo "ran out of time waiting for a request slot; raise timeout_minutes" > "$d.error"
+                return
+              fi
               code=$(call_api "$d" "$left") || rc=$?
               rmdir "/tmp/slots/$slot"
               if { [ "$rc" -eq 0 ] && [[ "$code" =~ ^(429|500|502|503|504|529)$ ]]; } || [[ "$rc" =~ ^(6|7|35|52|55|56)$ ]]; then
-                wait_s=$(grep -i '^retry-after:' "$d.headers" 2> /dev/null | head -n1 | tr -dc '0-9')
+                wait_s=$(grep -iE '^retry-after: *[0-9]+ *.?$' "$d.headers" 2> /dev/null | head -n1 | tr -dc '0-9')
                 if [ -z "$wait_s" ]; then
                   wait_s=$(( 30 << attempt ))
                 fi
@@ -630,7 +635,7 @@ jobs:
               let cur = null;
               let fence = null;
               const flush = () => {
-                if (cur === null) {
+                if (cur === null || cur === fence) {
                   return;
                 }
                 out.push(fence ? `${cur}\n\`\`\`` : cur);
@@ -639,7 +644,8 @@ jobs:
               for (let line of text.split('\n')) {
                 while (line.length > budget) {
                   flush();
-                  out.push(line.slice(0, budget));
+                  cur = cur === null ? line.slice(0, budget) : `${cur}\n${line.slice(0, budget)}`;
+                  flush();
                   line = line.slice(budget);
                 }
                 if (cur !== null && cur.length + line.length + 5 > budget) {

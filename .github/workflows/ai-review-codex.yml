@@ -181,7 +181,7 @@ jobs:
             let cur = null;
             let fence = null;
             const flush = () => {
-              if (cur === null) {
+              if (cur === null || cur === fence) {
                 return;
               }
               pieces.push(fence ? `${cur}\n\`\`\`` : cur);
@@ -190,7 +190,8 @@ jobs:
             for (let line of raw.split('\n')) {
               while (line.length > budget) {
                 flush();
-                pieces.push(line.slice(0, budget));
+                cur = cur === null ? line.slice(0, budget) : `${cur}\n${line.slice(0, budget)}`;
+                flush();
                 line = line.slice(budget);
               }
               if (cur !== null && cur.length + line.length + 5 > budget) {
