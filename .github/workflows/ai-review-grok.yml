@@ -147,10 +147,21 @@ jobs:
 
           head -n "$MAX_LINES" /tmp/pr_diff.txt > /tmp/pr_diff_lines.txt
           if [ "$(wc -c < /tmp/pr_diff_lines.txt)" -gt "$MAX_BYTES" ]; then
-            head -c "$MAX_BYTES" /tmp/pr_diff_lines.txt | sed '$d' > /tmp/pr_diff_truncated.txt
+            head -c "$MAX_BYTES" /tmp/pr_diff_lines.txt > /tmp/pr_diff_bytes.txt
+            if [ "$(tail -c 1 /tmp/pr_diff_bytes.txt | od -An -c | tr -d ' ')" = '\n' ]; then
+              mv /tmp/pr_diff_bytes.txt /tmp/pr_diff_truncated.txt
+            else
+              sed '$d' /tmp/pr_diff_bytes.txt > /tmp/pr_diff_truncated.txt
+            fi
           else
             cp /tmp/pr_diff_lines.txt /tmp/pr_diff_truncated.txt
           fi
+
+          if [ ! -s /tmp/pr_diff_truncated.txt ]; then
+            echo "::error::The diff is empty after truncation; raise max_diff_lines or max_diff_bytes"
+            exit 1
+          fi
+
           SENT_LINES=$(wc -l < /tmp/pr_diff_truncated.txt)
 
           if [ "$SENT_LINES" -lt "$TOTAL_LINES" ]; then
