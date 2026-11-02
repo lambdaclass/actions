@@ -29,10 +29,11 @@ on:
       max_diff_bytes:
         description: >-
           Maximum bytes of diff to send to the API, applied after max_diff_lines.
-          Sized to the model's context window at about four bytes per token.
+          Sized to the model's context window at three bytes per token, the
+          worst case measured on a synthetic diff; code averages about four.
         required: false
         type: number
-        default: 1600000
+        default: 1200000
       max_output_tokens:
         description: >-
           Maximum visible output tokens. Reasoning tokens do not count against
