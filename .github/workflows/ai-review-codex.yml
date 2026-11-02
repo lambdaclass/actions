@@ -107,10 +107,11 @@ jobs:
         run: |
           read -r BASE_SHA HEAD_SHA < <(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid,headRefOid --jq '"\(.baseRefOid) \(.headRefOid)"')
           MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq .merge_base_commit.sha)
+          rm -rf /tmp/pr-repo
           git init -q /tmp/pr-repo
           git -C /tmp/pr-repo remote add origin "https://github.com/$REPO.git"
           git -C /tmp/pr-repo config credential.helper '!gh auth git-credential'
-          git -C /tmp/pr-repo fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
+          git -C /tmp/pr-repo fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "refs/pull/$PR_NUMBER/head"
           git -C /tmp/pr-repo diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff_full.txt
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff_full.txt)
