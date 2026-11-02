@@ -89,6 +89,11 @@ Guidelines:
 
 ### Workflow Options
 
+The diff comes from git, a blob-filtered fetch of the merge base and the PR head, not
+from the pulls API, which refuses diffs over 20000 lines. `max_diff_lines` caps lines and
+`max_diff_bytes` caps the payload after that, so a reviewer never receives more than its context
+window holds; Codex reads the repository itself and only takes the line cap.
+
 #### Kimi (`ai-review-kimi.yml`)
 
 ```yaml
@@ -102,6 +107,7 @@ jobs:
       reasoning_effort: 'high'         # 'low', 'high', 'max', or '' to omit (K2 models)
       thinking: ''                     # '' omits it; K2 models take 'disabled' or 'enabled'
       max_diff_lines: 10000            # Max lines of diff to review
+      max_diff_bytes: 3200000          # Byte cap after the line cap, sized to the 1M window
       max_tokens: 65536                # Max response tokens, reasoning included
       temperature: ''                  # '' omits it; Kimi pins temperature per model
       timeout_minutes: 20              # Cancel the review job after this long
@@ -125,6 +131,7 @@ jobs:
       model: 'deepseek-v4-pro'         # deepseek-v4-pro or deepseek-flash
       reasoning_effort: 'high'         # 'none' disables thinking; 'low', 'high', 'max'; '' omits
       max_diff_lines: 10000            # Max lines of diff to review
+      max_diff_bytes: 3200000          # Byte cap after the line cap, sized to the 1M window
       max_tokens: 65536                # Max response tokens, reasoning included
       temperature: ''                  # '' omits it; ignored in thinking mode anyway
       timeout_minutes: 20              # Cancel the review job after this long
@@ -143,6 +150,7 @@ jobs:
       model: 'grok-4.7'                # grok-4.7, grok-build-0.1 or grok-4.3
       reasoning_effort: 'medium'       # 'low', 'medium', 'high', 'xhigh'; '' omits; never off
       max_diff_lines: 10000            # Max lines of diff to review
+      max_diff_bytes: 1600000          # Byte cap after the line cap, sized to the 500k window
       max_output_tokens: 16384         # Visible output only; reasoning does not count
       temperature: ''                  # '' omits it
       timeout_minutes: 20              # Cancel the review job after this long

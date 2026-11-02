@@ -36,6 +36,13 @@ on:
         required: false
         type: number
         default: 10000
+      max_diff_bytes:
+        description: >-
+          Maximum bytes of diff to send to the API, applied after max_diff_lines.
+          Sized to the model's context window at about four bytes per token.
+        required: false
+        type: number
+        default: 3200000
       max_tokens:
         description: >-
           Maximum tokens for the response. Reasoning counts against it, so a
@@ -117,14 +124,31 @@ jobs:
             exit 1
           fi
 
+      # gh pr diff reads the pulls API, which refuses diffs over 20000 lines; git has no cap.
       - name: Get PR diff
         id: diff
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
+          MAX_BYTES: ${{ inputs.max_diff_bytes }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff.txt
+          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
+          HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)
+          MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq '.merge_base_commit.sha // empty')
+          if [ -z "$MERGE_BASE" ]; then
+            echo "::error::No merge base between $BASE_SHA and $HEAD_SHA"
+            exit 1
+          fi
+          PR_REPO=$(mktemp -d)
+          export GIT_TERMINAL_PROMPT=0
+          git init -q "$PR_REPO"
+          git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
+          git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
+          git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
+          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
+          rm -rf "$PR_REPO"
 
           if [ ! -s /tmp/pr_diff.txt ]; then
             echo "::error::The PR diff is empty"
@@ -133,12 +157,14 @@ jobs:
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
 
-          head -n $MAX_LINES /tmp/pr_diff.txt > /tmp/pr_diff_truncated.txt
+          head -n "$MAX_LINES" /tmp/pr_diff.txt | head -c "$MAX_BYTES" > /tmp/pr_diff_truncated.txt
+          SENT_LINES=$(wc -l < /tmp/pr_diff_truncated.txt)
 
-          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
+          if [ "$SENT_LINES" -lt "$TOTAL_LINES" ]; then
             echo "truncated=true" >> "$GITHUB_OUTPUT"
             echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
-            echo "::warning::Diff truncated from $TOTAL_LINES to $MAX_LINES lines. Some changes were not reviewed."
+            echo "sent_lines=$SENT_LINES" >> "$GITHUB_OUTPUT"
+            echo "::warning::Diff truncated from $TOTAL_LINES to $SENT_LINES lines. Some changes were not reviewed."
           else
             echo "truncated=false" >> "$GITHUB_OUTPUT"
           fi
@@ -236,7 +262,7 @@ jobs:
         env:
           TRUNCATED: ${{ steps.diff.outputs.truncated }}
           TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
-          MAX_LINES: ${{ inputs.max_diff_lines }}
+          SENT_LINES: ${{ steps.diff.outputs.sent_lines }}
           PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
           MODEL: ${{ inputs.model }}
         with:
@@ -247,13 +273,13 @@ jobs:
             const review = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
             const truncated = process.env.TRUNCATED === 'true';
             const totalLines = process.env.TOTAL_LINES;
-            const maxLines = process.env.MAX_LINES;
+            const sentLines = process.env.SENT_LINES;
             const promptSource = process.env.PROMPT_SOURCE;
             const model = process.env.MODEL;
 
             let truncationWarning = '';
             if (truncated) {
-              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${maxLines} lines. Some changes were not reviewed.\n`;
+              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${sentLines} lines. Some changes were not reviewed.\n`;
             }
 
             let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
