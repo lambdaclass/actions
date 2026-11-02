@@ -2,7 +2,8 @@
 #
 # Triggers:
 # - Automatically on PR open/ready_for_review
-# - On-demand via PR comments: /claude, /kimi, /codex, /deepseek, /gemini, /grok (requires write access)
+# - On-demand via PR comments: /review for every reviewer, or /claude, /kimi, /codex, /deepseek,
+#   /gemini, /grok for one (requires write access)
 #
 # Custom prompts:
 # - Create .github/prompts/ai-review.md in your repo to customize the review focus
