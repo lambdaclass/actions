@@ -113,14 +113,17 @@ jobs:
           MAX_LINES: ${{ inputs.max_diff_lines }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          read -r BASE_SHA HEAD_SHA < <(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid,headRefOid --jq '"\(.baseRefOid) \(.headRefOid)"')
+          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
+          HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)
           MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq .merge_base_commit.sha)
-          rm -rf /tmp/pr-repo
-          git init -q /tmp/pr-repo
-          git -C /tmp/pr-repo remote add origin "https://github.com/$REPO.git"
-          git -C /tmp/pr-repo config credential.helper '!gh auth git-credential'
-          git -C /tmp/pr-repo fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "refs/pull/$PR_NUMBER/head"
-          git -C /tmp/pr-repo diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
+          PR_REPO=$(mktemp -d)
+          export GIT_TERMINAL_PROMPT=0
+          git init -q "$PR_REPO"
+          git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
+          git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
+          git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "refs/pull/$PR_NUMBER/head"
+          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
+          rm -rf "$PR_REPO"
 
           if [ ! -s /tmp/pr_diff.txt ]; then
             echo "::error::The PR diff is empty"
