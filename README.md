@@ -89,6 +89,9 @@ Guidelines:
 
 ### Workflow Options
 
+The diff comes from git, a blob-filtered fetch of the merge base and the PR head, not
+from the pulls API, which refuses diffs over 20000 lines. `max_diff_lines` is the only cap.
+
 #### Kimi (`ai-review-kimi.yml`)
 
 ```yaml
