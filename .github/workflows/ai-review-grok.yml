@@ -26,6 +26,13 @@ on:
         required: false
         type: number
         default: 10000
+      max_diff_bytes:
+        description: >-
+          Maximum bytes of diff to send to the API, applied after max_diff_lines.
+          Sized to the model's context window at about four bytes per token.
+        required: false
+        type: number
+        default: 1600000
       max_output_tokens:
         description: >-
           Maximum visible output tokens. Reasoning tokens do not count against
@@ -111,6 +118,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
+          MAX_BYTES: ${{ inputs.max_diff_bytes }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
           BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
@@ -136,12 +144,14 @@ jobs:
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
 
-          head -n $MAX_LINES /tmp/pr_diff.txt > /tmp/pr_diff_truncated.txt
+          head -n "$MAX_LINES" /tmp/pr_diff.txt | head -c "$MAX_BYTES" > /tmp/pr_diff_truncated.txt
+          SENT_LINES=$(wc -l < /tmp/pr_diff_truncated.txt)
 
-          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
+          if [ "$SENT_LINES" -lt "$TOTAL_LINES" ]; then
             echo "truncated=true" >> "$GITHUB_OUTPUT"
             echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
-            echo "::warning::Diff truncated from $TOTAL_LINES to $MAX_LINES lines. Some changes were not reviewed."
+            echo "sent_lines=$SENT_LINES" >> "$GITHUB_OUTPUT"
+            echo "::warning::Diff truncated from $TOTAL_LINES to $SENT_LINES lines. Some changes were not reviewed."
           else
             echo "truncated=false" >> "$GITHUB_OUTPUT"
           fi
@@ -244,7 +254,7 @@ jobs:
         env:
           TRUNCATED: ${{ steps.diff.outputs.truncated }}
           TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
-          MAX_LINES: ${{ inputs.max_diff_lines }}
+          SENT_LINES: ${{ steps.diff.outputs.sent_lines }}
           PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
           MODEL: ${{ inputs.model }}
         with:
@@ -255,13 +265,13 @@ jobs:
             const review = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
             const truncated = process.env.TRUNCATED === 'true';
             const totalLines = process.env.TOTAL_LINES;
-            const maxLines = process.env.MAX_LINES;
+            const sentLines = process.env.SENT_LINES;
             const promptSource = process.env.PROMPT_SOURCE;
             const model = process.env.MODEL;
 
             let truncationWarning = '';
             if (truncated) {
-              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${maxLines} lines. Some changes were not reviewed.\n`;
+              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${sentLines} lines. Some changes were not reviewed.\n`;
             }
 
             let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
