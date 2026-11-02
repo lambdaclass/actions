@@ -157,7 +157,12 @@ jobs:
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
 
-          head -n "$MAX_LINES" /tmp/pr_diff.txt | head -c "$MAX_BYTES" > /tmp/pr_diff_truncated.txt
+          head -n "$MAX_LINES" /tmp/pr_diff.txt > /tmp/pr_diff_lines.txt
+          if [ "$(wc -c < /tmp/pr_diff_lines.txt)" -gt "$MAX_BYTES" ]; then
+            head -c "$MAX_BYTES" /tmp/pr_diff_lines.txt | sed '$d' > /tmp/pr_diff_truncated.txt
+          else
+            cp /tmp/pr_diff_lines.txt /tmp/pr_diff_truncated.txt
+          fi
           SENT_LINES=$(wc -l < /tmp/pr_diff_truncated.txt)
 
           if [ "$SENT_LINES" -lt "$TOTAL_LINES" ]; then
