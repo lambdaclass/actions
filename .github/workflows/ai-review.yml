@@ -17,6 +17,8 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/claude'))
     uses: ./.github/workflows/ai-review-claude-api.yml
+    with:
+      max_diff_lines: 5
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
@@ -26,6 +28,8 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/kimi'))
     uses: ./.github/workflows/ai-review-kimi.yml
+    with:
+      max_diff_lines: 5
     secrets:
       KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
 
@@ -35,6 +39,8 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/codex'))
     uses: ./.github/workflows/ai-review-codex.yml
+    with:
+      max_diff_lines: 5
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
@@ -44,6 +50,8 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/deepseek'))
     uses: ./.github/workflows/ai-review-deepseek.yml
+    with:
+      max_diff_lines: 5
     secrets:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
@@ -53,6 +61,8 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/gemini'))
     uses: ./.github/workflows/ai-review-gemini.yml
+    with:
+      max_diff_lines: 5
     secrets:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
@@ -62,5 +72,7 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/grok'))
     uses: ./.github/workflows/ai-review-grok.yml
+    with:
+      max_diff_lines: 5
     secrets:
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
