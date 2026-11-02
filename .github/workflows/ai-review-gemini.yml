@@ -1,0 +1,341 @@
+name: Gemini Code Review
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        description: 'Gemini model to use'
+        required: false
+        type: string
+        default: 'gemini-4-argon'
+      thinking_level:
+        description: "'minimal', 'low', 'medium' or 'high'; '' omits the field (model default)."
+        required: false
+        type: string
+        default: 'high'
+      prompt:
+        description: 'Custom review prompt (overrides prompt file if provided)'
+        required: false
+        type: string
+        default: ''
+      max_diff_lines:
+        description: 'Maximum lines of diff to send to API'
+        required: false
+        type: number
+        default: 10000
+      max_diff_bytes:
+        description: >-
+          Maximum bytes of diff to send to the API, applied after max_diff_lines.
+          Sized to the model's context window at three bytes per token, the
+          worst case measured on a synthetic diff; code averages about four.
+        required: false
+        type: number
+        default: 2400000
+      max_output_tokens:
+        description: >-
+          Maximum tokens for the response. Thinking counts against it, so the
+          model needs far more than the final review takes.
+        required: false
+        type: number
+        default: 65536
+      timeout_minutes:
+        description: 'Minutes before the review job is cancelled'
+        required: false
+        type: number
+        default: 20
+    secrets:
+      GEMINI_API_KEY:
+        description: 'Gemini API key'
+        required: true
+
+jobs:
+  review:
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/gemini') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    outputs:
+      reported: ${{ steps.post_review.outcome == 'success' || steps.post_error.outcome == 'success' }}
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      # The prompt file comes from the base branch, never the head: a PR could otherwise rewrite the prompt that reviews it.
+      - name: Load prompt
+        id: load_prompt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROMPT: ${{ inputs.prompt }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          if [ -n "$PROMPT" ]; then
+            printf '%s\n' "$PROMPT" > /tmp/prompt.txt
+            echo "source=input" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
+          if gh api -H "Accept: application/vnd.github.raw+json" "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE_SHA" > /tmp/prompt.txt 2> /tmp/prompt_error.txt; then
+            echo "source=custom" >> $GITHUB_OUTPUT
+          elif grep -q "HTTP 404" /tmp/prompt_error.txt; then
+            cat << 'PROMPT_EOF' > /tmp/prompt.txt
+          You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
+
+          Focus on:
+          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
+          2. **Bugs** - Logic errors, edge cases, incorrect behavior
+          3. **Significant performance issues** - Only flag obvious problems
+
+          Guidelines:
+          - Be concise and actionable
+          - Reference specific file names and line numbers
+          - Only flag real issues, not style preferences
+          - If no issues found, say so briefly
+          PROMPT_EOF
+            echo "source=default" >> $GITHUB_OUTPUT
+          else
+            cat /tmp/prompt_error.txt
+            echo "::error::Could not read .github/prompts/ai-review.md from the base branch"
+            exit 1
+          fi
+
+      # gh pr diff reads the pulls API, which refuses diffs over 20000 lines; git has no cap.
+      - name: Get PR diff
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          MAX_LINES: ${{ inputs.max_diff_lines }}
+          MAX_BYTES: ${{ inputs.max_diff_bytes }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          SHAS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid,headRefOid --jq '.baseRefOid + " " + .headRefOid')
+          BASE_SHA=${SHAS% *}
+          HEAD_SHA=${SHAS#* }
+          MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq '.merge_base_commit.sha // empty')
+          if [ -z "$MERGE_BASE" ]; then
+            echo "::error::No merge base between $BASE_SHA and $HEAD_SHA"
+            exit 1
+          fi
+          PR_REPO=$(mktemp -d)
+          export GIT_TERMINAL_PROMPT=0
+          git init -q "$PR_REPO"
+          git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
+          git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
+          git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
+          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
+          rm -rf "$PR_REPO"
+
+          if [ ! -s /tmp/pr_diff.txt ]; then
+            echo "::error::The PR diff is empty"
+            exit 1
+          fi
+
+          TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
+
+          head -n "$MAX_LINES" /tmp/pr_diff.txt > /tmp/pr_diff_lines.txt
+          if [ "$(wc -c < /tmp/pr_diff_lines.txt)" -gt "$MAX_BYTES" ]; then
+            head -c "$MAX_BYTES" /tmp/pr_diff_lines.txt > /tmp/pr_diff_bytes.txt
+            if [ "$(tail -c 1 /tmp/pr_diff_bytes.txt | od -An -c | tr -d ' ')" = '\n' ]; then
+              mv /tmp/pr_diff_bytes.txt /tmp/pr_diff_truncated.txt
+            else
+              sed '$d' /tmp/pr_diff_bytes.txt > /tmp/pr_diff_truncated.txt
+            fi
+          else
+            cp /tmp/pr_diff_lines.txt /tmp/pr_diff_truncated.txt
+          fi
+
+          if [ ! -s /tmp/pr_diff_truncated.txt ]; then
+            echo "::error::The diff is empty after truncation; raise max_diff_lines or max_diff_bytes"
+            exit 1
+          fi
+
+          SENT_LINES=$(wc -l < /tmp/pr_diff_truncated.txt)
+
+          if [ "$SENT_LINES" -lt "$TOTAL_LINES" ]; then
+            echo "truncated=true" >> "$GITHUB_OUTPUT"
+            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
+            echo "sent_lines=$SENT_LINES" >> "$GITHUB_OUTPUT"
+            echo "::warning::Diff truncated from $TOTAL_LINES to $SENT_LINES lines. Some changes were not reviewed."
+          else
+            echo "truncated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Call Gemini API for review
+        id: gemini_review
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MODEL: ${{ inputs.model }}
+          THINKING_LEVEL: ${{ inputs.thinking_level }}
+          MAX_OUTPUT_TOKENS: ${{ inputs.max_output_tokens }}
+          TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
+        run: |
+          SYSTEM_PROMPT=$(cat /tmp/prompt.txt)
+          CURL_MAX_TIME=$(( TIMEOUT_MINUTES * 60 - 330 ))
+          if [ "$CURL_MAX_TIME" -lt 60 ]; then
+            CURL_MAX_TIME=60
+          fi
+          echo "::add-mask::$GEMINI_API_KEY"
+
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=GEMINI_API_KEY secret is not set" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          USER_PROMPT="REPO: ${{ github.repository }}
+          PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+
+          Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
+
+          jq -n \
+            --arg system "$SYSTEM_PROMPT" \
+            --arg user "$USER_PROMPT" \
+            --argjson max_output_tokens "$MAX_OUTPUT_TOKENS" \
+            --arg thinking_level "$THINKING_LEVEL" \
+            --rawfile diff /tmp/pr_diff_truncated.txt \
+            '{
+              systemInstruction: { parts: [ { text: $system } ] },
+              contents: [
+                { role: "user", parts: [ { text: ($user + "\n\nDiff:\n" + $diff) } ] }
+              ],
+              generationConfig: (
+                { maxOutputTokens: $max_output_tokens }
+                + (if $thinking_level == "" then {} else { thinkingConfig: { thinkingLevel: ($thinking_level | ascii_upcase) } } end)
+              )
+            }' > /tmp/payload.json
+
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time "$CURL_MAX_TIME" --retry 2 --retry-delay 30 --retry-max-time 120 -X POST "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent" \
+            -H "Content-Type: application/json" \
+            -H "x-goog-api-key: $GEMINI_API_KEY" \
+            -d @/tmp/payload.json) || {
+            CURL_EXIT=$?
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Gemini API request failed: curl exit code $CURL_EXIT" >> $GITHUB_OUTPUT
+            exit 0
+          }
+
+          BODY=$(cat /tmp/response.json 2> /dev/null || true)
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            # Newlines would end the GITHUB_OUTPUT line and let the response set further outputs.
+            ERROR_DETAIL=$({ echo "$BODY" | jq -r '.error.message // .error // .' 2> /dev/null || echo "$BODY"; } | tr '\r\n' '  ' | head -c 500 || true)
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Gemini API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          BLOCK_REASON=$(echo "$BODY" | jq -r '.promptFeedback.blockReason // ""' | tr -d '\n\r' | head -c 100)
+          if [ -n "$BLOCK_REASON" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Gemini blocked the prompt (blockReason=$BLOCK_REASON)" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          FINISH=$(echo "$BODY" | jq -r '.candidates[0].finishReason // "unknown"' | tr -d '\n\r' | head -c 100)
+          if [ "$FINISH" != "STOP" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Gemini stopped early (finishReason=$FINISH). For MAX_TOKENS, raise max_output_tokens or lower thinking_level." >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          REVIEW=$(echo "$BODY" | jq -r '[.candidates[0].content.parts[]? | select(.thought != true) | .text // empty] | join("")')
+
+          if [ -z "$(printf '%s' "$REVIEW" | tr -d '[:space:]')" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Gemini returned no text (finishReason=$FINISH)" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          printf '%s\n' "$REVIEW" > /tmp/review.txt
+          echo "model=$(echo "$BODY" | jq -r --arg m "$MODEL" '.modelVersion // $m' | tr -d '\n\r' | head -c 100)" >> $GITHUB_OUTPUT
+          echo "success=true" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        id: post_review
+        if: steps.gemini_review.outputs.success == 'true'
+        uses: actions/github-script@v7
+        env:
+          TRUNCATED: ${{ steps.diff.outputs.truncated }}
+          TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
+          SENT_LINES: ${{ steps.diff.outputs.sent_lines }}
+          PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
+          MODEL: ${{ steps.gemini_review.outputs.model }}
+        with:
+          script: |
+            const fs = require('fs');
+            const raw = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const limit = 60000;
+            const review = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
+            const truncated = process.env.TRUNCATED === 'true';
+            const totalLines = process.env.TOTAL_LINES;
+            const sentLines = process.env.SENT_LINES;
+            const promptSource = process.env.PROMPT_SOURCE;
+            const model = process.env.MODEL;
+
+            let truncationWarning = '';
+            if (truncated) {
+              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${sentLines} lines. Some changes were not reviewed.\n`;
+            }
+
+            let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
+
+            if (review && review.trim() !== '') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `## 🤖 Gemini Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Gemini · ${model}${promptNote}*`
+              });
+            }
+
+      - name: Post error comment
+        id: post_error
+        if: steps.gemini_review.outputs.error == 'true'
+        uses: actions/github-script@v7
+        env:
+          ERROR_MESSAGE: ${{ steps.gemini_review.outputs.error_message }}
+        with:
+          script: |
+            const errorMessage = process.env.ERROR_MESSAGE || 'Unknown error';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 Gemini Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by Gemini*`
+            });
+
+      - name: Fail the job if the review did not run
+        if: steps.gemini_review.outputs.error == 'true'
+        env:
+          # Built from an API response: must reach the shell only through env, never interpolated into run.
+          ERROR_MESSAGE: ${{ steps.gemini_review.outputs.error_message }}
+        run: |
+          echo "::error::${ERROR_MESSAGE//%/%25}"
+          exit 1
+
+  # always() also runs this when review was skipped (fork PRs, other slash commands), so skipped must be excluded.
+  report_failure:
+    name: Report review failure
+    needs: review
+    if: ${{ always() && needs.review.result != 'skipped' && needs.review.outputs.reported != 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          RESULT: ${{ needs.review.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
+              body: `## 🤖 Gemini Code Review\n\n⚠️ The review job did not complete (result: ${process.env.RESULT}). [See the job log](${process.env.RUN_URL})\n\n---\n*Automated review by Gemini*`,
+            });

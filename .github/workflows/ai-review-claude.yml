@@ -1,77 +1,94 @@
-# Reusable workflow for Claude (Anthropic) code review
-# Reference: https://github.com/anthropics/claude-code-action
-# Usage: See examples/ai-review-caller.yml
-
 name: Claude Code Review
 
 on:
   workflow_call:
     inputs:
       model:
-        description: 'Claude model to use (sonnet, opus, haiku)'
+        description: "Claude model ID; the short names 'sonnet', 'opus' and 'haiku' map to the current 5.5 models"
         required: false
         type: string
-        default: 'sonnet'
-      max_turns:
-        description: 'Maximum agentic turns'
+        default: 'claude-opus-5-5'
+      effort:
+        description: "'low', 'medium', 'high', 'xhigh' or 'max'; '' omits the field (Opus 5.5 then runs at medium)."
         required: false
-        type: number
-        default: 30
+        type: string
+        default: 'high'
       prompt:
         description: 'Custom review prompt (overrides prompt file if provided)'
         required: false
         type: string
         default: ''
-      allowed_tools:
-        description: 'Allowed tools for Claude (comma-separated)'
+      max_diff_lines:
+        description: 'Maximum lines of diff to send to API'
         required: false
-        type: string
-        default: 'mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(cargo tree:*),Bash(cargo metadata:*),Bash(npm list:*),Bash(npm ls:*),Bash(forge inspect:*),Read,Glob,Grep'
+        type: number
+        default: 10000
+      max_diff_bytes:
+        description: >-
+          Maximum bytes of diff to send to the API, applied after max_diff_lines.
+          Claude's tokenizer measured 2.1-2.4 bytes per token on text and code,
+          so 1.8 MB stays under the 1M window; dense content such as minified or
+          base64 files can still exceed it and fail the review.
+        required: false
+        type: number
+        default: 1800000
+      max_tokens:
+        description: >-
+          Maximum tokens for the response. Thinking counts against it, so the
+          model needs far more than the final review takes.
+        required: false
+        type: number
+        default: 64000
+      timeout_minutes:
+        description: 'Minutes before the review job is cancelled'
+        required: false
+        type: number
+        default: 20
     secrets:
       ANTHROPIC_API_KEY:
         description: 'Anthropic API key'
         required: true
 
 jobs:
-  claude-review:
-    # For pull_request: only run on same-repo PRs (not forks)
-    # For issue_comment: only allow users with write access (OWNER, MEMBER, COLLABORATOR)
+  review:
     if: |
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/claude') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    outputs:
+      reported: ${{ steps.post_review.outcome == 'success' || steps.post_error.outcome == 'success' }}
     permissions:
       contents: read
       pull-requests: write
-      issues: read
-      id-token: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
-
+      # The prompt file comes from the base branch, never the head: a PR could otherwise rewrite the prompt that reviews it.
       - name: Load prompt
-        id: prompt
+        id: load_prompt
         env:
-          INPUT_PROMPT: ${{ inputs.prompt }}
+          GH_TOKEN: ${{ github.token }}
+          PROMPT: ${{ inputs.prompt }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          if [ -n "$INPUT_PROMPT" ]; then
-            cat << 'PROMPT_EOF' > /tmp/prompt.txt
-          ${{ inputs.prompt }}
-          PROMPT_EOF
+          if [ -n "$PROMPT" ]; then
+            printf '%s\n' "$PROMPT" > /tmp/prompt.txt
             echo "source=input" >> $GITHUB_OUTPUT
-          elif [ -f ".github/prompts/ai-review.md" ]; then
-            cat .github/prompts/ai-review.md > /tmp/prompt.txt
+            exit 0
+          fi
+
+          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
+          if gh api -H "Accept: application/vnd.github.raw+json" "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE_SHA" > /tmp/prompt.txt 2> /tmp/prompt_error.txt; then
             echo "source=custom" >> $GITHUB_OUTPUT
-          else
+          elif grep -q "HTTP 404" /tmp/prompt_error.txt; then
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
-          Review this pull request focusing on:
+          You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
+
+          Focus on:
           1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
           2. **Bugs** - Logic errors, edge cases, incorrect behavior
-          3. **Significant performance issues** - Only flag obvious problems like O(n²) loops on large inputs
+          3. **Significant performance issues** - Only flag obvious problems
 
           Guidelines:
           - Be concise and actionable
@@ -80,60 +97,248 @@ jobs:
           - If no issues found, say so briefly
           PROMPT_EOF
             echo "source=default" >> $GITHUB_OUTPUT
+          else
+            cat /tmp/prompt_error.txt
+            echo "::error::Could not read .github/prompts/ai-review.md from the base branch"
+            exit 1
           fi
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          cat /tmp/prompt.txt >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Run Claude Code Review
-        id: claude-review
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          show_full_output: true
-          claude_args: |
-            --model ${{ inputs.model }}
-            --max-turns ${{ inputs.max_turns }}
-            --allowedTools "${{ inputs.allowed_tools }}"
-          prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+      # gh pr diff reads the pulls API, which refuses diffs over 20000 lines; git has no cap.
+      - name: Get PR diff
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          MAX_LINES: ${{ inputs.max_diff_lines }}
+          MAX_BYTES: ${{ inputs.max_diff_bytes }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          SHAS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid,headRefOid --jq '.baseRefOid + " " + .headRefOid')
+          BASE_SHA=${SHAS% *}
+          HEAD_SHA=${SHAS#* }
+          MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq '.merge_base_commit.sha // empty')
+          if [ -z "$MERGE_BASE" ]; then
+            echo "::error::No merge base between $BASE_SHA and $HEAD_SHA"
+            exit 1
+          fi
+          PR_REPO=$(mktemp -d)
+          export GIT_TERMINAL_PROMPT=0
+          git init -q "$PR_REPO"
+          git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
+          git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
+          git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
+          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
+          rm -rf "$PR_REPO"
 
-            ${{ steps.prompt.outputs.content }}
+          if [ ! -s /tmp/pr_diff.txt ]; then
+            echo "::error::The PR diff is empty"
+            exit 1
+          fi
 
-            Output your review findings in markdown format. Do NOT post a PR comment yourself - just output the review content.
+          TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
+
+          head -n "$MAX_LINES" /tmp/pr_diff.txt > /tmp/pr_diff_lines.txt
+          if [ "$(wc -c < /tmp/pr_diff_lines.txt)" -gt "$MAX_BYTES" ]; then
+            head -c "$MAX_BYTES" /tmp/pr_diff_lines.txt > /tmp/pr_diff_bytes.txt
+            if [ "$(tail -c 1 /tmp/pr_diff_bytes.txt | od -An -c | tr -d ' ')" = '\n' ]; then
+              mv /tmp/pr_diff_bytes.txt /tmp/pr_diff_truncated.txt
+            else
+              sed '$d' /tmp/pr_diff_bytes.txt > /tmp/pr_diff_truncated.txt
+            fi
+          else
+            cp /tmp/pr_diff_lines.txt /tmp/pr_diff_truncated.txt
+          fi
+
+          if [ ! -s /tmp/pr_diff_truncated.txt ]; then
+            echo "::error::The diff is empty after truncation; raise max_diff_lines or max_diff_bytes"
+            exit 1
+          fi
+
+          SENT_LINES=$(wc -l < /tmp/pr_diff_truncated.txt)
+
+          if [ "$SENT_LINES" -lt "$TOTAL_LINES" ]; then
+            echo "truncated=true" >> "$GITHUB_OUTPUT"
+            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
+            echo "sent_lines=$SENT_LINES" >> "$GITHUB_OUTPUT"
+            echo "::warning::Diff truncated from $TOTAL_LINES to $SENT_LINES lines. Some changes were not reviewed."
+          else
+            echo "truncated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Call Claude API for review
+        id: claude_review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODEL: ${{ inputs.model }}
+          EFFORT: ${{ inputs.effort }}
+          MAX_TOKENS: ${{ inputs.max_tokens }}
+          TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
+        run: |
+          SYSTEM_PROMPT=$(cat /tmp/prompt.txt)
+          case "$MODEL" in
+            sonnet) MODEL=claude-sonnet-5-5 ;;
+            opus) MODEL=claude-opus-5-5 ;;
+            haiku) MODEL=claude-haiku-5-5 ;;
+          esac
+          CURL_MAX_TIME=$(( TIMEOUT_MINUTES * 60 - 330 ))
+          if [ "$CURL_MAX_TIME" -lt 60 ]; then
+            CURL_MAX_TIME=60
+          fi
+          echo "::add-mask::$ANTHROPIC_API_KEY"
+
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=ANTHROPIC_API_KEY secret is not set" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          USER_PROMPT="REPO: ${{ github.repository }}
+          PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+
+          Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
+
+          jq -n \
+            --arg model "$MODEL" \
+            --arg system "$SYSTEM_PROMPT" \
+            --arg user "$USER_PROMPT" \
+            --argjson max_tokens "$MAX_TOKENS" \
+            --arg effort "$EFFORT" \
+            --rawfile diff /tmp/pr_diff_truncated.txt \
+            '{
+              model: $model,
+              system: $system,
+              messages: [
+                { role: "user", content: ($user + "\n\nDiff:\n" + $diff) }
+              ],
+              max_tokens: $max_tokens,
+              fallbacks: "default"
+            }
+            + (if $effort == "" then {} else { output_config: { effort: $effort } } end)' > /tmp/payload.json
+
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time "$CURL_MAX_TIME" --retry 2 --retry-delay 30 --retry-max-time 120 -X POST "https://api.anthropic.com/v1/messages" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2026-10-21" \
+            -H "anthropic-beta: server-side-fallback-2026-07-01" \
+            -d @/tmp/payload.json) || {
+            CURL_EXIT=$?
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Claude API request failed: curl exit code $CURL_EXIT" >> $GITHUB_OUTPUT
+            exit 0
+          }
+
+          BODY=$(cat /tmp/response.json 2> /dev/null || true)
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            # Newlines would end the GITHUB_OUTPUT line and let the response set further outputs.
+            ERROR_DETAIL=$({ echo "$BODY" | jq -r '.error.message // .error // .' 2> /dev/null || echo "$BODY"; } | tr '\r\n' '  ' | head -c 500 || true)
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Claude API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          STOP_REASON=$(echo "$BODY" | jq -r '.stop_reason // "unknown"' | tr -d '\n\r')
+          if [ "$STOP_REASON" != "end_turn" ]; then
+            CATEGORY=$(echo "$BODY" | jq -r '.stop_details.category // "none"' | tr -d '\n\r' | head -c 100)
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Claude did not finish the review (stop_reason=$STOP_REASON, category=$CATEGORY). For max_tokens, raise max_tokens or lower effort." >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          REVIEW=$(echo "$BODY" | jq -r '[.content[]? | select(.type == "text") | .text] | join("\n")')
+
+          if [ -z "$(printf '%s' "$REVIEW" | tr -d '[:space:]')" ]; then
+            echo "error=true" >> $GITHUB_OUTPUT
+            echo "error_message=Claude returned no text (stop_reason=$STOP_REASON)" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          printf '%s\n' "$REVIEW" > /tmp/review.txt
+          echo "model=$(echo "$BODY" | jq -r --arg m "$MODEL" '.model // $m' | tr -d '\n\r' | head -c 100)" >> $GITHUB_OUTPUT
+          echo "success=true" >> $GITHUB_OUTPUT
 
       - name: Post review comment
-        if: steps.claude-review.outputs.execution_file != ''
+        id: post_review
+        if: steps.claude_review.outputs.success == 'true'
         uses: actions/github-script@v7
         env:
-          EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
-          PROMPT_SOURCE: ${{ steps.prompt.outputs.source }}
-          MODEL: ${{ inputs.model }}
+          TRUNCATED: ${{ steps.diff.outputs.truncated }}
+          TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
+          SENT_LINES: ${{ steps.diff.outputs.sent_lines }}
+          PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
+          MODEL: ${{ steps.claude_review.outputs.model }}
         with:
           script: |
             const fs = require('fs');
-            const execFile = process.env.EXECUTION_FILE;
-            const source = process.env.PROMPT_SOURCE;
+            const raw = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const limit = 60000;
+            const review = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
+            const truncated = process.env.TRUNCATED === 'true';
+            const totalLines = process.env.TOTAL_LINES;
+            const sentLines = process.env.SENT_LINES;
+            const promptSource = process.env.PROMPT_SOURCE;
             const model = process.env.MODEL;
-            const customPrompt = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
 
-            if (!execFile || !fs.existsSync(execFile)) {
-              console.log('No execution file found');
-              return;
+            let truncationWarning = '';
+            if (truncated) {
+              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${sentLines} lines. Some changes were not reviewed.\n`;
             }
 
-            const data = JSON.parse(fs.readFileSync(execFile, 'utf8'));
-            // Find the result message (last message with type "result")
-            const resultMsg = data.filter(m => m.type === 'result').pop();
-            const review = resultMsg?.result || '';
+            let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
 
             if (review && review.trim() !== '') {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-                body: `## 🤖 Claude Code Review\n\n${review}\n\n---\n*Automated review by Claude (Anthropic) · ${model}${customPrompt}*`
+                issue_number: context.issue.number,
+                body: `## 🤖 Claude Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Claude · ${model}${promptNote}*`
               });
             }
+
+      - name: Post error comment
+        id: post_error
+        if: steps.claude_review.outputs.error == 'true'
+        uses: actions/github-script@v7
+        env:
+          ERROR_MESSAGE: ${{ steps.claude_review.outputs.error_message }}
+        with:
+          script: |
+            const errorMessage = process.env.ERROR_MESSAGE || 'Unknown error';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 Claude Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by Claude*`
+            });
+
+      - name: Fail the job if the review did not run
+        if: steps.claude_review.outputs.error == 'true'
+        env:
+          # Built from an API response: must reach the shell only through env, never interpolated into run.
+          ERROR_MESSAGE: ${{ steps.claude_review.outputs.error_message }}
+        run: |
+          echo "::error::${ERROR_MESSAGE//%/%25}"
+          exit 1
+
+  # always() also runs this when review was skipped (fork PRs, other slash commands), so skipped must be excluded.
+  report_failure:
+    name: Report review failure
+    needs: review
+    if: ${{ always() && needs.review.result != 'skipped' && needs.review.outputs.reported != 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          RESULT: ${{ needs.review.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
+              body: `## 🤖 Claude Code Review\n\n⚠️ The review job did not complete (result: ${process.env.RESULT}). [See the job log](${process.env.RUN_URL})\n\n---\n*Automated review by Claude*`,
+            });
