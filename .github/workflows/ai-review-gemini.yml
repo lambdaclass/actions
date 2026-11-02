@@ -174,7 +174,7 @@ jobs:
           TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
         run: |
           SYSTEM_PROMPT=$(cat /tmp/prompt.txt)
-          CURL_MAX_TIME=$(( TIMEOUT_MINUTES * 60 - 180 ))
+          CURL_MAX_TIME=$(( TIMEOUT_MINUTES * 60 - 330 ))
           if [ "$CURL_MAX_TIME" -lt 60 ]; then
             CURL_MAX_TIME=60
           fi
@@ -208,7 +208,7 @@ jobs:
               )
             }' > /tmp/payload.json
 
-          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$CURL_MAX_TIME" --retry 2 --retry-delay 30 --retry-max-time 120 -X POST "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent" \
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time "$CURL_MAX_TIME" --retry 2 --retry-delay 30 --retry-max-time 120 -X POST "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent" \
             -H "Content-Type: application/json" \
             -H "x-goog-api-key: $GEMINI_API_KEY" \
             -d @/tmp/payload.json) || {
@@ -218,12 +218,11 @@ jobs:
             exit 0
           }
 
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
+          BODY=$(cat /tmp/response.json 2> /dev/null || true)
 
           if [ "$HTTP_CODE" != "200" ]; then
             # Newlines would end the GITHUB_OUTPUT line and let the response set further outputs.
-            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | tr '\n' ' ' | head -c 500)
+            ERROR_DETAIL=$({ echo "$BODY" | jq -r '.error.message // .error // .' 2> /dev/null || echo "$BODY"; } | tr '\r\n' '  ' | head -c 500 || true)
             echo "error=true" >> $GITHUB_OUTPUT
             echo "error_message=Gemini API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
             exit 0
@@ -251,7 +250,7 @@ jobs:
             exit 0
           fi
 
-          echo "$REVIEW" > /tmp/review.txt
+          printf '%s\n' "$REVIEW" > /tmp/review.txt
           echo "model=$(echo "$BODY" | jq -r --arg m "$MODEL" '.modelVersion // $m' | tr -d '\n\r' | head -c 100)" >> $GITHUB_OUTPUT
           echo "success=true" >> $GITHUB_OUTPUT
 
