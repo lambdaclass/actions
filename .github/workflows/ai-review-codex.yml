@@ -20,13 +20,12 @@ on:
         default: 'drop-sudo'
       max_diff_lines:
         description: >-
-          Lines of diff written to /tmp/pr_diff.txt. Advisory, not a hard bound:
-          the agent has the repo checked out at fetch-depth 0 and can regenerate
-          the full diff with git diff. Unlike the kimi input of the same name,
-          which is a hard cap on the request payload.
+          Ceiling on the diff size. A larger diff is not reviewed at all: the
+          job posts an error comment and fails. Below it, Codex gets the whole
+          diff in /tmp/pr_diff.txt.
         required: false
         type: number
-        default: 10000
+        default: 200000
       timeout_minutes:
         description: 'Minutes before the review job is cancelled'
         required: false
@@ -106,8 +105,9 @@ jobs:
           MAX_LINES: ${{ inputs.max_diff_lines }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
-          HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)
+          SHAS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid,headRefOid --jq '.baseRefOid + " " + .headRefOid')
+          BASE_SHA=${SHAS% *}
+          HEAD_SHA=${SHAS#* }
           MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq '.merge_base_commit.sha // empty')
           if [ -z "$MERGE_BASE" ]; then
             echo "::error::No merge base between $BASE_SHA and $HEAD_SHA"
@@ -119,26 +119,34 @@ jobs:
           git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
           git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
           git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
-          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff_full.txt
+          git -C "$PR_REPO" -c core.quotePath=false diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
           rm -rf "$PR_REPO"
 
-          TOTAL_LINES=$(wc -l < /tmp/pr_diff_full.txt)
-
-          head -n "$MAX_LINES" /tmp/pr_diff_full.txt > /tmp/pr_diff.txt
-          rm -f /tmp/pr_diff_full.txt
-
-          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
-            echo "truncated=true" >> "$GITHUB_OUTPUT"
-            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
-            echo "::warning::Diff truncated from $TOTAL_LINES to $MAX_LINES lines. Some changes were not reviewed."
-          else
-            echo "truncated=false" >> "$GITHUB_OUTPUT"
+          if [ ! -s /tmp/pr_diff.txt ]; then
+            echo "::error::The PR diff is empty"
+            exit 1
           fi
 
-          echo "Diff has $TOTAL_LINES lines, sending $(wc -l < /tmp/pr_diff.txt)"
+          TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt | tr -d ' ')
+          TOTAL_BYTES=$(wc -c < /tmp/pr_diff.txt | tr -d ' ')
+          FILES=$(grep -c '^diff --git ' /tmp/pr_diff.txt || true)
+          {
+            echo "total_lines=$TOTAL_LINES"
+            echo "total_bytes=$TOTAL_BYTES"
+            echo "files=$FILES"
+          } >> "$GITHUB_OUTPUT"
+          echo "Diff: $TOTAL_LINES lines, $TOTAL_BYTES bytes, $FILES files"
+
+          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
+            MESSAGE="The diff has $TOTAL_LINES lines over $FILES files, above the max_diff_lines ceiling of $MAX_LINES, so nothing was sent to the model. Raise max_diff_lines in the caller to review this PR."
+            echo "::error::$MESSAGE"
+            echo "error=true" >> "$GITHUB_OUTPUT"
+            echo "error_message=$MESSAGE" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Run Codex Code Review
         id: codex
+        if: steps.diff.outputs.error != 'true'
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
@@ -150,7 +158,7 @@ jobs:
 
             ${{ steps.prompt.outputs.content }}
 
-            The PR diff is available at /tmp/pr_diff.txt. Read it with: cat /tmp/pr_diff.txt
+            The complete PR diff (${{ steps.diff.outputs.total_lines }} lines, ${{ steps.diff.outputs.files }} files, ${{ steps.diff.outputs.total_bytes }} bytes) is at /tmp/pr_diff.txt. Review all of it. Read it in pieces if it is large, for example with sed -n '1,4000p' /tmp/pr_diff.txt.
 
       - name: Post review comment
         id: review
@@ -160,9 +168,6 @@ jobs:
           CODEX_FINAL_MESSAGE: ${{ steps.codex.outputs.final-message }}
           PROMPT_SOURCE: ${{ steps.prompt.outputs.source }}
           MODEL: ${{ inputs.model }}
-          TRUNCATED: ${{ steps.diff.outputs.truncated }}
-          TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
-          MAX_LINES: ${{ inputs.max_diff_lines }}
         with:
           github-token: ${{ github.token }}
           script: |
@@ -170,17 +175,45 @@ jobs:
             const model = process.env.MODEL;
             const promptNote = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
             const raw = process.env.CODEX_FINAL_MESSAGE;
-            const limit = 60000;
-            const message = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
-            const truncationWarning = process.env.TRUNCATED === 'true'
-              ? `\n> ⚠️ **Warning:** Diff was truncated from ${process.env.TOTAL_LINES} to ${process.env.MAX_LINES} lines. Some changes were not reviewed.\n`
-              : '';
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-              body: `## 🤖 Codex Code Review\n${truncationWarning}\n${message}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`,
-            });
+            const footer = `\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`;
+            const budget = 60000 - footer.length - 200;
+            const pieces = [];
+            let cur = null;
+            let fence = null;
+            const flush = () => {
+              if (cur === null || cur === fence) {
+                return;
+              }
+              pieces.push(fence ? `${cur}\n\`\`\`` : cur);
+              cur = fence ? fence : null;
+            };
+            for (let line of raw.split('\n')) {
+              while (line.length > budget) {
+                flush();
+                cur = cur === null ? line.slice(0, budget) : `${cur}\n${line.slice(0, budget)}`;
+                flush();
+                line = line.slice(budget);
+              }
+              if (cur !== null && cur.length + line.length + 5 > budget) {
+                flush();
+              }
+              cur = cur === null ? line : `${cur}\n${line}`;
+              if (/^\s*```/.test(line)) {
+                fence = fence ? null : line.trim();
+              }
+            }
+            if (cur !== null) {
+              pieces.push(cur);
+            }
+            for (let j = 0; j < pieces.length; j++) {
+              const tag = pieces.length > 1 ? ` (comment ${j + 1}/${pieces.length})` : '';
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
+                body: `## 🤖 Codex Code Review${tag}\n\n${pieces[j]}${footer}`,
+              });
+            }
 
       - name: Post error comment
         id: error
@@ -188,20 +221,24 @@ jobs:
         uses: actions/github-script@v7
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DIFF_ERROR: ${{ steps.diff.outputs.error_message }}
         with:
           github-token: ${{ github.token }}
           script: |
+            const reason = process.env.DIFF_ERROR || `the run produced no final message. [See the job log](${process.env.RUN_URL})`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-              body: `## 🤖 Codex Code Review\n\n⚠️ Review failed: the run produced no final message. [See the job log](${process.env.RUN_URL})\n\n---\n*Automated review by OpenAI Codex*`,
+              body: `## 🤖 Codex Code Review\n\n⚠️ Review failed: ${reason}\n\n---\n*Automated review by OpenAI Codex*`,
             });
 
       - name: Fail the job if no review was produced
         if: ${{ success() && steps.codex.outputs.final-message == '' }}
+        env:
+          DIFF_ERROR: ${{ steps.diff.outputs.error_message }}
         run: |
-          echo "::error::Codex produced no final message"
+          echo "::error::${DIFF_ERROR:-Codex produced no final message}"
           exit 1
 
   # always() also runs this when codex was skipped (fork PRs, /kimi comments), so skipped must be excluded.

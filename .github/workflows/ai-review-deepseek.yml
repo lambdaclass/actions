@@ -21,15 +21,19 @@ on:
         type: string
         default: ''
       max_diff_lines:
-        description: 'Maximum lines of diff to send to API'
+        description: >-
+          Ceiling on the diff size. A larger diff is not sent to the model at
+          all: the job posts an error comment and fails. It does not trim.
         required: false
         type: number
-        default: 10000
+        default: 200000
       max_diff_bytes:
         description: >-
-          Maximum bytes of diff to send to the API, applied after max_diff_lines.
-          Sized to the model's context window at three bytes per token, the
-          worst case measured on a synthetic diff; code averages about four.
+          Bytes of diff per request, sized to stay under the model's context
+          window at the bytes per token its tokenizer gets on code. A larger diff is split on file, then hunk,
+          then line boundaries into parts, each reviewed in its own request and
+          comment; a part the model still rejects as too long is split in two
+          and retried, at most twice.
         required: false
         type: number
         default: 2400000
@@ -41,15 +45,17 @@ on:
         type: number
         default: 65536
       timeout_minutes:
-        description: 'Minutes before the review job is cancelled'
+        description: >-
+          Minutes before the review job is cancelled. Parts are reviewed in
+          parallel, at most four requests at a time, and requests stop three
+          minutes before this so the comments can still be posted.
         required: false
         type: number
         default: 20
       temperature:
         description: >-
           Sampling temperature as a string, or '' (the default) to omit the
-          field. DeepSeek ignores it in thinking mode, so it only matters with
-          reasoning_effort 'none'.
+          field. DeepSeek ignores it in thinking mode, so it only matters with reasoning_effort 'none'.
         required: false
         type: string
         default: ''
@@ -112,7 +118,6 @@ jobs:
             exit 1
           fi
 
-      # gh pr diff reads the pulls API, which refuses diffs over 20000 lines; git has no cap.
       - name: Get PR diff
         id: diff
         env:
@@ -122,8 +127,10 @@ jobs:
           MAX_BYTES: ${{ inputs.max_diff_bytes }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
-          HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)
+          echo "REVIEW_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+          SHAS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid,headRefOid --jq '.baseRefOid + " " + .headRefOid')
+          BASE_SHA=${SHAS% *}
+          HEAD_SHA=${SHAS#* }
           MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq '.merge_base_commit.sha // empty')
           if [ -z "$MERGE_BASE" ]; then
             echo "::error::No merge base between $BASE_SHA and $HEAD_SHA"
@@ -135,7 +142,7 @@ jobs:
           git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
           git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
           git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
-          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
+          git -C "$PR_REPO" -c core.quotePath=false diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
           rm -rf "$PR_REPO"
 
           if [ ! -s /tmp/pr_diff.txt ]; then
@@ -143,163 +150,540 @@ jobs:
             exit 1
           fi
 
-          TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
+          TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt | tr -d ' ')
+          TOTAL_BYTES=$(wc -c < /tmp/pr_diff.txt | tr -d ' ')
+          FILES=$(grep -c '^diff --git ' /tmp/pr_diff.txt || true)
+          {
+            echo "total_lines=$TOTAL_LINES"
+            echo "total_bytes=$TOTAL_BYTES"
+            echo "files=$FILES"
+          } >> "$GITHUB_OUTPUT"
 
-          head -n "$MAX_LINES" /tmp/pr_diff.txt > /tmp/pr_diff_lines.txt
-          if [ "$(wc -c < /tmp/pr_diff_lines.txt)" -gt "$MAX_BYTES" ]; then
-            head -c "$MAX_BYTES" /tmp/pr_diff_lines.txt > /tmp/pr_diff_bytes.txt
-            if [ "$(tail -c 1 /tmp/pr_diff_bytes.txt | od -An -c | tr -d ' ')" = '\n' ]; then
-              mv /tmp/pr_diff_bytes.txt /tmp/pr_diff_truncated.txt
-            else
-              sed '$d' /tmp/pr_diff_bytes.txt > /tmp/pr_diff_truncated.txt
-            fi
-          else
-            cp /tmp/pr_diff_lines.txt /tmp/pr_diff_truncated.txt
+          if [ "$TOTAL_LINES" -gt "$MAX_LINES" ]; then
+            MESSAGE="The diff has $TOTAL_LINES lines over $FILES files, above the max_diff_lines ceiling of $MAX_LINES, so nothing was sent to the model. Raise max_diff_lines in the caller to review this PR."
+            echo "::error::$MESSAGE"
+            echo "error=true" >> "$GITHUB_OUTPUT"
+            echo "error_message=$MESSAGE" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
-          if [ ! -s /tmp/pr_diff_truncated.txt ]; then
-            echo "::error::The diff is empty after truncation; raise max_diff_lines or max_diff_bytes"
-            exit 1
-          fi
+          rm -rf /tmp/parts
+          cat > /tmp/chunk.py <<'PY'
+          import json
+          import os
+          import sys
 
-          SENT_LINES=$(wc -l < /tmp/pr_diff_truncated.txt)
+          budget = int(sys.argv[1])
+          src, out_dir, prefix = sys.argv[2], sys.argv[3], sys.argv[4]
+          inherited = sys.argv[5] if len(sys.argv) > 5 else ""
+          inherited_hunk = sys.argv[6] if len(sys.argv) > 6 else ""
+          if budget < 1024:
+              sys.exit(f"budget {budget} is below 1024 bytes")
 
-          if [ "$SENT_LINES" -lt "$TOTAL_LINES" ]; then
-            echo "truncated=true" >> "$GITHUB_OUTPUT"
-            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
-            echo "sent_lines=$SENT_LINES" >> "$GITHUB_OUTPUT"
-            echo "::warning::Diff truncated from $TOTAL_LINES to $SENT_LINES lines. Some changes were not reviewed."
-          else
-            echo "truncated=false" >> "$GITHUB_OUTPUT"
+          data = open(src, "rb").read()
+
+
+          def split_lines(b):
+              lines, i = [], 0
+              while i < len(b):
+                  j = b.find(b"\n", i)
+                  if j == -1:
+                      lines.append(b[i:])
+                      break
+                  lines.append(b[i:j + 1])
+                  i = j + 1
+              return lines
+
+
+          def path_of(header):
+              text = header.rstrip(b"\n").decode("utf-8", "replace")
+              rest = text[len("diff --git "):]
+              if len(rest) % 2 == 1:
+                  half = len(rest) // 2
+                  old, new = rest[:half], rest[half + 1:]
+                  if old.startswith("a/") and new.startswith("b/") and old[2:] == new[2:]:
+                      return new[2:]
+              k = text.rfind(" b/")
+              return text[k + 3:] if k != -1 else text[len("diff --git "):]
+
+
+          files = []
+          for line in split_lines(data):
+              if line.startswith(b"diff --git ") or not files:
+                  path = path_of(line) if line.startswith(b"diff --git ") else inherited
+                  files.append((path, []))
+              files[-1][1].append(line)
+
+          parts = []
+          cur = {"chunks": [], "size": 0, "paths": [], "mid": "", "mid_hunk": ""}
+          hunk = {"last": inherited_hunk}
+          warned = False
+
+
+          def close():
+              global cur
+              if cur["chunks"]:
+                  parts.append(cur)
+              cur = {"chunks": [], "size": 0, "paths": [], "mid": "", "mid_hunk": ""}
+
+
+          def append(chunk, path):
+              if chunk.startswith(b"diff --git "):
+                  hunk["last"] = ""
+              if not cur["chunks"] and not chunk.startswith(b"diff --git "):
+                  cur["mid"] = path
+                  if not chunk.startswith(b"@@ "):
+                      cur["mid_hunk"] = hunk["last"]
+              k = chunk.rfind(b"\n@@ ")
+              start = k + 1 if k != -1 else (0 if chunk.startswith(b"@@ ") else -1)
+              if start != -1:
+                  end = chunk.find(b"\n", start)
+                  hunk["last"] = chunk[start:end if end != -1 else len(chunk)].decode("utf-8", "replace")
+              cur["chunks"].append(chunk)
+              cur["size"] += len(chunk)
+              if not cur["paths"] or cur["paths"][-1] != path:
+                  cur["paths"].append(path)
+
+
+          def subunits(lines, level):
+              if level == 0:
+                  groups, seen_hunk = [[]], False
+                  for line in lines:
+                      if line.startswith(b"@@ "):
+                          if seen_hunk:
+                              groups.append([])
+                          seen_hunk = True
+                      groups[-1].append(line)
+                  return groups
+              units = []
+              for line in lines:
+                  if line.startswith(b"\\") and units:
+                      units[-1].append(line)
+                  else:
+                      units.append([line])
+              return units
+
+
+          def cut_bytes(chunk, path):
+              global warned
+              if not warned:
+                  safe = path.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace(":", "%3A")
+                  print(f"::warning::A single line of {safe} is larger than {budget} bytes; it is cut across parts")
+                  warned = True
+              i = 0
+              while i < len(chunk):
+                  room = budget - cur["size"]
+                  if room <= 0:
+                      close()
+                      room = budget
+                  end = min(i + room, len(chunk))
+                  while end < len(chunk) and end > i and (chunk[end] & 0xC0) == 0x80:
+                      end -= 1
+                  if end == i:
+                      if not cur["chunks"]:
+                          sys.exit("a multibyte character does not fit the budget")
+                      close()
+                      continue
+                  append(chunk[i:end], path)
+                  i = end
+
+
+          def place(lines, level, path):
+              chunk = b"".join(lines)
+              if cur["size"] + len(chunk) <= budget:
+                  append(chunk, path)
+                  return
+              if len(chunk) <= budget:
+                  close()
+                  append(chunk, path)
+                  return
+              if level >= 2:
+                  cut_bytes(chunk, path)
+                  return
+              subs = subunits(lines, level)
+              if len(subs) == 1 and level == 0:
+                  subs = subunits(lines, 1)
+                  level = 1
+              if len(subs) == 1:
+                  cut_bytes(chunk, path)
+                  return
+              for sub in subs:
+                  place(sub, level + 1, path)
+
+
+          for path, lines in files:
+              place(lines, 0, path)
+          close()
+
+          assert b"".join(c for p in parts for c in p["chunks"]) == data, "parts do not concatenate to the input"
+          assert all(p["size"] <= budget for p in parts), "a part is over budget"
+
+          os.makedirs(out_dir, exist_ok=True)
+          for idx, p in enumerate(parts, 1):
+              body = b"".join(p["chunks"])
+              name = os.path.join(out_dir, f"{prefix}{idx:04d}")
+              with open(name + ".diff", "wb") as f:
+                  f.write(body)
+              meta = {
+                  "files": len(p["paths"]),
+                  "lines": body.count(b"\n"),
+                  "bytes": len(body),
+                  "first_file": p["paths"][0],
+                  "last_file": p["paths"][-1],
+                  "mid_file_path": p["mid"],
+                  "mid_hunk": p["mid_hunk"],
+              }
+              with open(name + ".meta", "w") as f:
+                  json.dump(meta, f)
+          PY
+          if ! python3 /tmp/chunk.py "$MAX_BYTES" /tmp/pr_diff.txt /tmp/parts "" "" > /tmp/chunk.log 2>&1 || ! cat /tmp/parts/*.diff | cmp -s - /tmp/pr_diff.txt; then
+            cat /tmp/chunk.log
+            MESSAGE="Could not split the diff into parts of max_diff_bytes ($MAX_BYTES): $(tail -n1 /tmp/chunk.log | tr -d '\r' | cut -c1-300 || true)"
+            echo "::error::${MESSAGE//%/%25}"
+            echo "error=true" >> "$GITHUB_OUTPUT"
+            echo "error_message=$MESSAGE" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          cat /tmp/chunk.log
+          PARTS=$(find /tmp/parts -name '*.diff' | wc -l | tr -d ' ')
+          echo "parts=$PARTS" >> "$GITHUB_OUTPUT"
+          echo "Diff: $TOTAL_LINES lines, $TOTAL_BYTES bytes, $FILES files, $PARTS part(s) of at most $MAX_BYTES bytes"
 
       - name: Call DeepSeek API for review
-        id: deepseek_review
+        id: review
+        if: steps.diff.outputs.error != 'true'
         env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
           MODEL: ${{ inputs.model }}
           REASONING_EFFORT: ${{ inputs.reasoning_effort }}
           MAX_TOKENS: ${{ inputs.max_tokens }}
           TEMPERATURE: ${{ inputs.temperature }}
         run: |
-          SYSTEM_PROMPT=$(cat /tmp/prompt.txt)
-          echo "::add-mask::$DEEPSEEK_API_KEY"
+          set +e
+          echo "::add-mask::$API_KEY"
 
-          if [ -z "$DEEPSEEK_API_KEY" ]; then
-            echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=DEEPSEEK_API_KEY secret is not set" >> $GITHUB_OUTPUT
+          if [ -z "$API_KEY" ]; then
+            echo "error=true" >> "$GITHUB_OUTPUT"
+            echo "error_message=DEEPSEEK_API_KEY secret is not set" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          USER_PROMPT="REPO: ${{ github.repository }}
-          PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          DEADLINE=$(( TIMEOUT_MINUTES * 60 - 180 - ($(date +%s) - REVIEW_STARTED_AT) ))
+          MAX_PARALLEL=4
+          mkdir -p /tmp/slots
+          OVERFLOW_RE='input_too_large|context_length_exceeded|exceeded model token limit|maximum context length is|prompt is too long|input token count.*exceeds the maximum'
 
-          Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
-
-          jq -n \
-            --arg model "$MODEL" \
-            --arg system "$SYSTEM_PROMPT" \
-            --arg user "$USER_PROMPT" \
-            --argjson max_tokens "$MAX_TOKENS" \
-            --arg temperature "$TEMPERATURE" \
-            --arg reasoning_effort "$REASONING_EFFORT" \
-            --rawfile diff /tmp/pr_diff_truncated.txt \
-            '{
-              model: $model,
-              messages: [
-                { role: "system", content: $system },
-                { role: "user", content: ($user + "\n\nDiff:\n" + $diff) }
-              ],
-              max_tokens: $max_tokens
-            }
-            + (if $reasoning_effort == "" then {} else { reasoning_effort: $reasoning_effort } end)
-            + (if $temperature == "" then {} else { temperature: ($temperature | tonumber) } end)' > /tmp/payload.json
-
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.deepseek.com/chat/completions" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $DEEPSEEK_API_KEY" \
-            -d @/tmp/payload.json) || {
-            CURL_EXIT=$?
-            echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=DeepSeek API request failed: curl exit code $CURL_EXIT" >> $GITHUB_OUTPUT
-            exit 0
+          one_line() { tr '\n\r' '  ' | sed 's/ *$//' | head -c "${1:-500}" | iconv -f UTF-8 -t UTF-8 -c; }
+          warn() { local m=$1; echo "::warning::${m//%/%25}"; }
+          blank() { [ -z "$(tr -d '[:space:]' < "$1" 2> /dev/null)" ]; }
+          error_detail() {
+            jq -r 'if (.error | type) == "object" then (.error.message // (.error | tojson)) else (.error // .) end' "$1" 2> /dev/null | one_line
           }
 
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
+          build_payload() {
+            jq -n \
+              --arg model "$MODEL" \
+              --rawfile system /tmp/prompt.txt \
+              --rawfile user "$2" \
+              --rawfile diff "$1" \
+              --argjson max_tokens "$MAX_TOKENS" \
+              --arg temperature "$TEMPERATURE" \
+              --arg reasoning_effort "$REASONING_EFFORT" \
+              '{
+                model: $model,
+                messages: [
+                  { role: "system", content: $system },
+                  { role: "user", content: ($user + "\n\nDiff:\n" + $diff) }
+                ],
+                max_tokens: $max_tokens
+              }
+              + (if $reasoning_effort == "" then {} else { reasoning_effort: $reasoning_effort } end)
+              + (if $temperature == "" then {} else { temperature: ($temperature | tonumber) } end)'
+          }
 
-          if [ "$HTTP_CODE" != "200" ]; then
-            # Newlines would end the GITHUB_OUTPUT line and let the response set further outputs.
-            ERROR_DETAIL=$(echo "$BODY" | jq -r '.error.message // .error // .' 2>/dev/null | tr '\n' ' ' | head -c 500)
-            echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=DeepSeek API request failed with status $HTTP_CODE: $ERROR_DETAIL" >> $GITHUB_OUTPUT
+          acquire_slot() {
+            local slot
+            while :; do
+              for slot in $(seq 1 "$MAX_PARALLEL"); do
+                if mkdir "/tmp/slots/$slot" 2> /dev/null; then
+                  echo "$slot"
+                  return
+                fi
+              done
+              sleep 1
+            done
+          }
+
+          call_api() {
+            curl -sS -o "$1.resp" -D "$1.headers" -w '%{http_code}' --max-time "$2" \
+              -X POST "https://api.deepseek.com/chat/completions" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $API_KEY" \
+              -d @"$1.payload"
+          }
+
+          parse_response() {
+            local d=$1
+            if jq -e '.error.message' "$d.resp" > /dev/null 2>&1; then
+              echo "DeepSeek API returned an error response: $(error_detail "$d.resp")" > "$d.error"
+              return
+            fi
+            jq -r '.choices[0].message.content // ""' "$d.resp" > "$d.review"
+            if blank "$d.review"; then
+              rm -f "$d.review"
+              echo "DeepSeek returned an empty content field (finish_reason=$(jq -r '.choices[0].finish_reason // "unknown"' "$d.resp" | one_line 50), reasoning_content present=$(jq -r 'if (.choices[0].message.reasoning_content // "") == "" then "no" else "yes" end' "$d.resp")). Raise max_tokens or lower reasoning_effort ('none' disables thinking)." > "$d.error"
+            fi
+          }
+
+          review_part() {
+            local name=$1 depth=$2 note=$3 d="/tmp/parts/$1" code rc attempt=0 wait_s start=$SECONDS mid mid_hunk left slot
+            mid=$(jq -r '.mid_file_path' "$d.meta")
+            mid_hunk=$(jq -r '.mid_hunk // ""' "$d.meta")
+            {
+              printf 'REPO: %s\nPR NUMBER: %s\n\n' "$REPO" "$PR_NUMBER"
+              printf '%s' 'Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:'
+              if [ -n "$note" ]; then
+                printf '\n\n%s' "$note"
+              fi
+              if [ -n "$mid" ]; then
+                printf ' It begins inside the diff of %s, continued from the previous part.' "$mid"
+              fi
+              if [ -n "$mid_hunk" ]; then
+                printf ' Its first lines continue the hunk %s.' "$mid_hunk"
+              fi
+            } > "$d.user"
+            if ! build_payload "$d.diff" "$d.user" > "$d.payload"; then
+              echo "could not build the request payload" > "$d.error"
+              return
+            fi
+            while :; do
+              left=$(( DEADLINE - SECONDS ))
+              if [ "$left" -lt 60 ]; then
+                echo "ran out of time before the request could be sent; raise timeout_minutes" > "$d.error"
+                return
+              fi
+              rc=0
+              slot=$(acquire_slot)
+              left=$(( DEADLINE - SECONDS ))
+              if [ "$left" -lt 60 ]; then
+                rmdir "/tmp/slots/$slot"
+                echo "ran out of time waiting for a request slot; raise timeout_minutes" > "$d.error"
+                return
+              fi
+              code=$(call_api "$d" "$left") || rc=$?
+              rmdir "/tmp/slots/$slot"
+              if { [ "$rc" -eq 0 ] && [[ "$code" =~ ^(429|500|502|503|504|529)$ ]]; } || [[ "$rc" =~ ^(6|7|35|52|55|56)$ ]]; then
+                wait_s=$(grep -iE '^retry-after: *[0-9]+ *.?$' "$d.headers" 2> /dev/null | head -n1 | tr -dc '0-9')
+                if [ -z "$wait_s" ]; then
+                  wait_s=$(( 30 << attempt ))
+                fi
+                if [ "$wait_s" -gt 300 ]; then
+                  wait_s=300
+                fi
+                if [ "$attempt" -lt 3 ] && [ $(( DEADLINE - SECONDS - wait_s )) -ge 120 ]; then
+                  warn "Part $name: $([ "$rc" -eq 0 ] && echo "HTTP $code" || echo "curl exit $rc"), retrying in ${wait_s}s"
+                  sleep "$wait_s"
+                  attempt=$(( attempt + 1 ))
+                  continue
+                fi
+              fi
+              break
+            done
+            echo $(( SECONDS - start )) > "$d.seconds"
+            if [ "$rc" -ne 0 ]; then
+              echo "request failed: curl exit code $rc" > "$d.error"
+              return
+            fi
+            if [ "$code" != "200" ]; then
+              if [[ "$code" =~ ^(400|413)$ ]] && grep -Eiq "$OVERFLOW_RE" "$d.resp"; then
+                split_part "$name" "$depth" "$note"
+                return
+              fi
+              echo "HTTP $code: $(error_detail "$d.resp")" > "$d.error"
+              return
+            fi
+            jq -c '{input: (.usage.input_tokens // .usage.prompt_tokens // .usageMetadata.promptTokenCount), output: (.usage.output_tokens // .usage.completion_tokens // .usageMetadata.candidatesTokenCount)}' "$d.resp" > "$d.usage" 2> /dev/null
+            parse_response "$d"
+          }
+
+          split_part() {
+            local name=$1 depth=$2 note=$3 d="/tmp/parts/$1" size n i=0 child sub budget first second requested limit
+            size=$(wc -c < "$d.diff" | tr -d ' ')
+            if [ "$depth" -ge 2 ]; then
+              echo "still over the model's context window after 2 splits ($size bytes, $(error_detail "$d.resp")). Lower max_diff_bytes." > "$d.error"
+              return
+            fi
+            budget=$(( size * 11 / 20 + 1 ))
+            read -r first second <<< "$(error_detail "$d.resp" | grep -oE '[0-9]{6,}' | head -n2 | tr '\n' ' ')"
+            if [ -n "$second" ]; then
+              requested=$(( first > second ? first : second ))
+              limit=$(( first > second ? second : first ))
+              budget=$(( size * limit / requested * 85 / 100 ))
+              if [ "$budget" -ge "$size" ] || [ "$budget" -lt 1024 ]; then
+                budget=$(( size * 11 / 20 + 1 ))
+              fi
+            fi
+            if ! python3 /tmp/chunk.py "$budget" "$d.diff" /tmp/parts "$name-" "$(jq -r '.mid_file_path' "$d.meta")" "$(jq -r '.mid_hunk // ""' "$d.meta")"; then
+              echo "could not split the part after the model rejected it as too long" > "$d.error"
+              return
+            fi
+            n=$(find /tmp/parts -name "$name-????.diff" | wc -l | tr -d ' ')
+            warn "Part $name ($size bytes) is over the model's context window: $(error_detail "$d.resp"). Split into $n and retried."
+            rm -f "$d.diff" "$d.meta" "$d.user" "$d.payload" "$d.resp" "$d.headers" "$d.seconds" "$d.usage"
+            for child in $(find /tmp/parts -name "$name-????.diff" | sort); do
+              i=$(( i + 1 ))
+              if [ -n "$note" ]; then
+                sub="$note This is sub-part $i of $n of that part, split again to fit the context window of the model."
+              else
+                sub="This is part $i of $n of the PR diff, split to fit the context window of the model. Review only what is here; the other parts are reviewed separately."
+              fi
+              review_part "$(basename "$child" .diff)" $(( depth + 1 )) "$sub" &
+            done
+            wait
+          }
+
+          TOP=$(find /tmp/parts -name '*.diff' | sort)
+          N=$(echo "$TOP" | wc -l | tr -d ' ')
+          i=0
+          # Workers write only their own files under /tmp/parts; GITHUB_OUTPUT is written here, after wait.
+          for f in $TOP; do
+            while [ "$(jobs -rp | wc -l)" -ge "$MAX_PARALLEL" ]; do
+              wait -n
+            done
+            i=$(( i + 1 ))
+            note=""
+            if [ "$N" -gt 1 ]; then
+              note="This is part $i of $N of the PR diff, split to fit the context window of the model. Review only what is here; the other parts are reviewed separately."
+            fi
+            review_part "$(basename "$f" .diff)" 0 "$note" &
+            sleep 1
+          done
+          wait
+
+          FAILURES=""
+          LEAVES=0
+          for f in $(find /tmp/parts -name '*.diff' | sort); do
+            name=$(basename "$f" .diff)
+            d="/tmp/parts/$name"
+            LEAVES=$(( LEAVES + 1 ))
+            bytes=$(wc -c < "$f" | tr -d ' ')
+            in_t=$(jq -r '.input // empty' "$d.usage" 2> /dev/null)
+            out_t=$(jq -r '.output // empty' "$d.usage" 2> /dev/null)
+            ratio="?"
+            if [ -n "$in_t" ] && [ "$in_t" -gt 0 ] 2> /dev/null; then
+              ratio=$(awk -v b="$bytes" -v t="$in_t" 'BEGIN { printf "%.2f", b / t }')
+            fi
+            echo "Part $name: $bytes bytes, input tokens ${in_t:-?}, bytes/token $ratio, output tokens ${out_t:-?}, $(cat "$d.seconds" 2> /dev/null || echo '?')s"
+            if [ -s "$d.error" ]; then
+              FAILURES="$FAILURES[$name] $(one_line < "$d.error") "
+            elif [ ! -s "$d.review" ]; then
+              FAILURES="$FAILURES[$name] no result, the worker exited early "
+            fi
+          done
+
+          if [ -n "$FAILURES" ]; then
+            STOP_TOKEN=$(openssl rand -hex 16)
+            for f in $(find /tmp/parts -name '*.review' | sort); do
+              echo "::group::Review of part $(basename "$f" .review)"
+              echo "::stop-commands::$STOP_TOKEN"
+              cat "$f"
+              echo "::$STOP_TOKEN::"
+              echo "::endgroup::"
+            done
+            echo "error=true" >> "$GITHUB_OUTPUT"
+            echo "error_message=$LEAVES part(s) reviewed, not all succeeded, so no review was posted: $(printf '%s' "$FAILURES" | one_line 900)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          HAS_ERROR=$(echo "$BODY" | jq -e '.error.message' > /dev/null 2>&1 && echo "yes" || echo "no")
-          if [ "$HAS_ERROR" = "yes" ]; then
-            echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=DeepSeek API returned an error response" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          REVIEW=$(echo "$BODY" | jq -r '.choices[0].message.content // ""')
-
-          if [ -z "$(printf '%s' "$REVIEW" | tr -d '[:space:]')" ]; then
-            FINISH=$(echo "$BODY" | jq -r '.choices[0].finish_reason // "unknown"' | tr -d '\n\r')
-            HAS_REASONING=$(echo "$BODY" | jq -r 'if (.choices[0].message.reasoning_content // "") == "" then "no" else "yes" end')
-            echo "error=true" >> $GITHUB_OUTPUT
-            echo "error_message=DeepSeek returned an empty content field (finish_reason=$FINISH, reasoning_content present=$HAS_REASONING). Raise max_tokens or lower reasoning_effort ('none' disables thinking)." >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "$REVIEW" > /tmp/review.txt
-          echo "success=true" >> $GITHUB_OUTPUT
+          echo "parts=$LEAVES" >> "$GITHUB_OUTPUT"
+          echo "success=true" >> "$GITHUB_OUTPUT"
 
       - name: Post review comment
         id: post_review
-        if: steps.deepseek_review.outputs.success == 'true'
+        if: steps.review.outputs.success == 'true'
         uses: actions/github-script@v7
         env:
-          TRUNCATED: ${{ steps.diff.outputs.truncated }}
-          TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
-          SENT_LINES: ${{ steps.diff.outputs.sent_lines }}
+          REVIEWER: DeepSeek
           PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
           MODEL: ${{ inputs.model }}
         with:
           script: |
             const fs = require('fs');
-            const raw = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const dir = '/tmp/parts';
+            const names = fs.readdirSync(dir).filter((f) => f.endsWith('.diff')).map((f) => f.slice(0, -5)).sort();
+            const reviewer = process.env.REVIEWER;
+            const source = process.env.PROMPT_SOURCE;
+            const promptNote = source === 'custom' || source === 'input' ? ' · custom prompt' : '';
             const limit = 60000;
-            const review = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
-            const truncated = process.env.TRUNCATED === 'true';
-            const totalLines = process.env.TOTAL_LINES;
-            const sentLines = process.env.SENT_LINES;
-            const promptSource = process.env.PROMPT_SOURCE;
-            const model = process.env.MODEL;
 
-            let truncationWarning = '';
-            if (truncated) {
-              truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${sentLines} lines. Some changes were not reviewed.\n`;
-            }
+            const splitText = (text, budget) => {
+              const out = [];
+              let cur = null;
+              let fence = null;
+              const flush = () => {
+                if (cur === null || cur === fence) {
+                  return;
+                }
+                out.push(fence ? `${cur}\n\`\`\`` : cur);
+                cur = fence ? fence : null;
+              };
+              for (let line of text.split('\n')) {
+                while (line.length > budget) {
+                  flush();
+                  cur = cur === null ? line.slice(0, budget) : `${cur}\n${line.slice(0, budget)}`;
+                  flush();
+                  line = line.slice(budget);
+                }
+                if (cur !== null && cur.length + line.length + 5 > budget) {
+                  flush();
+                }
+                cur = cur === null ? line : `${cur}\n${line}`;
+                if (/^\s*```/.test(line)) {
+                  fence = fence ? null : line.trim();
+                }
+              }
+              if (cur !== null) {
+                out.push(cur);
+              }
+              return out;
+            };
+            const code = (path) => `\`${path.replace(/`/g, "'")}\``;
 
-            let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
-
-            if (review && review.trim() !== '') {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: `## 🤖 DeepSeek Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by DeepSeek · ${model}${promptNote}*`
-              });
+            for (let i = 0; i < names.length; i++) {
+              const base = `${dir}/${names[i]}`;
+              const review = fs.readFileSync(`${base}.review`, 'utf8').trimEnd();
+              const meta = JSON.parse(fs.readFileSync(`${base}.meta`, 'utf8'));
+              const model = fs.existsSync(`${base}.model`) ? fs.readFileSync(`${base}.model`, 'utf8').trim() : process.env.MODEL;
+              let partTag = '';
+              let note = '';
+              if (names.length > 1) {
+                partTag = ` (part ${i + 1}/${names.length})`;
+                const span = meta.first_file === meta.last_file ? code(meta.first_file) : `${code(meta.first_file)} to ${code(meta.last_file)}`;
+                const inside = meta.mid_file_path ? `, starting inside ${code(meta.mid_file_path)}` : '';
+                note = `> Part ${i + 1} of ${names.length} of the diff (${meta.lines} lines, ${meta.files} ${meta.files === 1 ? 'file' : 'files'}: ${span}${inside}), split to fit the model's context window. The other parts are reviewed in separate comments.\n\n`;
+              }
+              const footer = `\n\n---\n*Automated review by ${reviewer} · ${model}${promptNote}*`;
+              const pieces = splitText(review, limit - note.length - footer.length - 200);
+              for (let j = 0; j < pieces.length; j++) {
+                const commentTag = pieces.length > 1 ? ` (comment ${j + 1}/${pieces.length})` : '';
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: `## 🤖 ${reviewer} Code Review${partTag}${commentTag}\n\n${note}${pieces[j]}${footer}`,
+                });
+              }
             }
 
       - name: Post error comment
         id: post_error
-        if: steps.deepseek_review.outputs.error == 'true'
+        if: steps.diff.outputs.error == 'true' || steps.review.outputs.error == 'true'
         uses: actions/github-script@v7
         env:
-          ERROR_MESSAGE: ${{ steps.deepseek_review.outputs.error_message }}
+          ERROR_MESSAGE: ${{ steps.diff.outputs.error_message || steps.review.outputs.error_message }}
         with:
           script: |
             const errorMessage = process.env.ERROR_MESSAGE || 'Unknown error';
@@ -311,10 +695,10 @@ jobs:
             });
 
       - name: Fail the job if the review did not run
-        if: steps.deepseek_review.outputs.error == 'true'
+        if: steps.diff.outputs.error == 'true' || steps.review.outputs.error == 'true'
         env:
           # Built from an API response: must reach the shell only through env, never interpolated into run.
-          ERROR_MESSAGE: ${{ steps.deepseek_review.outputs.error_message }}
+          ERROR_MESSAGE: ${{ steps.diff.outputs.error_message || steps.review.outputs.error_message }}
         run: |
           echo "::error::${ERROR_MESSAGE//%/%25}"
           exit 1
