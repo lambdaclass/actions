@@ -97,14 +97,30 @@ jobs:
           echo "$PROMPT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      # gh pr diff reads the pulls API, which refuses diffs over 20000 lines; git has no cap.
       - name: Get PR diff
         id: diff
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > /tmp/pr_diff_full.txt
+          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
+          HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)
+          MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq '.merge_base_commit.sha // empty')
+          if [ -z "$MERGE_BASE" ]; then
+            echo "::error::No merge base between $BASE_SHA and $HEAD_SHA"
+            exit 1
+          fi
+          PR_REPO=$(mktemp -d)
+          export GIT_TERMINAL_PROMPT=0
+          git init -q "$PR_REPO"
+          git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
+          git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
+          git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
+          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff_full.txt
+          rm -rf "$PR_REPO"
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff_full.txt)
 

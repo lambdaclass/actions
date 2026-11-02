@@ -11,6 +11,16 @@ permissions:
   pull-requests: write
 
 jobs:
+  claude-review:
+    if: >
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
+      github.event.pull_request.user.login != 'dependabot[bot]') ||
+      (github.event_name == 'issue_comment' &&
+      (startsWith(github.event.comment.body, '/claude') || startsWith(github.event.comment.body, '/review')))
+    uses: ./.github/workflows/ai-review-claude.yml
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
   kimi-review:
     if: >
       (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
@@ -40,6 +50,16 @@ jobs:
     uses: ./.github/workflows/ai-review-deepseek.yml
     secrets:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+
+  gemini-review:
+    if: >
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
+      github.event.pull_request.user.login != 'dependabot[bot]') ||
+      (github.event_name == 'issue_comment' &&
+      (startsWith(github.event.comment.body, '/gemini') || startsWith(github.event.comment.body, '/review')))
+    uses: ./.github/workflows/ai-review-gemini.yml
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
   grok-review:
     if: >

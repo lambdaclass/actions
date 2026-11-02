@@ -2,8 +2,8 @@
 #
 # Triggers:
 # - Automatically on PR open/ready_for_review
-# - On-demand via PR comments: /review for every reviewer, or /kimi, /codex, /deepseek, /grok,
-#   /claude for one (requires write access)
+# - On-demand via PR comments: /review for every reviewer, or /claude, /kimi, /codex, /deepseek,
+#   /gemini, /grok for one (requires write access)
 #
 # Custom prompts:
 # - Create .github/prompts/ai-review.md in your repo to customize the review focus
@@ -14,6 +14,7 @@
 # - OPENAI_API_KEY: For Codex reviews (https://platform.openai.com/)
 # - DEEPSEEK_API_KEY: For DeepSeek reviews (https://platform.deepseek.com/)
 # - XAI_API_KEY: For Grok reviews (https://console.x.ai/)
+# - GEMINI_API_KEY: For Gemini reviews (https://aistudio.google.com/apikey)
 # - ANTHROPIC_API_KEY: For Claude reviews (https://console.anthropic.com/)
 
 name: AI Code Review
@@ -48,6 +49,11 @@ jobs:
     uses: lambdaclass/actions/.github/workflows/ai-review-grok.yml@v1
     secrets:
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+
+  gemini-review:
+    uses: lambdaclass/actions/.github/workflows/ai-review-gemini.yml@v1
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
   claude-review:
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1

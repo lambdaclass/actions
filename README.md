@@ -10,11 +10,12 @@ Automated PR code review using various AI providers. Each workflow posts review 
 
 | Workflow | Provider | Model |
 |----------|----------|-------|
+| `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | claude-opus-5-5 |
 | `ai-review-kimi.yml` | [Moonshot AI](https://platform.kimi.ai/) | kimi-k3.1-pro |
 | `ai-review-codex.yml` | [OpenAI](https://platform.openai.com/) | gpt-6.1-sol |
 | `ai-review-deepseek.yml` | [DeepSeek](https://platform.deepseek.com/) | deepseek-v4-pro |
+| `ai-review-gemini.yml` | [Google](https://aistudio.google.com/apikey) | gemini-4-argon |
 | `ai-review-grok.yml` | [xAI](https://console.x.ai/) | grok-4.7 |
-| `ai-review-claude.yml` | [Anthropic](https://console.anthropic.com/) | sonnet |
 
 ### Quick Start
 
@@ -23,6 +24,7 @@ Automated PR code review using various AI providers. Each workflow posts review 
    - `OPENAI_API_KEY` for Codex
    - `DEEPSEEK_API_KEY` for DeepSeek
    - `XAI_API_KEY` for Grok
+   - `GEMINI_API_KEY` for Gemini
    - `ANTHROPIC_API_KEY` for Claude
 
 2. **Create a workflow file** in your repo at `.github/workflows/ai-review.yml`:
@@ -54,6 +56,7 @@ Trigger reviews by commenting on a PR:
 - `/kimi` - Trigger Kimi review
 - `/codex` - Trigger Codex review
 - `/deepseek` - Trigger DeepSeek review
+- `/gemini` - Trigger Gemini review
 - `/grok` - Trigger Grok review
 - `/claude` - Trigger Claude review
 
@@ -90,6 +93,56 @@ Guidelines:
 
 ### Workflow Options
 
+The diff comes from git, a blob-filtered fetch of the merge base and the PR head, not
+from the pulls API, which refuses diffs over 20000 lines. `max_diff_lines` caps lines and
+`max_diff_bytes` caps the payload after that, so a reviewer never receives more than its context
+window holds; Codex reads the repository itself and only takes the line cap.
+
+#### Claude (`ai-review-claude.yml`)
+
+```yaml
+jobs:
+  claude-review:
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    with:
+      model: 'claude-opus-5-5'         # Model ID; 'sonnet', 'opus' and 'haiku' map to the 5.5 models
+      effort: 'high'                   # 'low', 'medium', 'high', 'xhigh', 'max'; '' omits (medium)
+      max_diff_lines: 10000            # Max lines of diff to review
+      max_diff_bytes: 1800000          # Byte cap after the line cap; Claude's tokenizer is ~2.2 bytes/token
+      max_tokens: 64000                # Max response tokens, thinking included
+      timeout_minutes: 20              # Cancel the review job after this long
+      prompt: ''                       # Custom prompt (overrides prompt file)
+```
+
+One Messages API call with the diff, no checkout and no tools. Opus 5.5 always
+thinks; `effort` sets how much. Requests send `fallbacks: "default"`, so a
+safety-classifier refusal is retried server-side on a fallback model instead of
+failing the review; the footer shows the model that answered.
+
+This replaces the earlier Claude Code agent workflow of the same name. Callers keep
+their `uses:` line and `ANTHROPIC_API_KEY`; `max_turns` and `allowed_tools` are gone, and
+the review is now one comment from a single API call instead of an agent run.
+
+#### Gemini (`ai-review-gemini.yml`)
+
+```yaml
+jobs:
+  gemini-review:
+    uses: lambdaclass/actions/.github/workflows/ai-review-gemini.yml@v1
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    with:
+      model: 'gemini-4-argon'          # Gemini model
+      thinking_level: 'high'           # 'minimal', 'low', 'medium', 'high'; '' omits
+      max_diff_lines: 10000            # Max lines of diff to review
+      max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
+      max_output_tokens: 65536         # Max response tokens, thinking included
+      timeout_minutes: 20              # Cancel the review job after this long
+      prompt: ''                       # Custom prompt (overrides prompt file)
+```
+
 #### Kimi (`ai-review-kimi.yml`)
 
 ```yaml
@@ -103,6 +156,7 @@ jobs:
       reasoning_effort: 'high'         # 'low', 'high', 'max', or '' to omit (K2 models)
       thinking: ''                     # '' omits it; K2 models take 'disabled' or 'enabled'
       max_diff_lines: 10000            # Max lines of diff to review
+      max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
       max_tokens: 65536                # Max response tokens, reasoning included
       temperature: ''                  # '' omits it; Kimi pins temperature per model
       timeout_minutes: 20              # Cancel the review job after this long
@@ -126,6 +180,7 @@ jobs:
       model: 'deepseek-v4-pro'         # deepseek-v4-pro or deepseek-flash
       reasoning_effort: 'high'         # 'none' disables thinking; 'low', 'high', 'max'; '' omits
       max_diff_lines: 10000            # Max lines of diff to review
+      max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
       max_tokens: 65536                # Max response tokens, reasoning included
       temperature: ''                  # '' omits it; ignored in thinking mode anyway
       timeout_minutes: 20              # Cancel the review job after this long
@@ -144,6 +199,7 @@ jobs:
       model: 'grok-4.7'                # grok-4.7, grok-build-0.1 or grok-4.3
       reasoning_effort: 'medium'       # 'low', 'medium', 'high', 'xhigh'; '' omits; never off
       max_diff_lines: 10000            # Max lines of diff to review
+      max_diff_bytes: 1200000          # Byte cap after the line cap, sized to the 500k window
       max_output_tokens: 16384         # Visible output only; reasoning does not count
       temperature: ''                  # '' omits it
       timeout_minutes: 20              # Cancel the review job after this long
@@ -184,24 +240,10 @@ jobs:
 > distinguishes a timeout-cancel from a concurrency-cancel.
 >
 > A review that does not happen now **fails the run**, in `ai-review-codex.yml`,
-> `ai-review-kimi.yml`, `ai-review-deepseek.yml` and `ai-review-grok.yml` -- an empty model response is red, not a green run with an
+> `ai-review-kimi.yml`, `ai-review-deepseek.yml`, `ai-review-grok.yml`, `ai-review-claude.yml` and
+> `ai-review-gemini.yml` -- an empty model response is red, not a green run with an
 > explanatory comment. The comment is still posted first. If you gate merges on these
 > workflows, note that a provider outage will now block, where previously it passed.
-
-#### Claude (`ai-review-claude.yml`)
-
-```yaml
-jobs:
-  claude-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
-    secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-    with:
-      model: 'sonnet'                 # sonnet, opus, or haiku
-      max_turns: 30                   # Max agentic turns
-      allowed_tools: '...'            # Allowed Claude tools
-      prompt: ''                       # Custom prompt (overrides prompt file)
-```
 
 ### Default Review Focus
 
@@ -253,6 +295,11 @@ jobs:
     uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+  gemini:
+    uses: lambdaclass/actions/.github/workflows/ai-review-gemini.yml@v1
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 ```
 
 ### Security
@@ -273,9 +320,9 @@ uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
 1. Create a branch
 2. Make changes
 3. Test in a real repo using `@your-branch`
-4. Open a PR. Kimi, Codex, DeepSeek and Grok review it with the workflows at the
-   PR's own commit (`.github/workflows/ai-review.yml` calls them by local path),
-   and every PR here needs those four reviews before it merges.
+4. Open a PR. Claude, Kimi, Codex, DeepSeek, Gemini and Grok review it with the
+   workflows at the PR's own commit (`.github/workflows/ai-review.yml` calls them
+   by local path), and every PR here needs those reviews before it merges.
 
 ## License
 
