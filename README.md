@@ -94,9 +94,23 @@ Guidelines:
 ### Workflow Options
 
 The diff comes from git, a blob-filtered fetch of the merge base and the PR head, not
-from the pulls API, which refuses diffs over 20000 lines. `max_diff_lines` caps lines and
-`max_diff_bytes` caps the payload after that, so a reviewer never receives more than its context
-window holds; Codex reads the repository itself and only takes the line cap.
+from the pulls API, which refuses diffs over 20000 lines. The whole diff is always reviewed:
+
+- A diff over `max_diff_bytes` is split on file boundaries (then hunk, then line, only when a
+  single file or hunk is larger than the budget) into parts. The parts are reviewed in parallel,
+  and each is posted as its own `(part i/N)` comment that names the files it covers.
+- A part the provider still rejects as over its context window is split in two and retried, at
+  most twice; past that the job fails and names the part.
+- If any part fails, no review is posted: one error comment lists each failed part, and the job
+  goes red. The reviews that did succeed are in the job log.
+- A review longer than GitHub's 65536-character comment limit spans several `(comment j/M)`
+  comments instead of being cut.
+- `max_diff_lines` is a cost ceiling, not a trim: a larger diff is not sent at all, and the job
+  posts an error comment and fails. The default is 200000.
+- The job log prints the provider's input token count for each part, next to its bytes.
+
+A 130000-line, 6 MB PR is about 6 Grok requests (1.2 MB each) and 3 for the others (2.4 MB).
+Codex reads the whole diff from `/tmp/pr_diff.txt` itself and only takes the ceiling.
 
 #### Claude (`ai-review-claude-api.yml`)
 
@@ -109,8 +123,8 @@ jobs:
     with:
       model: 'claude-opus-5-5'         # Claude model
       effort: 'high'                   # 'low', 'medium', 'high', 'xhigh', 'max'; '' omits (medium)
-      max_diff_lines: 10000            # Max lines of diff to review
-      max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
+      max_diff_lines: 200000           # Ceiling: a larger diff fails the review instead of trimming it
+      max_diff_bytes: 2400000          # Bytes per request, sized to the 1M window; a larger diff is reviewed in parts
       max_tokens: 32000                # Max response tokens, thinking included
       timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
@@ -132,8 +146,8 @@ jobs:
     with:
       model: 'gemini-4-argon'          # Gemini model
       thinking_level: 'high'           # 'minimal', 'low', 'medium', 'high'; '' omits
-      max_diff_lines: 10000            # Max lines of diff to review
-      max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
+      max_diff_lines: 200000           # Ceiling: a larger diff fails the review instead of trimming it
+      max_diff_bytes: 2400000          # Bytes per request, sized to the 1M window; a larger diff is reviewed in parts
       max_output_tokens: 65536         # Max response tokens, thinking included
       timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
@@ -151,8 +165,8 @@ jobs:
       model: 'kimi-k3.1-pro'           # Kimi model
       reasoning_effort: 'high'         # 'low', 'high', 'max', or '' to omit (K2 models)
       thinking: ''                     # '' omits it; K2 models take 'disabled' or 'enabled'
-      max_diff_lines: 10000            # Max lines of diff to review
-      max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
+      max_diff_lines: 200000           # Ceiling: a larger diff fails the review instead of trimming it
+      max_diff_bytes: 2400000          # Bytes per request, sized to the 1M window; a larger diff is reviewed in parts
       max_tokens: 65536                # Max response tokens, reasoning included
       temperature: ''                  # '' omits it; Kimi pins temperature per model
       timeout_minutes: 20              # Cancel the review job after this long
@@ -175,8 +189,8 @@ jobs:
     with:
       model: 'deepseek-v4-pro'         # deepseek-v4-pro or deepseek-flash
       reasoning_effort: 'high'         # 'none' disables thinking; 'low', 'high', 'max'; '' omits
-      max_diff_lines: 10000            # Max lines of diff to review
-      max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
+      max_diff_lines: 200000           # Ceiling: a larger diff fails the review instead of trimming it
+      max_diff_bytes: 2400000          # Bytes per request, sized to the 1M window; a larger diff is reviewed in parts
       max_tokens: 65536                # Max response tokens, reasoning included
       temperature: ''                  # '' omits it; ignored in thinking mode anyway
       timeout_minutes: 20              # Cancel the review job after this long
@@ -194,8 +208,8 @@ jobs:
     with:
       model: 'grok-4.7'                # grok-4.7, grok-build-0.1 or grok-4.3
       reasoning_effort: 'medium'       # 'low', 'medium', 'high', 'xhigh'; '' omits; never off
-      max_diff_lines: 10000            # Max lines of diff to review
-      max_diff_bytes: 1200000          # Byte cap after the line cap, sized to the 500k window
+      max_diff_lines: 200000           # Ceiling: a larger diff fails the review instead of trimming it
+      max_diff_bytes: 1200000          # Bytes per request, sized to the 500k window; a larger diff is reviewed in parts
       max_output_tokens: 16384         # Visible output only; reasoning does not count
       temperature: ''                  # '' omits it
       timeout_minutes: 20              # Cancel the review job after this long
@@ -217,17 +231,12 @@ jobs:
     with:
       model: 'gpt-6.1-sol'             # Codex model
       safety_strategy: 'drop-sudo'     # Codex safety strategy
-      max_diff_lines: 10000            # Advisory: agent can regenerate the diff
+      max_diff_lines: 200000           # Ceiling: a larger diff fails the review
       timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```
 
-> **Two caveats on the Codex failure notice.**
->
-> `max_diff_lines` bounds what is written to `/tmp/pr_diff.txt`, but the agent has the
-> repository checked out at `fetch-depth: 0` and can regenerate the full diff with
-> `git diff`. Treat it as advisory. The kimi input of the same name *is* a hard cap,
-> because there the diff is the request payload.
+> **Caveats on the failure notices.**
 >
 > Every workflow comments whenever its review job does not report for itself (timeout,
 > cancel, failed checkout or diff), and a
