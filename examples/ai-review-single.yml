@@ -17,7 +17,7 @@ on:
 
 jobs:
   claude-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-claude-api.yml@v1
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
