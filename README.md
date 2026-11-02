@@ -110,8 +110,8 @@ jobs:
       model: 'claude-opus-5-5'         # Claude model
       effort: 'high'                   # 'low', 'medium', 'high', 'xhigh', 'max'; '' omits (medium)
       max_diff_lines: 10000            # Max lines of diff to review
-      max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
-      max_tokens: 32000                # Max response tokens, thinking included
+      max_diff_bytes: 1800000          # Byte cap after the line cap; Claude's tokenizer is ~2.2 bytes/token
+      max_tokens: 64000                # Max response tokens, thinking included
       timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
 ```

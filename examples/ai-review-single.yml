@@ -17,11 +17,11 @@ on:
 
 jobs:
   claude-review:
-    uses: lambdaclass/actions/.github/workflows/ai-review-claude.yml@v1
+    uses: lambdaclass/actions/.github/workflows/ai-review-claude-api.yml@v1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
-      model: 'sonnet'
+      model: 'claude-opus-5-5'
       prompt: |
         Review this pull request focusing on:
 

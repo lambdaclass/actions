@@ -112,8 +112,9 @@ jobs:
           MAX_BYTES: ${{ inputs.max_diff_bytes }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
-          BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
-          HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)
+          SHAS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid,headRefOid --jq '.baseRefOid + " " + .headRefOid')
+          BASE_SHA=${SHAS% *}
+          HEAD_SHA=${SHAS#* }
           MERGE_BASE=$(gh api "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" --jq '.merge_base_commit.sha // empty')
           if [ -z "$MERGE_BASE" ]; then
             echo "::error::No merge base between $BASE_SHA and $HEAD_SHA"
@@ -170,8 +171,13 @@ jobs:
           MODEL: ${{ inputs.model }}
           THINKING_LEVEL: ${{ inputs.thinking_level }}
           MAX_OUTPUT_TOKENS: ${{ inputs.max_output_tokens }}
+          TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
         run: |
           SYSTEM_PROMPT=$(cat /tmp/prompt.txt)
+          CURL_MAX_TIME=$(( TIMEOUT_MINUTES * 60 - 180 ))
+          if [ "$CURL_MAX_TIME" -lt 60 ]; then
+            CURL_MAX_TIME=60
+          fi
           echo "::add-mask::$GEMINI_API_KEY"
 
           if [ -z "$GEMINI_API_KEY" ]; then
@@ -202,7 +208,7 @@ jobs:
               )
             }' > /tmp/payload.json
 
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time "$CURL_MAX_TIME" --retry 2 --retry-delay 30 --retry-max-time 120 -X POST "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent" \
             -H "Content-Type: application/json" \
             -H "x-goog-api-key: $GEMINI_API_KEY" \
             -d @/tmp/payload.json) || {
