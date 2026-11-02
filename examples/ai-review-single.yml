@@ -2,7 +2,7 @@
 #
 # Triggers:
 # - Automatically on PR open/ready_for_review
-# - On-demand via /claude comment (requires write access)
+# - On-demand via a /claude or /review comment (requires write access)
 #
 # Custom prompts:
 # - The 'prompt' input overrides .github/prompts/ai-review.md if both exist
