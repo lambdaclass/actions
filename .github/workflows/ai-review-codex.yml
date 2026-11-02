@@ -47,7 +47,8 @@ jobs:
     if: |
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/codex') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
-    runs-on: ubuntu-latest
+    # ubuntu-latest is 26.04 since 2026-11, where the runner user has no sudo and drop-sudo cannot run.
+    runs-on: ubuntu-24.04
     outputs:
       reported: ${{ steps.review.outcome == 'success' || steps.error.outcome == 'success' }}
     timeout-minutes: ${{ inputs.timeout_minutes }}
