@@ -1,4 +1,4 @@
-orig 00000 epsilon sigma zeta sigma gamma gamma delta beta
+new 00000 delta zeta sigma zeta zeta epsilon delta theta
 orig 00001 delta zeta beta omega beta lambda lambda epsilon
 orig 00002 kappa sigma omega lambda gamma lambda alpha alpha
 orig 00003 beta epsilon lambda sigma omega alpha beta epsilon
@@ -18,7 +18,7 @@ orig 00016 zeta delta delta theta sigma alpha kappa kappa
 orig 00017 theta delta lambda omega gamma sigma delta sigma
 orig 00018 omega delta omega zeta epsilon lambda zeta gamma
 orig 00019 gamma beta kappa sigma theta lambda theta beta
-orig 00020 omega omega delta epsilon sigma delta lambda gamma
+new 00020 lambda alpha kappa sigma delta zeta zeta sigma
 orig 00021 delta beta kappa lambda sigma alpha lambda lambda
 orig 00022 lambda alpha zeta kappa zeta delta zeta omega
 orig 00023 omega theta lambda kappa delta delta alpha kappa
@@ -38,7 +38,7 @@ orig 00036 gamma kappa epsilon alpha epsilon delta omega theta
 orig 00037 beta delta beta theta theta omega beta sigma
 orig 00038 kappa omega alpha epsilon kappa epsilon gamma theta
 orig 00039 beta alpha gamma epsilon beta lambda gamma lambda
-orig 00040 omega omega zeta alpha theta zeta sigma zeta
+new 00040 zeta kappa delta omega delta omega zeta epsilon
 orig 00041 alpha alpha alpha omega theta zeta omega beta
 orig 00042 theta theta kappa lambda theta kappa kappa delta
 orig 00043 lambda alpha sigma gamma lambda delta epsilon kappa
@@ -58,7 +58,7 @@ orig 00056 kappa lambda gamma theta sigma sigma omega gamma
 orig 00057 kappa theta lambda beta theta omega delta epsilon
 orig 00058 beta delta epsilon alpha kappa zeta omega omega
 orig 00059 sigma beta omega omega alpha gamma omega epsilon
-orig 00060 zeta gamma omega lambda gamma zeta beta delta
+new 00060 zeta zeta omega lambda alpha zeta gamma delta
 orig 00061 epsilon lambda delta delta alpha kappa epsilon alpha
 orig 00062 beta kappa theta gamma sigma kappa kappa lambda
 orig 00063 epsilon kappa sigma omega delta epsilon beta delta
@@ -78,7 +78,7 @@ orig 00076 gamma omega alpha sigma epsilon delta alpha sigma
 orig 00077 alpha alpha zeta lambda zeta theta lambda alpha
 orig 00078 omega lambda omega alpha alpha epsilon zeta zeta
 orig 00079 theta delta alpha lambda delta omega sigma theta
-orig 00080 zeta beta beta gamma zeta sigma beta beta
+new 00080 sigma theta lambda epsilon gamma kappa lambda epsilon
 orig 00081 beta theta omega lambda kappa kappa zeta lambda
 orig 00082 gamma alpha beta beta omega delta kappa epsilon
 orig 00083 epsilon gamma lambda gamma theta omega zeta sigma
@@ -98,7 +98,7 @@ orig 00096 gamma omega alpha lambda lambda delta delta gamma
 orig 00097 omega zeta zeta kappa delta gamma epsilon zeta
 orig 00098 lambda theta epsilon alpha zeta omega epsilon theta
 orig 00099 theta omega alpha delta lambda zeta kappa sigma
-orig 00100 epsilon epsilon gamma omega theta omega delta gamma
+new 00100 delta alpha delta alpha delta gamma zeta kappa
 orig 00101 sigma delta kappa gamma gamma omega lambda theta
 orig 00102 lambda beta delta omega omega sigma alpha beta
 orig 00103 gamma theta epsilon delta sigma kappa theta zeta
@@ -118,7 +118,7 @@ orig 00116 epsilon theta zeta sigma gamma kappa beta alpha
 orig 00117 gamma theta theta kappa alpha sigma beta alpha
 orig 00118 gamma lambda gamma beta kappa kappa lambda sigma
 orig 00119 sigma zeta epsilon beta sigma beta omega delta
-orig 00120 kappa omega lambda lambda omega epsilon alpha gamma
+new 00120 lambda zeta omega sigma zeta delta gamma beta
 orig 00121 gamma lambda omega gamma zeta omega kappa omega
 orig 00122 alpha sigma beta beta delta omega theta gamma
 orig 00123 zeta sigma omega beta omega beta theta kappa
@@ -138,7 +138,7 @@ orig 00136 lambda kappa omega lambda sigma kappa zeta theta
 orig 00137 sigma lambda sigma beta kappa kappa kappa delta
 orig 00138 delta delta zeta zeta beta epsilon kappa epsilon
 orig 00139 delta delta kappa omega gamma zeta lambda kappa
-orig 00140 omega lambda lambda gamma gamma sigma beta zeta
+new 00140 lambda lambda sigma delta theta gamma sigma alpha
 orig 00141 sigma zeta lambda theta beta zeta beta delta
 orig 00142 epsilon omega kappa delta delta sigma gamma gamma
 orig 00143 delta theta omega beta delta theta kappa lambda
@@ -158,7 +158,7 @@ orig 00156 epsilon kappa theta gamma delta lambda zeta beta
 orig 00157 gamma zeta beta omega theta zeta beta sigma
 orig 00158 delta beta delta epsilon sigma kappa omega sigma
 orig 00159 delta epsilon delta omega gamma zeta delta epsilon
-orig 00160 epsilon delta kappa beta sigma epsilon zeta delta
+new 00160 sigma beta omega omega gamma omega kappa delta
 orig 00161 beta alpha omega lambda epsilon kappa gamma alpha
 orig 00162 zeta zeta kappa zeta alpha theta delta epsilon
 orig 00163 theta epsilon beta kappa lambda sigma delta omega
@@ -178,7 +178,7 @@ orig 00176 sigma gamma zeta theta omega sigma beta lambda
 orig 00177 theta sigma lambda zeta beta beta epsilon sigma
 orig 00178 omega theta omega gamma theta epsilon epsilon delta
 orig 00179 epsilon sigma lambda gamma gamma zeta delta zeta
-orig 00180 alpha kappa alpha delta delta omega sigma epsilon
+new 00180 sigma beta lambda kappa kappa alpha theta omega
 orig 00181 alpha omega zeta sigma delta theta zeta kappa
 orig 00182 kappa kappa omega omega omega theta epsilon kappa
 orig 00183 zeta sigma sigma sigma epsilon gamma gamma theta
@@ -198,7 +198,7 @@ orig 00196 lambda omega gamma sigma epsilon gamma lambda epsilon
 orig 00197 lambda omega theta kappa omega omega lambda zeta
 orig 00198 beta lambda beta epsilon gamma lambda beta delta
 orig 00199 beta lambda kappa alpha lambda kappa theta theta
-orig 00200 alpha theta zeta omega epsilon omega gamma epsilon
+new 00200 zeta sigma kappa zeta theta zeta gamma zeta
 orig 00201 beta lambda theta zeta sigma omega delta delta
 orig 00202 delta epsilon theta omega omega delta sigma delta
 orig 00203 kappa gamma beta beta gamma epsilon zeta alpha
@@ -218,7 +218,7 @@ orig 00216 theta kappa lambda gamma sigma omega kappa omega
 orig 00217 delta theta kappa beta delta omega zeta alpha
 orig 00218 theta alpha epsilon kappa omega kappa epsilon zeta
 orig 00219 beta delta lambda zeta beta sigma omega kappa
-orig 00220 sigma alpha alpha kappa zeta beta epsilon beta
+new 00220 theta sigma beta zeta omega omega kappa beta
 orig 00221 lambda beta gamma sigma delta beta omega gamma
 orig 00222 lambda zeta theta zeta delta kappa delta beta
 orig 00223 epsilon zeta omega sigma omega kappa zeta epsilon
@@ -238,7 +238,7 @@ orig 00236 gamma epsilon lambda alpha sigma theta delta gamma
 orig 00237 delta epsilon delta lambda delta gamma alpha beta
 orig 00238 gamma zeta omega zeta gamma gamma zeta zeta
 orig 00239 delta epsilon zeta alpha beta zeta delta alpha
-orig 00240 gamma lambda omega lambda sigma sigma alpha gamma
+new 00240 sigma omega delta epsilon lambda theta gamma gamma
 orig 00241 gamma beta gamma beta zeta epsilon gamma kappa
 orig 00242 theta delta omega kappa gamma beta alpha kappa
 orig 00243 sigma omega gamma zeta kappa omega zeta epsilon
@@ -258,7 +258,7 @@ orig 00256 alpha omega theta kappa delta zeta omega lambda
 orig 00257 alpha sigma gamma zeta omega omega gamma sigma
 orig 00258 epsilon lambda kappa lambda lambda epsilon delta gamma
 orig 00259 delta lambda alpha delta kappa epsilon kappa beta
-orig 00260 gamma lambda zeta lambda alpha zeta zeta sigma
+new 00260 beta beta sigma lambda gamma omega kappa omega
 orig 00261 alpha lambda sigma zeta lambda zeta epsilon delta
 orig 00262 theta epsilon sigma gamma epsilon omega zeta epsilon
 orig 00263 sigma kappa kappa lambda lambda kappa epsilon beta
@@ -278,7 +278,7 @@ orig 00276 zeta gamma theta kappa gamma epsilon zeta zeta
 orig 00277 gamma beta epsilon omega beta kappa lambda theta
 orig 00278 gamma delta alpha beta zeta epsilon sigma sigma
 orig 00279 epsilon gamma kappa beta omega epsilon sigma sigma
-orig 00280 alpha kappa zeta theta alpha epsilon theta sigma
+new 00280 gamma delta alpha omega lambda zeta delta beta
 orig 00281 omega sigma kappa zeta omega delta kappa kappa
 orig 00282 beta zeta beta epsilon sigma omega epsilon epsilon
 orig 00283 epsilon delta sigma gamma delta lambda sigma theta
@@ -298,7 +298,7 @@ orig 00296 zeta theta omega sigma delta gamma omega kappa
 orig 00297 gamma sigma beta theta theta theta sigma theta
 orig 00298 omega lambda delta kappa zeta theta epsilon sigma
 orig 00299 delta omega gamma beta delta delta zeta theta
-orig 00300 omega epsilon sigma zeta epsilon theta lambda gamma
+new 00300 sigma theta alpha gamma lambda zeta sigma sigma
 orig 00301 beta delta epsilon sigma delta zeta lambda beta
 orig 00302 theta theta beta theta alpha gamma beta sigma
 orig 00303 zeta zeta zeta alpha lambda theta theta gamma
@@ -318,7 +318,7 @@ orig 00316 alpha sigma beta theta zeta beta delta omega
 orig 00317 kappa beta beta lambda theta beta lambda gamma
 orig 00318 sigma gamma lambda epsilon delta lambda epsilon beta
 orig 00319 alpha kappa gamma alpha sigma kappa gamma kappa
-orig 00320 kappa alpha sigma theta kappa lambda epsilon epsilon
+new 00320 kappa delta delta sigma omega beta lambda delta
 orig 00321 kappa theta sigma delta alpha theta sigma kappa
 orig 00322 gamma delta beta theta gamma alpha zeta zeta
 orig 00323 kappa lambda sigma delta theta alpha epsilon zeta
@@ -338,7 +338,7 @@ orig 00336 beta kappa theta alpha alpha epsilon gamma kappa
 orig 00337 alpha epsilon zeta lambda alpha delta sigma epsilon
 orig 00338 alpha alpha kappa epsilon delta sigma zeta theta
 orig 00339 theta omega theta kappa alpha alpha zeta beta
-orig 00340 zeta theta lambda sigma epsilon beta beta omega
+new 00340 theta zeta sigma delta delta theta alpha alpha
 orig 00341 beta alpha zeta sigma sigma sigma sigma lambda
 orig 00342 delta delta lambda zeta omega lambda kappa gamma
 orig 00343 epsilon alpha theta delta gamma lambda sigma kappa
@@ -358,7 +358,7 @@ orig 00356 delta lambda beta alpha beta alpha kappa kappa
 orig 00357 omega epsilon kappa kappa epsilon theta delta beta
 orig 00358 theta theta theta theta theta zeta delta delta
 orig 00359 epsilon alpha omega epsilon kappa beta kappa omega
-orig 00360 beta alpha beta zeta delta kappa omega zeta
+new 00360 epsilon alpha delta zeta lambda delta gamma epsilon
 orig 00361 delta theta beta epsilon kappa epsilon zeta kappa
 orig 00362 kappa lambda gamma kappa epsilon omega theta beta
 orig 00363 alpha lambda zeta zeta alpha theta zeta gamma
@@ -378,7 +378,7 @@ orig 00376 gamma alpha kappa theta zeta beta delta alpha
 orig 00377 theta lambda delta epsilon epsilon theta kappa delta
 orig 00378 theta beta epsilon epsilon omega omega gamma sigma
 orig 00379 gamma sigma epsilon kappa gamma gamma epsilon alpha
-orig 00380 theta kappa beta zeta lambda omega theta lambda
+new 00380 omega gamma sigma zeta sigma lambda sigma lambda
 orig 00381 theta gamma theta beta sigma gamma sigma alpha
 orig 00382 kappa zeta gamma kappa zeta kappa beta beta
 orig 00383 lambda kappa epsilon beta epsilon beta lambda beta
@@ -398,7 +398,7 @@ orig 00396 theta beta zeta zeta sigma beta alpha epsilon
 orig 00397 omega gamma theta epsilon zeta kappa zeta delta
 orig 00398 beta omega alpha alpha lambda gamma alpha sigma
 orig 00399 beta kappa delta lambda sigma omega beta lambda
-orig 00400 lambda theta beta zeta delta gamma theta alpha
+new 00400 delta epsilon sigma alpha delta zeta epsilon zeta
 orig 00401 beta lambda epsilon lambda beta kappa epsilon gamma
 orig 00402 theta lambda gamma alpha alpha omega zeta omega
 orig 00403 omega delta epsilon beta zeta epsilon sigma lambda
@@ -418,7 +418,7 @@ orig 00416 epsilon delta zeta delta alpha sigma gamma delta
 orig 00417 gamma gamma beta beta delta epsilon epsilon beta
 orig 00418 gamma delta theta alpha epsilon alpha kappa alpha
 orig 00419 alpha theta lambda kappa epsilon alpha theta epsilon
-orig 00420 epsilon sigma theta delta theta alpha lambda sigma
+new 00420 omega theta gamma zeta omega kappa omega theta
 orig 00421 kappa delta alpha delta zeta epsilon omega zeta
 orig 00422 omega alpha lambda beta zeta lambda beta omega
 orig 00423 theta epsilon zeta delta beta kappa omega kappa
@@ -438,7 +438,7 @@ orig 00436 lambda gamma omega kappa omega delta omega lambda
 orig 00437 gamma beta delta lambda gamma zeta gamma lambda
 orig 00438 alpha epsilon omega alpha delta omega alpha gamma
 orig 00439 lambda kappa zeta omega omega alpha gamma sigma
-orig 00440 beta beta omega theta delta beta theta theta
+new 00440 epsilon theta gamma sigma sigma omega sigma theta
 orig 00441 beta epsilon theta zeta epsilon kappa alpha sigma
 orig 00442 kappa delta delta delta sigma omega delta theta
 orig 00443 epsilon delta theta beta beta lambda beta omega
@@ -458,7 +458,7 @@ orig 00456 theta gamma beta kappa sigma zeta lambda sigma
 orig 00457 gamma delta sigma lambda kappa alpha alpha alpha
 orig 00458 theta omega delta gamma sigma gamma alpha kappa
 orig 00459 delta theta lambda kappa gamma gamma gamma kappa
-orig 00460 lambda zeta sigma alpha alpha kappa sigma zeta
+new 00460 beta sigma epsilon zeta sigma delta delta sigma
 orig 00461 omega sigma epsilon alpha epsilon gamma delta delta
 orig 00462 zeta lambda delta omega zeta sigma lambda gamma
 orig 00463 beta sigma omega epsilon kappa theta beta beta
@@ -478,7 +478,7 @@ orig 00476 delta gamma zeta gamma gamma zeta theta lambda
 orig 00477 epsilon delta sigma beta zeta omega omega delta
 orig 00478 sigma kappa gamma delta zeta gamma epsilon zeta
 orig 00479 omega delta zeta epsilon zeta omega gamma alpha
-orig 00480 omega alpha epsilon alpha gamma beta beta theta
+new 00480 kappa beta gamma beta theta kappa beta kappa
 orig 00481 epsilon alpha kappa lambda zeta kappa gamma kappa
 orig 00482 theta lambda beta delta kappa kappa gamma kappa
 orig 00483 kappa sigma kappa gamma beta zeta omega sigma
@@ -498,7 +498,7 @@ orig 00496 kappa lambda epsilon gamma delta delta lambda beta
 orig 00497 omega omega beta theta kappa delta delta sigma
 orig 00498 theta theta theta sigma omega sigma omega theta
 orig 00499 alpha lambda omega sigma epsilon kappa epsilon sigma
-orig 00500 beta theta omega zeta epsilon lambda alpha gamma
+new 00500 beta epsilon alpha delta gamma sigma beta kappa
 orig 00501 epsilon gamma lambda beta beta theta omega theta
 orig 00502 beta theta beta epsilon lambda kappa sigma theta
 orig 00503 alpha zeta alpha lambda sigma omega sigma beta
@@ -518,7 +518,7 @@ orig 00516 epsilon beta epsilon beta alpha omega lambda gamma
 orig 00517 kappa kappa beta epsilon kappa sigma epsilon beta
 orig 00518 zeta theta alpha theta sigma kappa kappa beta
 orig 00519 lambda kappa delta beta epsilon beta omega sigma
-orig 00520 lambda omega alpha theta alpha sigma beta sigma
+new 00520 sigma alpha zeta epsilon kappa kappa gamma zeta
 orig 00521 omega zeta gamma sigma alpha alpha zeta gamma
 orig 00522 gamma lambda epsilon zeta gamma theta alpha sigma
 orig 00523 zeta beta zeta beta theta beta gamma zeta
@@ -538,7 +538,7 @@ orig 00536 kappa lambda sigma sigma alpha beta delta kappa
 orig 00537 beta sigma gamma gamma omega kappa zeta sigma
 orig 00538 omega alpha sigma gamma kappa gamma theta omega
 orig 00539 beta delta lambda delta alpha sigma sigma delta
-orig 00540 kappa beta sigma theta sigma delta sigma zeta
+new 00540 alpha alpha alpha lambda gamma sigma alpha theta
 orig 00541 theta omega gamma epsilon alpha gamma theta zeta
 orig 00542 omega theta beta kappa kappa delta gamma gamma
 orig 00543 delta alpha kappa omega sigma zeta alpha alpha
@@ -558,7 +558,7 @@ orig 00556 delta theta delta lambda sigma zeta delta alpha
 orig 00557 lambda beta theta omega theta alpha lambda lambda
 orig 00558 epsilon alpha kappa epsilon theta omega delta kappa
 orig 00559 epsilon epsilon lambda sigma kappa sigma alpha zeta
-orig 00560 lambda delta zeta zeta delta epsilon zeta epsilon
+new 00560 delta sigma delta beta gamma gamma alpha omega
 orig 00561 delta kappa zeta kappa alpha alpha lambda lambda
 orig 00562 beta alpha kappa lambda zeta delta omega gamma
 orig 00563 alpha omega sigma alpha zeta lambda zeta theta
@@ -578,7 +578,7 @@ orig 00576 lambda kappa zeta omega omega kappa theta kappa
 orig 00577 lambda omega epsilon alpha theta omega delta epsilon
 orig 00578 omega gamma omega epsilon sigma omega beta omega
 orig 00579 gamma beta alpha beta zeta zeta gamma beta
-orig 00580 sigma omega beta lambda omega gamma delta omega
+new 00580 zeta beta zeta theta delta theta gamma gamma
 orig 00581 beta zeta alpha beta zeta gamma gamma omega
 orig 00582 zeta kappa omega lambda sigma alpha kappa epsilon
 orig 00583 gamma gamma lambda lambda theta alpha kappa zeta
@@ -598,7 +598,7 @@ orig 00596 omega kappa beta delta gamma lambda delta theta
 orig 00597 alpha beta kappa sigma omega epsilon zeta delta
 orig 00598 epsilon kappa epsilon alpha delta lambda epsilon lambda
 orig 00599 omega zeta alpha sigma theta theta theta epsilon
-orig 00600 lambda delta kappa lambda alpha sigma sigma epsilon
+new 00600 zeta gamma gamma theta kappa kappa sigma beta
 orig 00601 sigma gamma kappa sigma omega zeta lambda kappa
 orig 00602 epsilon omega theta theta gamma alpha sigma zeta
 orig 00603 theta gamma kappa kappa kappa lambda epsilon omega
@@ -618,7 +618,7 @@ orig 00616 gamma kappa epsilon beta alpha beta delta delta
 orig 00617 epsilon gamma beta theta theta sigma omega gamma
 orig 00618 omega zeta kappa beta lambda beta beta omega
 orig 00619 theta beta beta theta lambda omega epsilon sigma
-orig 00620 zeta omega gamma alpha lambda alpha alpha delta
+new 00620 kappa theta gamma alpha gamma omega gamma zeta
 orig 00621 gamma epsilon epsilon zeta alpha sigma delta gamma
 orig 00622 theta sigma beta sigma omega epsilon delta zeta
 orig 00623 epsilon omega zeta gamma alpha sigma omega lambda
@@ -638,7 +638,7 @@ orig 00636 kappa epsilon theta delta omega lambda lambda kappa
 orig 00637 delta epsilon theta zeta delta alpha epsilon sigma
 orig 00638 theta gamma gamma sigma alpha gamma delta sigma
 orig 00639 delta sigma theta kappa alpha zeta theta gamma
-orig 00640 epsilon sigma zeta omega delta alpha zeta theta
+new 00640 omega delta kappa sigma beta zeta gamma beta
 orig 00641 epsilon alpha theta omega epsilon sigma beta delta
 orig 00642 alpha sigma sigma gamma lambda beta alpha epsilon
 orig 00643 kappa theta lambda delta theta kappa beta kappa
@@ -658,7 +658,7 @@ orig 00656 gamma sigma epsilon lambda omega kappa beta theta
 orig 00657 epsilon zeta omega omega lambda delta theta theta
 orig 00658 theta theta delta lambda theta epsilon lambda epsilon
 orig 00659 gamma alpha omega kappa zeta omega beta beta
-orig 00660 delta beta kappa epsilon kappa alpha alpha kappa
+new 00660 sigma theta lambda epsilon kappa lambda alpha lambda
 orig 00661 theta beta omega beta omega lambda theta theta
 orig 00662 theta alpha zeta lambda theta zeta alpha epsilon
 orig 00663 alpha sigma theta beta kappa alpha kappa delta
@@ -678,7 +678,7 @@ orig 00676 kappa alpha alpha alpha gamma gamma beta epsilon
 orig 00677 delta sigma theta lambda omega epsilon theta alpha
 orig 00678 kappa lambda kappa theta delta alpha gamma gamma
 orig 00679 omega gamma sigma alpha omega delta beta beta
-orig 00680 lambda omega sigma epsilon lambda alpha lambda zeta
+new 00680 sigma kappa epsilon epsilon alpha alpha delta lambda
 orig 00681 sigma alpha omega beta theta kappa beta beta
 orig 00682 delta omega omega zeta beta lambda lambda kappa
 orig 00683 omega alpha beta beta omega sigma kappa delta
@@ -698,7 +698,7 @@ orig 00696 beta theta sigma zeta lambda kappa sigma lambda
 orig 00697 beta lambda zeta zeta epsilon beta lambda lambda
 orig 00698 zeta gamma epsilon beta theta epsilon beta epsilon
 orig 00699 delta kappa alpha zeta zeta lambda epsilon omega
-orig 00700 alpha gamma lambda alpha sigma gamma gamma kappa
+new 00700 kappa delta sigma omega zeta lambda sigma theta
 orig 00701 alpha omega lambda lambda kappa epsilon kappa omega
 orig 00702 lambda alpha kappa epsilon beta sigma kappa epsilon
 orig 00703 epsilon alpha delta beta omega zeta lambda kappa
@@ -718,7 +718,7 @@ orig 00716 alpha epsilon kappa beta omega epsilon lambda zeta
 orig 00717 epsilon delta zeta epsilon sigma gamma alpha delta
 orig 00718 delta sigma kappa beta theta kappa lambda alpha
 orig 00719 zeta gamma omega alpha zeta epsilon alpha gamma
-orig 00720 beta epsilon gamma beta sigma lambda epsilon delta
+new 00720 alpha delta epsilon alpha beta gamma theta theta
 orig 00721 sigma kappa sigma kappa kappa epsilon lambda alpha
 orig 00722 gamma alpha sigma alpha omega alpha delta kappa
 orig 00723 alpha beta alpha delta omega lambda zeta omega
@@ -738,7 +738,7 @@ orig 00736 zeta gamma lambda alpha epsilon zeta beta zeta
 orig 00737 omega alpha omega beta sigma epsilon zeta delta
 orig 00738 beta omega sigma zeta lambda delta gamma zeta
 orig 00739 omega sigma kappa alpha epsilon kappa delta zeta
-orig 00740 gamma beta zeta theta sigma delta alpha alpha
+new 00740 kappa kappa omega delta zeta omega kappa lambda
 orig 00741 sigma lambda sigma beta lambda alpha zeta gamma
 orig 00742 delta kappa lambda zeta alpha sigma lambda omega
 orig 00743 zeta sigma zeta delta alpha beta lambda kappa
@@ -758,7 +758,7 @@ orig 00756 epsilon lambda omega epsilon kappa epsilon gamma alpha
 orig 00757 kappa gamma theta alpha kappa epsilon alpha lambda
 orig 00758 theta kappa sigma beta zeta zeta sigma kappa
 orig 00759 delta theta sigma gamma epsilon theta omega gamma
-orig 00760 epsilon sigma sigma sigma kappa epsilon delta epsilon
+new 00760 delta kappa zeta epsilon zeta lambda beta sigma
 orig 00761 theta delta theta epsilon gamma omega alpha omega
 orig 00762 delta alpha zeta gamma kappa beta delta gamma
 orig 00763 omega alpha omega kappa delta delta sigma kappa
@@ -778,7 +778,7 @@ orig 00776 kappa alpha zeta kappa beta sigma epsilon delta
 orig 00777 gamma beta sigma theta zeta gamma kappa gamma
 orig 00778 gamma epsilon lambda zeta sigma lambda delta alpha
 orig 00779 zeta zeta zeta lambda alpha gamma zeta theta
-orig 00780 lambda zeta beta lambda gamma gamma epsilon epsilon
+new 00780 kappa omega sigma theta omega theta epsilon epsilon
 orig 00781 theta sigma beta delta zeta theta epsilon kappa
 orig 00782 delta beta sigma sigma zeta epsilon omega gamma
 orig 00783 kappa alpha omega zeta theta theta beta gamma
@@ -798,7 +798,7 @@ orig 00796 alpha kappa sigma gamma beta beta kappa kappa
 orig 00797 omega theta gamma alpha zeta delta theta sigma
 orig 00798 theta delta theta beta zeta theta lambda omega
 orig 00799 gamma alpha delta alpha alpha alpha omega lambda
-orig 00800 omega zeta delta lambda omega epsilon alpha sigma
+new 00800 kappa omega epsilon kappa sigma delta lambda zeta
 orig 00801 alpha alpha omega zeta beta sigma beta alpha
 orig 00802 omega zeta sigma kappa zeta theta omega theta
 orig 00803 delta theta kappa delta omega delta delta kappa
@@ -818,7 +818,7 @@ orig 00816 gamma beta theta delta sigma lambda zeta lambda
 orig 00817 epsilon zeta delta sigma kappa epsilon beta gamma
 orig 00818 lambda delta gamma zeta lambda gamma theta alpha
 orig 00819 theta sigma sigma zeta beta zeta sigma delta
-orig 00820 zeta delta sigma lambda epsilon theta kappa zeta
+new 00820 beta delta lambda alpha lambda lambda delta alpha
 orig 00821 alpha alpha theta epsilon epsilon gamma epsilon epsilon
 orig 00822 beta gamma beta omega kappa theta gamma sigma
 orig 00823 delta sigma delta alpha theta kappa delta epsilon
@@ -838,7 +838,7 @@ orig 00836 sigma gamma delta omega delta zeta theta delta
 orig 00837 theta delta lambda beta omega alpha omega zeta
 orig 00838 beta sigma delta lambda kappa sigma theta omega
 orig 00839 gamma zeta kappa zeta delta alpha gamma sigma
-orig 00840 delta lambda zeta alpha epsilon zeta alpha theta
+new 00840 lambda epsilon gamma omega gamma theta epsilon epsilon
 orig 00841 omega delta delta delta sigma gamma sigma gamma
 orig 00842 gamma omega beta gamma kappa delta theta theta
 orig 00843 zeta lambda omega theta lambda sigma delta gamma
@@ -858,7 +858,7 @@ orig 00856 lambda lambda alpha kappa omega sigma lambda epsilon
 orig 00857 beta omega kappa alpha beta alpha beta theta
 orig 00858 sigma epsilon sigma alpha alpha alpha alpha beta
 orig 00859 epsilon zeta epsilon beta alpha beta epsilon sigma
-orig 00860 kappa gamma sigma alpha kappa lambda omega sigma
+new 00860 gamma sigma lambda zeta lambda beta sigma beta
 orig 00861 epsilon lambda theta delta kappa delta gamma delta
 orig 00862 gamma theta delta alpha theta beta delta beta
 orig 00863 omega gamma omega delta kappa beta omega epsilon
@@ -878,7 +878,7 @@ orig 00876 epsilon epsilon alpha alpha lambda beta omega gamma
 orig 00877 alpha kappa lambda theta gamma lambda gamma epsilon
 orig 00878 lambda sigma gamma theta theta zeta alpha omega
 orig 00879 gamma epsilon delta alpha theta zeta kappa alpha
-orig 00880 delta sigma sigma delta omega theta gamma beta
+new 00880 zeta epsilon lambda delta sigma zeta theta sigma
 orig 00881 sigma theta sigma delta omega alpha zeta lambda
 orig 00882 delta lambda zeta lambda delta sigma beta beta
 orig 00883 gamma kappa theta epsilon omega theta sigma kappa
@@ -898,7 +898,7 @@ orig 00896 beta kappa alpha zeta zeta alpha delta omega
 orig 00897 lambda sigma beta zeta alpha zeta theta theta
 orig 00898 lambda delta gamma beta zeta lambda theta omega
 orig 00899 omega delta epsilon theta epsilon lambda epsilon epsilon
-orig 00900 theta theta epsilon theta theta beta epsilon zeta
+new 00900 beta omega kappa gamma delta zeta sigma kappa
 orig 00901 gamma sigma sigma alpha zeta delta epsilon gamma
 orig 00902 kappa theta beta kappa epsilon theta lambda gamma
 orig 00903 beta omega epsilon delta gamma gamma sigma omega
@@ -918,7 +918,7 @@ orig 00916 epsilon lambda sigma theta delta kappa alpha alpha
 orig 00917 gamma lambda lambda gamma gamma zeta sigma omega
 orig 00918 sigma zeta beta epsilon zeta delta sigma theta
 orig 00919 lambda sigma alpha beta zeta beta omega omega
-orig 00920 sigma gamma delta beta theta beta beta gamma
+new 00920 zeta omega beta omega zeta theta gamma sigma
 orig 00921 zeta alpha sigma gamma sigma gamma lambda lambda
 orig 00922 delta theta gamma beta gamma sigma theta lambda
 orig 00923 beta kappa beta delta lambda epsilon alpha theta
@@ -938,7 +938,7 @@ orig 00936 kappa kappa beta gamma theta alpha beta beta
 orig 00937 alpha alpha alpha zeta kappa delta sigma epsilon
 orig 00938 zeta alpha sigma alpha beta delta kappa kappa
 orig 00939 omega lambda sigma theta beta kappa theta zeta
-orig 00940 sigma theta zeta alpha sigma sigma beta kappa
+new 00940 beta theta beta alpha zeta sigma sigma alpha
 orig 00941 beta epsilon zeta sigma sigma sigma kappa sigma
 orig 00942 kappa delta kappa epsilon epsilon zeta epsilon beta
 orig 00943 zeta gamma kappa theta sigma epsilon kappa beta
@@ -958,7 +958,7 @@ orig 00956 alpha zeta alpha delta lambda omega theta epsilon
 orig 00957 sigma omega kappa zeta delta delta sigma delta
 orig 00958 beta sigma lambda lambda epsilon zeta zeta alpha
 orig 00959 zeta alpha omega omega beta beta lambda beta
-orig 00960 kappa delta theta theta gamma kappa zeta theta
+new 00960 lambda theta epsilon lambda sigma alpha sigma sigma
 orig 00961 lambda kappa alpha zeta zeta gamma kappa beta
 orig 00962 omega beta beta epsilon kappa theta lambda beta
 orig 00963 theta theta beta omega gamma epsilon delta delta
@@ -978,7 +978,7 @@ orig 00976 alpha epsilon theta kappa alpha alpha alpha epsilon
 orig 00977 zeta kappa alpha kappa gamma epsilon delta delta
 orig 00978 delta kappa omega zeta gamma omega alpha alpha
 orig 00979 sigma kappa gamma theta gamma lambda omega beta
-orig 00980 alpha gamma kappa delta beta lambda sigma kappa
+new 00980 sigma kappa delta omega theta lambda sigma zeta
 orig 00981 zeta alpha zeta sigma theta omega zeta delta
 orig 00982 lambda sigma beta gamma sigma epsilon delta theta
 orig 00983 sigma theta alpha sigma theta epsilon beta kappa
@@ -998,7 +998,7 @@ orig 00996 lambda beta gamma omega omega theta theta zeta
 orig 00997 lambda theta gamma lambda zeta omega epsilon kappa
 orig 00998 gamma delta lambda theta epsilon sigma kappa zeta
 orig 00999 lambda zeta alpha alpha lambda alpha epsilon zeta
-orig 01000 beta epsilon alpha kappa lambda sigma lambda epsilon
+new 01000 beta sigma sigma theta theta zeta sigma kappa
 orig 01001 sigma alpha kappa theta sigma beta gamma epsilon
 orig 01002 gamma sigma zeta gamma alpha omega alpha lambda
 orig 01003 alpha alpha sigma beta delta alpha alpha sigma
@@ -1018,7 +1018,7 @@ orig 01016 zeta alpha kappa omega alpha alpha theta theta
 orig 01017 gamma theta theta delta delta sigma delta sigma
 orig 01018 theta omega kappa alpha beta lambda gamma epsilon
 orig 01019 theta omega kappa omega gamma sigma zeta epsilon
-orig 01020 theta zeta lambda lambda beta beta omega zeta
+new 01020 alpha zeta gamma epsilon sigma alpha sigma omega
 orig 01021 lambda sigma lambda lambda theta theta beta zeta
 orig 01022 zeta gamma alpha kappa lambda gamma theta lambda
 orig 01023 zeta sigma epsilon theta epsilon omega zeta sigma
@@ -1038,7 +1038,7 @@ orig 01036 epsilon sigma gamma sigma gamma zeta kappa delta
 orig 01037 zeta beta kappa epsilon gamma sigma theta omega
 orig 01038 zeta gamma delta zeta alpha kappa epsilon sigma
 orig 01039 theta sigma zeta theta epsilon omega sigma delta
-orig 01040 alpha alpha theta beta alpha epsilon alpha lambda
+new 01040 sigma zeta alpha epsilon omega theta alpha epsilon
 orig 01041 omega zeta zeta beta omega theta beta epsilon
 orig 01042 alpha omega kappa sigma epsilon kappa omega alpha
 orig 01043 sigma epsilon delta kappa kappa beta lambda zeta
@@ -1058,7 +1058,7 @@ orig 01056 kappa omega sigma sigma sigma kappa zeta theta
 orig 01057 kappa beta zeta kappa theta kappa delta kappa
 orig 01058 alpha zeta theta alpha zeta zeta delta gamma
 orig 01059 epsilon theta gamma alpha theta theta alpha epsilon
-orig 01060 theta sigma lambda delta delta epsilon alpha gamma
+new 01060 omega beta sigma epsilon kappa delta gamma alpha
 orig 01061 delta delta epsilon lambda epsilon theta kappa omega
 orig 01062 theta lambda epsilon alpha beta theta delta lambda
 orig 01063 epsilon omega epsilon theta theta zeta kappa gamma
@@ -1078,7 +1078,7 @@ orig 01076 beta lambda theta theta zeta lambda epsilon alpha
 orig 01077 gamma epsilon sigma sigma kappa omega theta sigma
 orig 01078 omega omega omega kappa kappa sigma alpha kappa
 orig 01079 alpha theta alpha theta epsilon theta lambda kappa
-orig 01080 sigma theta sigma alpha beta delta zeta alpha
+new 01080 lambda zeta omega omega sigma omega sigma beta
 orig 01081 theta theta theta zeta kappa sigma delta zeta
 orig 01082 delta omega theta lambda alpha beta kappa epsilon
 orig 01083 omega omega lambda sigma lambda kappa theta beta
@@ -1098,7 +1098,7 @@ orig 01096 epsilon zeta gamma theta omega gamma lambda lambda
 orig 01097 sigma lambda zeta lambda theta gamma delta alpha
 orig 01098 omega zeta alpha sigma alpha kappa omega gamma
 orig 01099 lambda sigma zeta omega epsilon delta gamma epsilon
-orig 01100 sigma kappa beta beta gamma theta theta beta
+new 01100 delta gamma epsilon beta gamma sigma kappa beta
 orig 01101 sigma sigma theta kappa epsilon theta zeta theta
 orig 01102 delta theta zeta kappa sigma kappa gamma lambda
 orig 01103 beta alpha epsilon lambda theta lambda kappa omega
@@ -1118,7 +1118,7 @@ orig 01116 sigma kappa lambda epsilon lambda zeta delta lambda
 orig 01117 alpha beta kappa alpha theta delta gamma alpha
 orig 01118 delta delta delta epsilon epsilon zeta omega delta
 orig 01119 kappa kappa kappa beta kappa gamma zeta alpha
-orig 01120 beta theta gamma beta delta sigma zeta sigma
+new 01120 epsilon lambda delta beta gamma delta epsilon lambda
 orig 01121 alpha epsilon theta gamma zeta delta zeta omega
 orig 01122 theta beta kappa delta lambda beta delta epsilon
 orig 01123 sigma delta theta theta delta gamma gamma zeta
@@ -1138,7 +1138,7 @@ orig 01136 theta beta delta gamma alpha epsilon zeta kappa
 orig 01137 kappa epsilon theta sigma alpha beta beta gamma
 orig 01138 delta epsilon omega delta lambda gamma gamma kappa
 orig 01139 alpha omega alpha epsilon kappa zeta omega kappa
-orig 01140 omega delta zeta gamma gamma theta lambda lambda
+new 01140 omega delta kappa omega beta theta kappa theta
 orig 01141 zeta zeta delta omega kappa epsilon epsilon epsilon
 orig 01142 delta omega kappa zeta lambda theta beta gamma
 orig 01143 beta alpha sigma delta omega omega kappa theta
@@ -1158,7 +1158,7 @@ orig 01156 kappa delta beta theta theta alpha theta beta
 orig 01157 beta theta kappa zeta beta beta beta kappa
 orig 01158 kappa omega omega delta beta lambda gamma zeta
 orig 01159 theta sigma theta gamma omega omega theta beta
-orig 01160 lambda beta alpha delta gamma epsilon omega omega
+new 01160 theta kappa delta zeta kappa theta alpha epsilon
 orig 01161 epsilon gamma zeta omega gamma epsilon alpha theta
 orig 01162 delta theta beta epsilon lambda beta alpha sigma
 orig 01163 beta zeta epsilon omega beta delta kappa beta
@@ -1178,7 +1178,7 @@ orig 01176 delta delta epsilon beta epsilon kappa theta delta
 orig 01177 theta gamma sigma gamma epsilon zeta delta alpha
 orig 01178 epsilon delta theta epsilon zeta lambda alpha lambda
 orig 01179 beta alpha delta alpha lambda sigma kappa zeta
-orig 01180 delta gamma alpha beta beta delta delta lambda
+new 01180 theta zeta theta beta zeta delta lambda sigma
 orig 01181 theta epsilon lambda epsilon delta zeta omega beta
 orig 01182 gamma omega beta omega omega beta epsilon theta
 orig 01183 epsilon kappa alpha lambda kappa theta theta zeta
@@ -1198,7 +1198,7 @@ orig 01196 theta epsilon alpha delta epsilon beta sigma omega
 orig 01197 delta zeta alpha theta theta epsilon omega kappa
 orig 01198 omega delta epsilon theta zeta sigma gamma zeta
 orig 01199 gamma epsilon sigma beta zeta lambda lambda epsilon
-orig 01200 sigma sigma gamma alpha gamma beta kappa kappa
+new 01200 epsilon gamma beta sigma gamma theta kappa epsilon
 orig 01201 gamma theta theta zeta theta zeta theta beta
 orig 01202 epsilon sigma epsilon epsilon lambda omega gamma omega
 orig 01203 zeta theta epsilon lambda omega lambda beta sigma
@@ -1218,7 +1218,7 @@ orig 01216 theta kappa zeta gamma gamma omega alpha alpha
 orig 01217 omega alpha epsilon zeta omega delta beta alpha
 orig 01218 theta delta delta beta theta epsilon alpha gamma
 orig 01219 delta omega epsilon alpha epsilon kappa lambda gamma
-orig 01220 lambda beta zeta lambda lambda theta lambda alpha
+new 01220 delta omega alpha kappa beta beta alpha theta
 orig 01221 kappa beta epsilon kappa lambda delta beta omega
 orig 01222 omega alpha omega sigma beta beta kappa alpha
 orig 01223 theta gamma epsilon epsilon theta kappa omega delta
@@ -1238,7 +1238,7 @@ orig 01236 kappa kappa beta delta alpha zeta gamma zeta
 orig 01237 lambda delta theta lambda zeta alpha alpha delta
 orig 01238 epsilon sigma epsilon beta kappa alpha omega alpha
 orig 01239 lambda epsilon theta theta zeta sigma sigma omega
-orig 01240 omega lambda sigma gamma kappa theta gamma lambda
+new 01240 zeta zeta alpha gamma epsilon epsilon kappa alpha
 orig 01241 kappa epsilon delta gamma epsilon theta theta epsilon
 orig 01242 omega epsilon kappa theta beta delta delta zeta
 orig 01243 epsilon alpha beta sigma alpha beta kappa epsilon
@@ -1258,7 +1258,7 @@ orig 01256 gamma theta lambda theta kappa zeta delta epsilon
 orig 01257 sigma epsilon sigma omega lambda zeta zeta kappa
 orig 01258 epsilon epsilon beta beta delta omega omega theta
 orig 01259 sigma kappa theta theta lambda epsilon lambda delta
-orig 01260 gamma sigma theta beta theta kappa theta theta
+new 01260 beta zeta alpha sigma kappa gamma theta omega
 orig 01261 beta kappa kappa theta sigma epsilon delta zeta
 orig 01262 lambda zeta epsilon theta kappa kappa theta omega
 orig 01263 epsilon sigma gamma delta delta theta zeta theta
@@ -1278,7 +1278,7 @@ orig 01276 omega delta beta zeta theta gamma beta lambda
 orig 01277 epsilon theta lambda lambda gamma sigma lambda sigma
 orig 01278 kappa delta beta gamma beta beta kappa zeta
 orig 01279 kappa lambda gamma zeta theta kappa delta omega
-orig 01280 zeta omega alpha epsilon zeta omega gamma omega
+new 01280 kappa lambda alpha zeta theta lambda sigma beta
 orig 01281 gamma gamma lambda kappa delta delta delta alpha
 orig 01282 epsilon omega alpha omega epsilon lambda lambda alpha
 orig 01283 alpha omega gamma gamma epsilon gamma zeta zeta
@@ -1298,7 +1298,7 @@ orig 01296 theta beta lambda epsilon epsilon sigma kappa epsilon
 orig 01297 beta alpha theta kappa omega beta theta gamma
 orig 01298 alpha gamma zeta epsilon theta delta delta omega
 orig 01299 delta gamma epsilon omega zeta epsilon kappa sigma
-orig 01300 delta epsilon omega lambda lambda beta kappa epsilon
+new 01300 beta gamma alpha kappa epsilon lambda beta lambda
 orig 01301 kappa epsilon omega gamma alpha epsilon sigma beta
 orig 01302 alpha lambda zeta lambda theta sigma omega sigma
 orig 01303 zeta gamma epsilon lambda beta epsilon sigma zeta
@@ -1318,7 +1318,7 @@ orig 01316 omega zeta zeta theta kappa theta omega theta
 orig 01317 gamma sigma alpha kappa alpha alpha delta lambda
 orig 01318 gamma gamma alpha zeta sigma gamma delta omega
 orig 01319 alpha kappa zeta delta lambda alpha gamma theta
-orig 01320 kappa sigma delta omega alpha gamma epsilon beta
+new 01320 lambda beta kappa sigma delta theta alpha omega
 orig 01321 beta kappa zeta alpha epsilon theta beta sigma
 orig 01322 gamma zeta gamma epsilon alpha delta lambda gamma
 orig 01323 kappa kappa gamma alpha lambda kappa delta kappa
@@ -1338,7 +1338,7 @@ orig 01336 zeta beta zeta zeta epsilon theta theta gamma
 orig 01337 gamma alpha zeta epsilon gamma lambda zeta kappa
 orig 01338 lambda delta zeta gamma beta delta epsilon kappa
 orig 01339 theta omega theta omega sigma sigma lambda epsilon
-orig 01340 beta alpha gamma sigma kappa omega kappa kappa
+new 01340 alpha omega delta beta gamma theta sigma omega
 orig 01341 gamma lambda beta beta epsilon beta sigma delta
 orig 01342 theta theta delta alpha delta zeta lambda epsilon
 orig 01343 alpha theta sigma delta theta delta epsilon beta
@@ -1358,7 +1358,7 @@ orig 01356 epsilon theta delta alpha theta alpha sigma delta
 orig 01357 alpha sigma alpha alpha omega lambda theta delta
 orig 01358 alpha kappa lambda omega theta theta sigma alpha
 orig 01359 gamma alpha gamma epsilon lambda epsilon kappa theta
-orig 01360 gamma delta delta sigma gamma lambda gamma theta
+new 01360 lambda alpha epsilon beta kappa sigma lambda epsilon
 orig 01361 lambda alpha lambda lambda omega alpha sigma kappa
 orig 01362 omega gamma beta kappa sigma beta beta alpha
 orig 01363 kappa alpha theta delta lambda epsilon delta delta
@@ -1378,7 +1378,7 @@ orig 01376 theta sigma lambda alpha epsilon sigma theta theta
 orig 01377 delta kappa omega sigma gamma omega epsilon zeta
 orig 01378 alpha delta lambda zeta sigma epsilon epsilon theta
 orig 01379 delta kappa alpha kappa kappa lambda theta delta
-orig 01380 theta beta kappa gamma omega alpha zeta sigma
+new 01380 beta lambda lambda delta gamma gamma zeta delta
 orig 01381 beta epsilon kappa sigma beta epsilon lambda delta
 orig 01382 zeta lambda lambda kappa delta omega alpha kappa
 orig 01383 delta gamma epsilon alpha gamma omega omega theta
@@ -1398,7 +1398,7 @@ orig 01396 gamma omega beta kappa kappa lambda delta theta
 orig 01397 sigma beta zeta beta delta theta kappa sigma
 orig 01398 theta epsilon alpha zeta beta omega sigma zeta
 orig 01399 lambda theta sigma gamma zeta delta lambda lambda
-orig 01400 beta alpha beta gamma lambda sigma sigma sigma
+new 01400 sigma gamma zeta theta beta beta theta gamma
 orig 01401 omega sigma theta omega delta theta beta alpha
 orig 01402 epsilon theta omega gamma epsilon beta delta theta
 orig 01403 omega epsilon omega sigma delta kappa omega omega
@@ -1418,7 +1418,7 @@ orig 01416 beta lambda sigma lambda omega delta delta zeta
 orig 01417 alpha zeta delta gamma theta omega delta beta
 orig 01418 sigma zeta gamma beta omega omega sigma epsilon
 orig 01419 alpha omega lambda alpha zeta sigma beta lambda
-orig 01420 zeta epsilon omega theta delta omega sigma sigma
+new 01420 zeta epsilon lambda theta gamma zeta omega theta
 orig 01421 gamma kappa delta beta delta gamma sigma alpha
 orig 01422 epsilon kappa zeta kappa theta epsilon theta kappa
 orig 01423 omega kappa gamma kappa gamma gamma beta omega
@@ -1438,7 +1438,7 @@ orig 01436 sigma alpha alpha beta beta epsilon omega lambda
 orig 01437 alpha theta lambda alpha zeta omega gamma lambda
 orig 01438 lambda epsilon delta epsilon lambda beta beta gamma
 orig 01439 epsilon gamma alpha epsilon kappa delta gamma sigma
-orig 01440 beta sigma zeta beta kappa omega beta kappa
+new 01440 epsilon lambda omega kappa epsilon omega beta lambda
 orig 01441 omega lambda omega beta gamma sigma alpha epsilon
 orig 01442 kappa gamma omega theta epsilon omega alpha epsilon
 orig 01443 alpha beta delta lambda kappa gamma sigma delta
@@ -1458,7 +1458,7 @@ orig 01456 beta omega beta sigma sigma zeta beta omega
 orig 01457 alpha omega delta gamma gamma kappa alpha zeta
 orig 01458 lambda theta lambda lambda theta gamma lambda alpha
 orig 01459 alpha omega beta epsilon delta sigma lambda beta
-orig 01460 lambda omega lambda kappa gamma epsilon gamma beta
+new 01460 alpha epsilon delta epsilon epsilon sigma kappa beta
 orig 01461 zeta kappa lambda alpha zeta delta lambda omega
 orig 01462 kappa delta delta alpha beta gamma omega alpha
 orig 01463 epsilon omega lambda kappa delta lambda kappa alpha
@@ -1478,7 +1478,7 @@ orig 01476 kappa lambda zeta alpha lambda lambda omega zeta
 orig 01477 kappa zeta sigma alpha sigma delta omega theta
 orig 01478 theta lambda kappa omega lambda delta kappa omega
 orig 01479 delta theta lambda theta alpha theta zeta alpha
-orig 01480 delta theta beta delta alpha gamma omega beta
+new 01480 omega gamma sigma kappa gamma omega epsilon delta
 orig 01481 epsilon alpha zeta delta omega kappa gamma kappa
 orig 01482 zeta alpha lambda delta zeta gamma omega alpha
 orig 01483 alpha lambda beta sigma lambda delta delta omega
@@ -1498,7 +1498,7 @@ orig 01496 beta omega omega alpha zeta beta zeta epsilon
 orig 01497 theta lambda sigma kappa sigma gamma zeta kappa
 orig 01498 zeta gamma kappa theta kappa beta zeta alpha
 orig 01499 zeta beta theta alpha delta beta lambda epsilon
-orig 01500 epsilon kappa gamma omega epsilon lambda epsilon zeta
+new 01500 gamma omega gamma gamma kappa epsilon zeta sigma
 orig 01501 zeta omega epsilon sigma gamma omega kappa epsilon
 orig 01502 lambda lambda sigma omega delta gamma delta kappa
 orig 01503 omega epsilon delta delta lambda sigma sigma delta
@@ -1518,7 +1518,7 @@ orig 01516 gamma delta theta kappa gamma delta alpha kappa
 orig 01517 epsilon alpha theta kappa zeta lambda delta omega
 orig 01518 gamma delta beta zeta delta gamma sigma alpha
 orig 01519 kappa omega omega beta lambda theta epsilon kappa
-orig 01520 theta lambda theta sigma gamma kappa gamma alpha
+new 01520 theta kappa theta kappa epsilon omega omega omega
 orig 01521 alpha beta delta theta alpha sigma sigma omega
 orig 01522 theta kappa gamma epsilon gamma zeta kappa epsilon
 orig 01523 zeta omega epsilon sigma epsilon delta alpha theta
@@ -1538,7 +1538,7 @@ orig 01536 omega gamma omega omega lambda beta lambda theta
 orig 01537 omega delta alpha theta theta alpha sigma zeta
 orig 01538 sigma delta zeta beta epsilon lambda omega sigma
 orig 01539 beta alpha delta kappa lambda beta gamma kappa
-orig 01540 theta omega sigma kappa epsilon theta gamma delta
+new 01540 lambda omega theta lambda alpha epsilon delta zeta
 orig 01541 zeta theta kappa omega lambda omega sigma beta
 orig 01542 kappa kappa alpha sigma beta alpha beta theta
 orig 01543 delta gamma kappa theta alpha delta sigma zeta
@@ -1558,7 +1558,7 @@ orig 01556 sigma zeta beta sigma omega lambda sigma gamma
 orig 01557 kappa zeta omega lambda omega theta theta lambda
 orig 01558 delta gamma delta sigma delta beta gamma epsilon
 orig 01559 gamma lambda lambda lambda kappa beta zeta gamma
-orig 01560 zeta sigma sigma epsilon theta sigma beta kappa
+new 01560 gamma alpha theta beta kappa omega lambda alpha
 orig 01561 gamma gamma gamma beta lambda alpha beta gamma
 orig 01562 lambda kappa zeta omega epsilon zeta omega omega
 orig 01563 gamma omega delta epsilon sigma gamma delta theta
@@ -1578,7 +1578,7 @@ orig 01576 delta beta epsilon alpha lambda epsilon delta zeta
 orig 01577 zeta gamma omega delta omega lambda beta delta
 orig 01578 omega omega kappa beta beta epsilon beta omega
 orig 01579 gamma theta beta omega gamma kappa zeta theta
-orig 01580 lambda lambda gamma beta lambda beta omega alpha
+new 01580 omega epsilon epsilon zeta gamma gamma epsilon zeta
 orig 01581 epsilon zeta epsilon zeta beta beta theta alpha
 orig 01582 epsilon gamma zeta sigma kappa theta delta theta
 orig 01583 omega alpha alpha beta kappa beta delta zeta
@@ -1598,7 +1598,7 @@ orig 01596 delta kappa zeta alpha zeta omega zeta gamma
 orig 01597 beta theta gamma epsilon zeta theta epsilon alpha
 orig 01598 epsilon sigma epsilon theta alpha omega theta theta
 orig 01599 omega omega kappa lambda beta omega kappa lambda
-orig 01600 zeta kappa sigma theta alpha lambda epsilon omega
+new 01600 gamma gamma alpha epsilon sigma beta gamma theta
 orig 01601 beta omega delta sigma zeta alpha sigma delta
 orig 01602 zeta omega alpha omega epsilon lambda beta theta
 orig 01603 sigma beta delta epsilon theta zeta gamma kappa
@@ -1618,7 +1618,7 @@ orig 01616 epsilon gamma alpha sigma delta epsilon omega sigma
 orig 01617 sigma kappa lambda zeta alpha beta lambda sigma
 orig 01618 omega lambda zeta alpha omega epsilon lambda kappa
 orig 01619 theta sigma gamma alpha delta delta beta omega
-orig 01620 kappa zeta sigma kappa delta delta beta kappa
+new 01620 theta lambda omega zeta kappa zeta epsilon delta
 orig 01621 gamma beta kappa delta sigma kappa sigma gamma
 orig 01622 beta beta beta epsilon epsilon gamma theta beta
 orig 01623 theta lambda alpha delta zeta gamma beta lambda
@@ -1638,7 +1638,7 @@ orig 01636 gamma lambda kappa zeta lambda gamma delta zeta
 orig 01637 delta gamma kappa kappa gamma alpha theta theta
 orig 01638 delta omega sigma theta theta kappa sigma kappa
 orig 01639 gamma sigma beta lambda beta gamma omega alpha
-orig 01640 sigma alpha epsilon sigma kappa zeta lambda theta
+new 01640 alpha epsilon omega delta kappa gamma kappa zeta
 orig 01641 delta sigma kappa sigma beta delta epsilon epsilon
 orig 01642 lambda zeta zeta alpha theta lambda kappa beta
 orig 01643 delta alpha zeta epsilon epsilon beta theta alpha
@@ -1658,7 +1658,7 @@ orig 01656 delta delta kappa lambda zeta kappa gamma omega
 orig 01657 beta delta delta lambda lambda alpha beta theta
 orig 01658 sigma alpha beta theta beta delta epsilon omega
 orig 01659 zeta delta gamma lambda gamma sigma lambda delta
-orig 01660 kappa kappa omega zeta epsilon gamma lambda kappa
+new 01660 alpha epsilon alpha omega gamma epsilon alpha gamma
 orig 01661 theta sigma alpha delta delta sigma theta lambda
 orig 01662 gamma gamma kappa gamma theta gamma lambda lambda
 orig 01663 zeta delta alpha lambda beta gamma delta omega
@@ -1678,7 +1678,7 @@ orig 01676 omega delta theta lambda omega sigma omega omega
 orig 01677 epsilon omega sigma sigma gamma lambda gamma theta
 orig 01678 epsilon zeta lambda epsilon omega omega lambda lambda
 orig 01679 gamma sigma omega lambda kappa omega beta lambda
-orig 01680 theta epsilon beta omega beta sigma beta beta
+new 01680 beta kappa zeta theta epsilon beta omega theta
 orig 01681 omega beta epsilon delta sigma zeta zeta zeta
 orig 01682 theta delta epsilon beta omega alpha kappa sigma
 orig 01683 lambda beta beta kappa omega alpha lambda gamma
@@ -1698,7 +1698,7 @@ orig 01696 kappa kappa gamma gamma zeta omega gamma sigma
 orig 01697 omega kappa theta theta zeta alpha alpha omega
 orig 01698 omega omega alpha alpha gamma theta beta kappa
 orig 01699 alpha beta omega gamma delta lambda theta zeta
-orig 01700 zeta sigma zeta theta epsilon alpha zeta gamma
+new 01700 sigma delta omega omega lambda kappa alpha zeta
 orig 01701 theta omega epsilon sigma kappa lambda beta beta
 orig 01702 theta gamma zeta beta zeta delta delta alpha
 orig 01703 theta delta omega theta gamma delta beta kappa
@@ -1718,7 +1718,7 @@ orig 01716 lambda omega zeta sigma omega alpha zeta alpha
 orig 01717 beta kappa delta beta sigma kappa lambda theta
 orig 01718 omega zeta lambda theta delta theta kappa delta
 orig 01719 beta zeta gamma delta alpha kappa beta alpha
-orig 01720 sigma lambda beta alpha omega beta lambda epsilon
+new 01720 omega delta beta beta lambda zeta beta gamma
 orig 01721 sigma beta epsilon sigma lambda zeta theta kappa
 orig 01722 delta kappa theta delta lambda delta epsilon sigma
 orig 01723 zeta lambda epsilon sigma sigma kappa omega lambda
@@ -1738,7 +1738,7 @@ orig 01736 sigma alpha omega lambda theta beta zeta gamma
 orig 01737 omega beta kappa alpha beta omega delta omega
 orig 01738 epsilon delta epsilon lambda epsilon gamma epsilon gamma
 orig 01739 epsilon alpha theta alpha zeta zeta sigma epsilon
-orig 01740 alpha kappa lambda delta epsilon kappa sigma alpha
+new 01740 theta zeta zeta epsilon zeta sigma sigma gamma
 orig 01741 sigma gamma beta epsilon sigma sigma delta epsilon
 orig 01742 zeta alpha sigma delta delta zeta sigma zeta
 orig 01743 theta beta alpha beta lambda gamma beta epsilon
@@ -1758,7 +1758,7 @@ orig 01756 zeta lambda zeta delta kappa sigma lambda zeta
 orig 01757 kappa gamma omega delta lambda lambda gamma kappa
 orig 01758 gamma theta zeta omega delta epsilon delta beta
 orig 01759 alpha gamma beta epsilon lambda epsilon zeta gamma
-orig 01760 theta kappa delta gamma lambda epsilon delta omega
+new 01760 alpha theta kappa kappa beta epsilon lambda lambda
 orig 01761 gamma omega sigma lambda theta omega gamma delta
 orig 01762 beta delta theta alpha gamma kappa omega zeta
 orig 01763 lambda gamma omega sigma sigma alpha lambda omega
@@ -1778,7 +1778,7 @@ orig 01776 gamma lambda lambda sigma sigma lambda beta omega
 orig 01777 kappa sigma kappa zeta epsilon delta theta zeta
 orig 01778 omega zeta alpha delta epsilon epsilon zeta gamma
 orig 01779 theta gamma theta kappa omega delta gamma beta
-orig 01780 lambda omega zeta kappa delta theta omega sigma
+new 01780 omega sigma kappa beta alpha delta delta kappa
 orig 01781 delta sigma sigma beta beta omega lambda omega
 orig 01782 zeta lambda zeta beta delta sigma alpha delta
 orig 01783 zeta gamma theta alpha kappa beta kappa kappa
@@ -1798,7 +1798,7 @@ orig 01796 sigma delta zeta gamma kappa beta kappa alpha
 orig 01797 beta zeta omega lambda beta omega zeta omega
 orig 01798 epsilon theta zeta omega epsilon lambda beta sigma
 orig 01799 delta gamma delta omega omega delta omega alpha
-orig 01800 alpha zeta omega theta sigma theta beta sigma
+new 01800 lambda gamma kappa beta beta zeta beta lambda
 orig 01801 epsilon omega epsilon alpha gamma theta beta beta
 orig 01802 gamma kappa kappa beta sigma lambda beta beta
 orig 01803 epsilon gamma omega alpha kappa omega kappa kappa
@@ -1818,7 +1818,7 @@ orig 01816 lambda kappa sigma omega omega omega lambda omega
 orig 01817 gamma gamma alpha epsilon beta theta sigma epsilon
 orig 01818 kappa epsilon beta theta kappa gamma omega beta
 orig 01819 alpha epsilon lambda kappa omega gamma omega theta
-orig 01820 kappa omega epsilon omega omega gamma delta delta
+new 01820 gamma gamma epsilon sigma gamma theta sigma sigma
 orig 01821 beta beta beta delta beta delta kappa kappa
 orig 01822 delta lambda delta lambda epsilon gamma epsilon omega
 orig 01823 theta delta theta theta epsilon alpha gamma beta
@@ -1838,7 +1838,7 @@ orig 01836 zeta delta alpha beta zeta omega kappa beta
 orig 01837 theta omega kappa kappa gamma kappa delta sigma
 orig 01838 lambda delta theta kappa epsilon beta theta omega
 orig 01839 lambda alpha beta kappa delta delta gamma kappa
-orig 01840 theta gamma omega theta zeta alpha omega alpha
+new 01840 gamma omega delta delta theta zeta sigma zeta
 orig 01841 theta alpha alpha zeta omega kappa theta kappa
 orig 01842 sigma epsilon gamma epsilon epsilon kappa delta beta
 orig 01843 zeta theta omega sigma sigma alpha zeta omega
@@ -1858,7 +1858,7 @@ orig 01856 beta sigma lambda omega beta gamma sigma zeta
 orig 01857 lambda omega sigma beta kappa kappa kappa lambda
 orig 01858 gamma alpha kappa lambda epsilon sigma sigma gamma
 orig 01859 epsilon zeta omega lambda zeta omega kappa omega
-orig 01860 kappa zeta theta delta sigma zeta epsilon lambda
+new 01860 theta delta lambda sigma epsilon beta lambda delta
 orig 01861 theta delta alpha kappa gamma sigma omega theta
 orig 01862 zeta beta sigma zeta delta gamma epsilon omega
 orig 01863 omega delta gamma omega zeta epsilon beta beta
@@ -1878,7 +1878,7 @@ orig 01876 gamma sigma omega beta theta zeta zeta sigma
 orig 01877 sigma omega omega theta beta gamma theta alpha
 orig 01878 lambda alpha zeta omega gamma omega epsilon beta
 orig 01879 delta epsilon beta gamma zeta zeta gamma delta
-orig 01880 beta omega beta kappa alpha delta theta theta
+new 01880 theta omega beta sigma omega sigma kappa zeta
 orig 01881 zeta theta sigma gamma omega gamma zeta alpha
 orig 01882 kappa theta theta sigma alpha kappa theta zeta
 orig 01883 beta kappa omega lambda beta alpha sigma theta
@@ -1898,7 +1898,7 @@ orig 01896 zeta omega omega sigma epsilon alpha gamma kappa
 orig 01897 epsilon theta sigma lambda beta delta lambda beta
 orig 01898 gamma beta omega beta theta kappa zeta epsilon
 orig 01899 kappa omega gamma kappa zeta omega omega sigma
-orig 01900 alpha delta zeta omega beta theta kappa theta
+new 01900 omega theta lambda alpha gamma epsilon omega alpha
 orig 01901 beta epsilon zeta lambda kappa kappa alpha lambda
 orig 01902 alpha epsilon delta gamma lambda omega sigma alpha
 orig 01903 gamma kappa lambda omega omega alpha epsilon gamma
@@ -1918,7 +1918,7 @@ orig 01916 beta zeta sigma sigma kappa epsilon sigma lambda
 orig 01917 omega sigma epsilon beta gamma sigma delta epsilon
 orig 01918 zeta delta alpha gamma alpha beta epsilon gamma
 orig 01919 omega omega alpha lambda alpha delta beta alpha
-orig 01920 kappa sigma gamma epsilon omega delta omega theta
+new 01920 epsilon zeta zeta kappa alpha lambda epsilon beta
 orig 01921 kappa sigma gamma alpha gamma delta sigma alpha
 orig 01922 theta omega kappa lambda theta alpha gamma omega
 orig 01923 alpha kappa gamma theta lambda gamma lambda kappa
@@ -1938,7 +1938,7 @@ orig 01936 theta lambda sigma beta zeta gamma gamma beta
 orig 01937 gamma omega kappa epsilon sigma delta alpha sigma
 orig 01938 lambda theta theta beta delta beta delta omega
 orig 01939 alpha beta lambda kappa epsilon sigma beta alpha
-orig 01940 omega lambda lambda zeta sigma beta gamma zeta
+new 01940 alpha omega alpha theta theta delta epsilon kappa
 orig 01941 beta lambda alpha sigma lambda epsilon delta alpha
 orig 01942 epsilon omega sigma lambda omega sigma delta delta
 orig 01943 kappa lambda gamma gamma delta kappa delta gamma
@@ -1958,7 +1958,7 @@ orig 01956 alpha beta sigma delta lambda beta omega delta
 orig 01957 zeta lambda beta delta epsilon kappa omega delta
 orig 01958 alpha kappa beta kappa sigma lambda beta theta
 orig 01959 lambda theta epsilon epsilon gamma lambda beta delta
-orig 01960 theta epsilon epsilon beta zeta epsilon zeta epsilon
+new 01960 omega epsilon omega gamma sigma gamma kappa sigma
 orig 01961 beta alpha kappa epsilon theta epsilon theta delta
 orig 01962 sigma epsilon gamma sigma omega theta kappa epsilon
 orig 01963 zeta delta alpha omega delta delta alpha sigma
@@ -1978,7 +1978,7 @@ orig 01976 kappa alpha alpha sigma alpha gamma lambda kappa
 orig 01977 epsilon kappa delta zeta epsilon zeta theta alpha
 orig 01978 zeta kappa sigma gamma theta delta epsilon epsilon
 orig 01979 theta lambda zeta sigma delta sigma theta lambda
-orig 01980 gamma delta alpha theta sigma beta epsilon alpha
+new 01980 omega gamma delta delta gamma epsilon delta omega
 orig 01981 delta sigma kappa theta zeta alpha omega kappa
 orig 01982 alpha omega zeta omega omega omega gamma alpha
 orig 01983 kappa omega omega alpha zeta sigma zeta alpha
@@ -1998,7 +1998,7 @@ orig 01996 delta theta epsilon delta sigma kappa omega beta
 orig 01997 omega lambda beta epsilon alpha omega omega lambda
 orig 01998 alpha kappa sigma gamma gamma omega kappa gamma
 orig 01999 omega lambda zeta delta delta delta epsilon kappa
-orig 02000 zeta kappa sigma omega kappa zeta theta kappa
+new 02000 zeta zeta gamma gamma theta delta epsilon epsilon
 orig 02001 sigma delta omega zeta omega omega sigma beta
 orig 02002 lambda beta sigma gamma sigma beta epsilon kappa
 orig 02003 alpha gamma zeta alpha delta beta alpha gamma
@@ -2018,7 +2018,7 @@ orig 02016 sigma epsilon gamma alpha beta beta epsilon omega
 orig 02017 alpha lambda theta kappa omega gamma zeta delta
 orig 02018 delta epsilon gamma lambda lambda gamma epsilon epsilon
 orig 02019 omega alpha epsilon alpha alpha sigma gamma omega
-orig 02020 epsilon epsilon zeta omega alpha lambda omega theta
+new 02020 zeta kappa zeta omega epsilon delta delta beta
 orig 02021 delta gamma delta omega alpha kappa alpha zeta
 orig 02022 lambda theta zeta lambda zeta gamma lambda delta
 orig 02023 theta alpha sigma gamma alpha gamma theta alpha
@@ -2038,7 +2038,7 @@ orig 02036 alpha beta beta beta epsilon beta epsilon epsilon
 orig 02037 sigma alpha kappa kappa sigma sigma sigma epsilon
 orig 02038 omega sigma zeta alpha omega kappa zeta kappa
 orig 02039 sigma beta theta alpha zeta theta omega alpha
-orig 02040 beta epsilon lambda delta omega kappa omega gamma
+new 02040 omega alpha alpha gamma sigma lambda lambda lambda
 orig 02041 lambda beta zeta alpha alpha gamma epsilon gamma
 orig 02042 lambda gamma alpha theta alpha omega zeta epsilon
 orig 02043 zeta sigma kappa sigma kappa delta epsilon gamma
@@ -2058,7 +2058,7 @@ orig 02056 zeta gamma sigma alpha zeta delta delta omega
 orig 02057 kappa theta delta kappa beta sigma gamma sigma
 orig 02058 sigma zeta beta kappa omega lambda alpha epsilon
 orig 02059 beta theta zeta gamma delta epsilon epsilon sigma
-orig 02060 gamma alpha zeta lambda epsilon lambda omega alpha
+new 02060 beta kappa zeta theta epsilon kappa sigma epsilon
 orig 02061 gamma sigma epsilon sigma lambda gamma omega alpha
 orig 02062 epsilon zeta theta sigma kappa alpha lambda gamma
 orig 02063 lambda delta epsilon omega zeta epsilon beta beta
@@ -2078,7 +2078,7 @@ orig 02076 kappa lambda lambda kappa sigma beta kappa beta
 orig 02077 delta epsilon lambda sigma lambda delta omega theta
 orig 02078 beta omega zeta kappa omega omega theta gamma
 orig 02079 theta lambda epsilon alpha omega lambda lambda beta
-orig 02080 epsilon delta omega beta delta delta sigma beta
+new 02080 alpha epsilon delta alpha lambda zeta alpha gamma
 orig 02081 alpha lambda omega alpha sigma alpha theta epsilon
 orig 02082 zeta lambda omega gamma omega theta alpha theta
 orig 02083 lambda delta beta beta delta delta delta zeta
@@ -2098,7 +2098,7 @@ orig 02096 epsilon delta theta beta kappa epsilon gamma alpha
 orig 02097 gamma zeta delta lambda kappa epsilon lambda epsilon
 orig 02098 zeta lambda epsilon alpha theta omega lambda kappa
 orig 02099 theta epsilon sigma omega beta sigma alpha delta
-orig 02100 delta alpha beta zeta zeta epsilon beta epsilon
+new 02100 omega gamma omega gamma delta gamma theta kappa
 orig 02101 gamma delta beta omega gamma sigma epsilon kappa
 orig 02102 theta gamma kappa omega zeta zeta zeta delta
 orig 02103 sigma omega sigma alpha kappa zeta kappa sigma
@@ -2118,7 +2118,7 @@ orig 02116 lambda gamma beta beta lambda lambda omega omega
 orig 02117 beta gamma lambda epsilon kappa beta beta lambda
 orig 02118 omega sigma epsilon epsilon kappa theta omega alpha
 orig 02119 sigma delta theta gamma kappa alpha epsilon epsilon
-orig 02120 omega kappa omega beta epsilon alpha delta epsilon
+new 02120 kappa theta gamma omega epsilon sigma alpha epsilon
 orig 02121 theta lambda theta beta lambda alpha theta omega
 orig 02122 theta sigma theta gamma theta theta theta lambda
 orig 02123 gamma lambda lambda beta delta omega lambda gamma
@@ -2138,7 +2138,7 @@ orig 02136 omega delta sigma alpha epsilon delta alpha kappa
 orig 02137 alpha zeta gamma kappa theta epsilon omega omega
 orig 02138 sigma alpha omega gamma alpha sigma beta epsilon
 orig 02139 alpha kappa alpha omega omega lambda lambda sigma
-orig 02140 beta kappa zeta sigma gamma beta sigma gamma
+new 02140 theta delta kappa theta kappa beta alpha beta
 orig 02141 beta alpha omega zeta zeta gamma kappa epsilon
 orig 02142 omega gamma epsilon gamma sigma alpha omega omega
 orig 02143 delta epsilon theta beta sigma zeta kappa lambda
@@ -2158,7 +2158,7 @@ orig 02156 alpha gamma omega alpha lambda sigma gamma delta
 orig 02157 alpha gamma epsilon alpha lambda sigma epsilon zeta
 orig 02158 lambda theta theta kappa delta gamma kappa kappa
 orig 02159 sigma delta sigma epsilon kappa alpha sigma beta
-orig 02160 theta omega beta lambda kappa lambda kappa lambda
+new 02160 zeta beta zeta theta theta theta beta beta
 orig 02161 lambda theta kappa zeta gamma lambda delta lambda
 orig 02162 alpha beta omega gamma sigma kappa alpha omega
 orig 02163 epsilon gamma theta lambda sigma gamma lambda delta
@@ -2178,7 +2178,7 @@ orig 02176 beta kappa sigma delta lambda kappa lambda alpha
 orig 02177 delta zeta zeta beta kappa zeta gamma sigma
 orig 02178 zeta beta theta omega delta epsilon epsilon beta
 orig 02179 alpha lambda delta alpha gamma alpha theta beta
-orig 02180 gamma lambda omega beta lambda sigma alpha sigma
+new 02180 zeta zeta lambda zeta beta theta kappa delta
 orig 02181 beta theta gamma omega epsilon alpha beta delta
 orig 02182 delta gamma zeta gamma lambda kappa epsilon omega
 orig 02183 beta theta beta epsilon epsilon beta theta beta
@@ -2198,7 +2198,7 @@ orig 02196 lambda epsilon sigma delta zeta theta beta alpha
 orig 02197 sigma lambda beta kappa lambda sigma lambda theta
 orig 02198 lambda beta theta omega omega zeta beta theta
 orig 02199 beta alpha lambda gamma beta kappa beta kappa
-orig 02200 epsilon zeta delta epsilon lambda kappa beta sigma
+new 02200 sigma omega epsilon omega sigma alpha lambda epsilon
 orig 02201 beta beta epsilon lambda epsilon lambda delta zeta
 orig 02202 sigma beta beta kappa beta delta zeta delta
 orig 02203 lambda theta gamma omega gamma kappa zeta kappa
@@ -2218,7 +2218,7 @@ orig 02216 sigma kappa alpha zeta omega alpha lambda alpha
 orig 02217 epsilon gamma omega sigma beta gamma alpha omega
 orig 02218 omega sigma alpha zeta theta zeta alpha epsilon
 orig 02219 lambda sigma epsilon theta sigma theta beta sigma
-orig 02220 zeta epsilon gamma alpha delta lambda sigma gamma
+new 02220 theta epsilon beta beta lambda sigma gamma sigma
 orig 02221 sigma kappa omega sigma kappa zeta beta delta
 orig 02222 delta alpha theta theta kappa theta beta zeta
 orig 02223 kappa delta gamma lambda lambda lambda kappa gamma
@@ -2238,7 +2238,7 @@ orig 02236 omega lambda zeta lambda gamma gamma zeta zeta
 orig 02237 delta kappa delta kappa omega gamma kappa lambda
 orig 02238 beta gamma omega zeta kappa theta beta delta
 orig 02239 kappa kappa zeta epsilon sigma sigma beta gamma
-orig 02240 omega gamma omega beta zeta sigma theta omega
+new 02240 alpha sigma theta beta epsilon epsilon zeta theta
 orig 02241 lambda sigma theta epsilon gamma delta kappa omega
 orig 02242 omega sigma theta beta epsilon lambda beta zeta
 orig 02243 theta gamma lambda lambda sigma omega kappa sigma
@@ -2258,7 +2258,7 @@ orig 02256 gamma epsilon theta theta delta delta alpha sigma
 orig 02257 delta alpha theta alpha zeta omega epsilon beta
 orig 02258 omega omega sigma alpha kappa beta epsilon epsilon
 orig 02259 theta omega epsilon lambda epsilon epsilon theta epsilon
-orig 02260 kappa lambda alpha beta gamma omega gamma delta
+new 02260 sigma epsilon kappa omega omega theta omega gamma
 orig 02261 sigma alpha sigma gamma alpha delta kappa gamma
 orig 02262 epsilon kappa alpha lambda kappa delta lambda epsilon
 orig 02263 zeta omega sigma kappa gamma alpha zeta omega
@@ -2278,7 +2278,7 @@ orig 02276 theta sigma delta zeta gamma zeta kappa epsilon
 orig 02277 gamma zeta alpha epsilon theta omega gamma omega
 orig 02278 zeta omega beta sigma kappa zeta delta lambda
 orig 02279 gamma gamma kappa beta epsilon kappa delta sigma
-orig 02280 gamma delta alpha sigma gamma beta delta alpha
+new 02280 zeta omega gamma gamma beta kappa gamma gamma
 orig 02281 beta sigma epsilon delta alpha omega gamma kappa
 orig 02282 theta alpha kappa zeta gamma epsilon beta kappa
 orig 02283 beta sigma beta sigma omega gamma beta kappa
@@ -2298,7 +2298,7 @@ orig 02296 beta zeta alpha gamma kappa epsilon zeta theta
 orig 02297 omega omega gamma zeta epsilon theta gamma sigma
 orig 02298 beta beta lambda theta kappa lambda alpha zeta
 orig 02299 zeta lambda sigma theta kappa sigma lambda alpha
-orig 02300 gamma alpha alpha zeta omega lambda epsilon delta
+new 02300 theta delta lambda beta theta zeta sigma lambda
 orig 02301 lambda theta gamma delta gamma zeta gamma kappa
 orig 02302 kappa beta omega omega beta lambda alpha beta
 orig 02303 beta zeta zeta alpha delta delta beta zeta
@@ -2318,7 +2318,7 @@ orig 02316 delta sigma beta epsilon gamma omega theta delta
 orig 02317 gamma kappa epsilon lambda kappa epsilon alpha zeta
 orig 02318 theta zeta sigma omega sigma kappa beta zeta
 orig 02319 lambda delta zeta alpha gamma lambda beta sigma
-orig 02320 epsilon zeta alpha sigma sigma delta gamma theta
+new 02320 alpha beta lambda epsilon alpha theta lambda beta
 orig 02321 sigma zeta delta epsilon kappa kappa beta gamma
 orig 02322 kappa beta epsilon epsilon alpha gamma zeta alpha
 orig 02323 alpha delta epsilon omega delta zeta delta omega
@@ -2338,7 +2338,7 @@ orig 02336 beta epsilon sigma delta epsilon sigma zeta gamma
 orig 02337 beta sigma sigma zeta omega sigma omega gamma
 orig 02338 epsilon beta lambda alpha alpha sigma kappa epsilon
 orig 02339 sigma kappa theta gamma theta epsilon delta sigma
-orig 02340 theta gamma alpha delta omega delta epsilon delta
+new 02340 delta alpha beta omega epsilon sigma delta epsilon
 orig 02341 delta beta kappa alpha alpha alpha omega gamma
 orig 02342 omega alpha beta theta omega alpha alpha epsilon
 orig 02343 epsilon lambda delta lambda zeta zeta sigma lambda
@@ -2358,7 +2358,7 @@ orig 02356 beta omega epsilon alpha gamma epsilon delta delta
 orig 02357 delta delta omega alpha lambda beta gamma omega
 orig 02358 omega sigma alpha zeta zeta omega sigma epsilon
 orig 02359 zeta delta epsilon delta lambda alpha gamma epsilon
-orig 02360 beta delta theta omega theta alpha epsilon omega
+new 02360 sigma alpha theta lambda delta delta delta kappa
 orig 02361 kappa gamma gamma epsilon zeta epsilon alpha omega
 orig 02362 theta sigma beta zeta delta epsilon zeta theta
 orig 02363 theta delta epsilon sigma sigma lambda omega delta
@@ -2378,7 +2378,7 @@ orig 02376 kappa epsilon theta gamma sigma omega theta zeta
 orig 02377 alpha zeta delta zeta alpha kappa kappa gamma
 orig 02378 epsilon kappa theta theta beta sigma delta kappa
 orig 02379 gamma lambda alpha sigma alpha gamma gamma zeta
-orig 02380 zeta kappa alpha theta omega alpha beta epsilon
+new 02380 gamma epsilon beta delta beta beta beta lambda
 orig 02381 kappa alpha sigma epsilon beta sigma alpha omega
 orig 02382 kappa delta kappa beta omega delta delta theta
 orig 02383 lambda delta omega zeta alpha delta beta lambda
@@ -2398,7 +2398,7 @@ orig 02396 beta epsilon delta kappa omega omega zeta gamma
 orig 02397 beta epsilon alpha omega beta gamma beta lambda
 orig 02398 sigma gamma gamma alpha delta zeta beta kappa
 orig 02399 delta omega lambda beta beta gamma gamma theta
-orig 02400 gamma alpha zeta alpha kappa zeta omega delta
+new 02400 theta alpha sigma delta gamma kappa beta beta
 orig 02401 sigma sigma zeta kappa zeta zeta lambda beta
 orig 02402 delta gamma lambda omega zeta sigma alpha zeta
 orig 02403 zeta lambda sigma epsilon gamma epsilon lambda delta
@@ -2418,7 +2418,7 @@ orig 02416 sigma lambda lambda alpha kappa gamma alpha sigma
 orig 02417 sigma lambda delta alpha gamma theta theta sigma
 orig 02418 lambda beta sigma sigma omega delta lambda zeta
 orig 02419 lambda theta zeta lambda beta beta delta kappa
-orig 02420 beta kappa sigma epsilon delta zeta beta omega
+new 02420 omega gamma theta kappa kappa epsilon omega gamma
 orig 02421 gamma sigma sigma gamma delta delta omega delta
 orig 02422 epsilon epsilon omega omega epsilon kappa alpha omega
 orig 02423 sigma beta alpha epsilon kappa beta sigma omega
@@ -2438,7 +2438,7 @@ orig 02436 sigma alpha alpha theta gamma alpha alpha alpha
 orig 02437 alpha zeta delta beta sigma beta beta gamma
 orig 02438 theta delta zeta kappa zeta sigma gamma delta
 orig 02439 kappa gamma lambda gamma epsilon delta theta zeta
-orig 02440 alpha gamma sigma gamma kappa delta zeta zeta
+new 02440 sigma epsilon epsilon sigma theta epsilon sigma sigma
 orig 02441 theta lambda alpha gamma delta sigma theta epsilon
 orig 02442 epsilon sigma sigma alpha theta omega beta sigma
 orig 02443 gamma sigma lambda epsilon delta beta delta omega
@@ -2458,7 +2458,7 @@ orig 02456 omega zeta sigma gamma kappa omega delta omega
 orig 02457 theta theta alpha delta theta lambda sigma lambda
 orig 02458 gamma theta beta omega theta gamma theta beta
 orig 02459 gamma epsilon omega zeta sigma zeta delta zeta
-orig 02460 zeta beta theta alpha theta alpha omega lambda
+new 02460 lambda omega epsilon gamma gamma alpha zeta alpha
 orig 02461 alpha alpha gamma delta alpha kappa gamma kappa
 orig 02462 gamma lambda beta beta lambda epsilon alpha epsilon
 orig 02463 theta beta zeta omega kappa omega kappa lambda
@@ -2478,7 +2478,7 @@ orig 02476 kappa theta theta kappa kappa beta alpha omega
 orig 02477 sigma delta sigma delta gamma epsilon epsilon gamma
 orig 02478 sigma theta lambda delta sigma kappa omega kappa
 orig 02479 zeta kappa lambda omega lambda beta beta omega
-orig 02480 sigma zeta zeta alpha lambda zeta sigma lambda
+new 02480 gamma gamma omega theta delta epsilon theta beta
 orig 02481 sigma beta kappa delta beta kappa gamma alpha
 orig 02482 delta delta theta kappa alpha kappa zeta delta
 orig 02483 gamma omega beta gamma gamma zeta epsilon lambda
@@ -2498,7 +2498,7 @@ orig 02496 omega zeta epsilon epsilon gamma kappa omega sigma
 orig 02497 alpha beta delta gamma sigma sigma epsilon sigma
 orig 02498 theta epsilon zeta lambda beta zeta alpha theta
 orig 02499 gamma zeta theta delta kappa delta delta gamma
-orig 02500 kappa omega theta lambda omega delta omega lambda
+new 02500 sigma sigma lambda zeta sigma kappa kappa delta
 orig 02501 sigma sigma alpha beta omega theta kappa omega
 orig 02502 gamma beta beta gamma gamma kappa lambda kappa
 orig 02503 beta epsilon beta zeta kappa alpha lambda lambda
@@ -2518,7 +2518,7 @@ orig 02516 omega lambda gamma alpha omega alpha zeta theta
 orig 02517 zeta gamma lambda omega beta sigma delta alpha
 orig 02518 theta gamma zeta kappa kappa theta zeta lambda
 orig 02519 lambda theta lambda beta lambda zeta kappa theta
-orig 02520 kappa theta gamma zeta beta epsilon omega epsilon
+new 02520 lambda zeta lambda theta kappa lambda alpha sigma
 orig 02521 lambda alpha kappa beta beta lambda lambda sigma
 orig 02522 alpha beta sigma kappa gamma epsilon zeta omega
 orig 02523 kappa epsilon zeta lambda epsilon kappa theta omega
@@ -2538,7 +2538,7 @@ orig 02536 kappa epsilon theta zeta alpha sigma kappa theta
 orig 02537 beta sigma omega sigma epsilon theta alpha sigma
 orig 02538 kappa alpha gamma kappa alpha lambda delta gamma
 orig 02539 sigma delta alpha delta sigma epsilon lambda gamma
-orig 02540 beta zeta lambda sigma sigma alpha theta lambda
+new 02540 zeta delta sigma theta alpha theta beta epsilon
 orig 02541 omega kappa delta gamma zeta omega theta alpha
 orig 02542 gamma lambda sigma alpha kappa beta beta zeta
 orig 02543 omega beta alpha zeta lambda alpha gamma alpha
@@ -2558,7 +2558,7 @@ orig 02556 lambda zeta theta theta zeta alpha lambda theta
 orig 02557 epsilon delta epsilon alpha gamma epsilon kappa delta
 orig 02558 zeta gamma zeta omega lambda zeta omega zeta
 orig 02559 zeta epsilon lambda theta beta lambda zeta theta
-orig 02560 lambda delta zeta kappa sigma delta alpha epsilon
+new 02560 gamma sigma alpha sigma alpha theta lambda zeta
 orig 02561 theta gamma lambda gamma alpha epsilon theta sigma
 orig 02562 sigma zeta zeta theta kappa lambda sigma zeta
 orig 02563 gamma zeta omega sigma alpha epsilon kappa zeta
@@ -2578,7 +2578,7 @@ orig 02576 zeta lambda alpha theta gamma delta theta gamma
 orig 02577 alpha epsilon zeta alpha delta sigma beta omega
 orig 02578 beta theta alpha alpha kappa lambda kappa epsilon
 orig 02579 delta zeta sigma gamma sigma kappa sigma zeta
-orig 02580 zeta zeta alpha gamma zeta zeta alpha omega
+new 02580 kappa omega sigma alpha zeta epsilon lambda sigma
 orig 02581 lambda delta zeta theta zeta epsilon beta sigma
 orig 02582 zeta epsilon epsilon zeta alpha theta gamma zeta
 orig 02583 lambda delta kappa lambda alpha omega beta theta
@@ -2598,7 +2598,7 @@ orig 02596 zeta sigma sigma kappa lambda beta omega omega
 orig 02597 lambda lambda lambda kappa alpha kappa beta alpha
 orig 02598 epsilon gamma epsilon theta delta epsilon theta omega
 orig 02599 gamma alpha delta delta zeta omega lambda theta
-orig 02600 delta lambda gamma zeta beta omega gamma lambda
+new 02600 beta gamma theta epsilon omega alpha sigma zeta
 orig 02601 gamma kappa alpha kappa omega beta delta alpha
 orig 02602 gamma delta epsilon beta zeta theta lambda delta
 orig 02603 kappa beta kappa beta lambda alpha kappa zeta
@@ -2618,7 +2618,7 @@ orig 02616 lambda lambda sigma lambda omega kappa beta omega
 orig 02617 gamma alpha theta alpha alpha lambda lambda delta
 orig 02618 sigma kappa lambda omega theta omega delta epsilon
 orig 02619 omega beta delta zeta omega beta zeta sigma
-orig 02620 kappa alpha beta gamma gamma theta gamma zeta
+new 02620 lambda lambda lambda sigma omega delta zeta delta
 orig 02621 alpha theta delta alpha gamma epsilon delta epsilon
 orig 02622 zeta alpha sigma alpha delta kappa omega zeta
 orig 02623 gamma sigma theta zeta zeta epsilon gamma epsilon
@@ -2638,7 +2638,7 @@ orig 02636 gamma lambda lambda epsilon alpha sigma theta sigma
 orig 02637 lambda epsilon sigma gamma delta sigma kappa beta
 orig 02638 beta epsilon epsilon lambda gamma sigma epsilon gamma
 orig 02639 gamma theta lambda alpha gamma beta beta delta
-orig 02640 lambda alpha theta beta delta beta gamma gamma
+new 02640 alpha epsilon kappa zeta omega epsilon sigma theta
 orig 02641 lambda delta beta lambda epsilon zeta omega kappa
 orig 02642 zeta omega lambda omega kappa sigma delta omega
 orig 02643 epsilon sigma theta kappa sigma beta alpha delta
@@ -2658,7 +2658,7 @@ orig 02656 kappa delta lambda alpha alpha theta sigma gamma
 orig 02657 delta delta beta beta gamma kappa zeta alpha
 orig 02658 zeta beta omega beta gamma kappa alpha zeta
 orig 02659 delta gamma delta alpha theta zeta beta epsilon
-orig 02660 lambda lambda sigma theta epsilon lambda zeta gamma
+new 02660 omega epsilon omega zeta beta delta gamma theta
 orig 02661 delta lambda sigma delta theta alpha zeta epsilon
 orig 02662 alpha theta epsilon delta sigma zeta epsilon zeta
 orig 02663 zeta zeta gamma lambda omega kappa kappa zeta
@@ -2678,7 +2678,7 @@ orig 02676 theta beta zeta gamma delta kappa delta epsilon
 orig 02677 delta omega delta beta kappa alpha omega kappa
 orig 02678 zeta omega alpha beta beta theta sigma theta
 orig 02679 lambda zeta omega zeta sigma zeta zeta kappa
-orig 02680 kappa epsilon gamma beta lambda alpha omega alpha
+new 02680 lambda gamma beta delta theta gamma gamma delta
 orig 02681 epsilon beta theta sigma beta lambda zeta lambda
 orig 02682 alpha zeta theta beta kappa lambda sigma sigma
 orig 02683 gamma lambda beta sigma kappa sigma sigma sigma
@@ -2698,7 +2698,7 @@ orig 02696 sigma delta delta alpha theta lambda gamma theta
 orig 02697 gamma delta zeta gamma gamma beta sigma beta
 orig 02698 alpha theta omega gamma sigma beta sigma epsilon
 orig 02699 alpha alpha zeta alpha zeta lambda theta omega
-orig 02700 beta omega lambda gamma zeta alpha kappa zeta
+new 02700 sigma kappa kappa zeta theta zeta kappa gamma
 orig 02701 delta kappa delta epsilon kappa kappa beta lambda
 orig 02702 zeta delta beta sigma sigma alpha kappa kappa
 orig 02703 epsilon theta epsilon lambda kappa omega omega omega
@@ -2718,7 +2718,7 @@ orig 02716 omega sigma omega beta gamma zeta kappa theta
 orig 02717 omega beta zeta omega sigma beta gamma lambda
 orig 02718 alpha gamma delta omega delta zeta theta gamma
 orig 02719 lambda omega epsilon alpha theta omega beta kappa
-orig 02720 epsilon beta beta delta zeta delta alpha delta
+new 02720 sigma epsilon omega epsilon alpha epsilon sigma gamma
 orig 02721 gamma omega beta sigma sigma epsilon alpha omega
 orig 02722 sigma sigma alpha theta epsilon delta gamma kappa
 orig 02723 delta kappa beta sigma epsilon theta delta epsilon
@@ -2738,7 +2738,7 @@ orig 02736 epsilon beta epsilon kappa gamma gamma delta gamma
 orig 02737 omega kappa delta omega alpha alpha alpha epsilon
 orig 02738 sigma omega theta alpha zeta omega zeta alpha
 orig 02739 beta sigma delta omega alpha zeta alpha gamma
-orig 02740 lambda omega gamma sigma delta delta gamma delta
+new 02740 gamma kappa zeta lambda theta gamma kappa zeta
 orig 02741 theta lambda epsilon zeta theta beta delta zeta
 orig 02742 kappa kappa sigma sigma kappa sigma zeta delta
 orig 02743 delta gamma alpha omega epsilon delta lambda lambda
@@ -2758,7 +2758,7 @@ orig 02756 epsilon omega sigma beta sigma zeta delta omega
 orig 02757 omega gamma lambda gamma gamma epsilon lambda delta
 orig 02758 lambda kappa zeta kappa epsilon sigma sigma epsilon
 orig 02759 zeta delta beta delta sigma sigma kappa delta
-orig 02760 kappa gamma epsilon beta zeta alpha theta kappa
+new 02760 gamma lambda omega beta gamma gamma theta omega
 orig 02761 sigma lambda gamma delta epsilon kappa gamma omega
 orig 02762 theta theta theta alpha sigma omega epsilon zeta
 orig 02763 epsilon epsilon kappa lambda theta sigma beta zeta
@@ -2778,7 +2778,7 @@ orig 02776 beta gamma sigma alpha omega gamma kappa omega
 orig 02777 theta epsilon omega theta lambda omega beta lambda
 orig 02778 zeta theta sigma beta zeta alpha kappa lambda
 orig 02779 sigma omega kappa delta omega kappa gamma delta
-orig 02780 epsilon alpha beta alpha delta alpha kappa sigma
+new 02780 kappa theta zeta delta kappa lambda lambda kappa
 orig 02781 kappa theta theta sigma kappa delta zeta zeta
 orig 02782 delta epsilon sigma theta theta gamma alpha zeta
 orig 02783 kappa epsilon sigma omega omega kappa gamma beta
@@ -2798,7 +2798,7 @@ orig 02796 omega theta theta gamma zeta beta beta sigma
 orig 02797 theta omega sigma delta alpha omega zeta beta
 orig 02798 beta delta alpha epsilon lambda kappa delta beta
 orig 02799 kappa alpha kappa lambda omega zeta sigma beta
-orig 02800 delta sigma beta zeta beta omega omega gamma
+new 02800 kappa theta gamma gamma delta sigma kappa gamma
 orig 02801 gamma zeta kappa delta sigma alpha kappa lambda
 orig 02802 epsilon omega epsilon gamma zeta kappa epsilon gamma
 orig 02803 sigma delta sigma epsilon lambda delta sigma delta
@@ -2818,7 +2818,7 @@ orig 02816 gamma beta kappa zeta epsilon sigma theta epsilon
 orig 02817 gamma omega omega alpha delta alpha beta alpha
 orig 02818 delta beta delta lambda alpha lambda beta alpha
 orig 02819 delta kappa zeta zeta sigma theta beta zeta
-orig 02820 zeta omega alpha delta lambda kappa zeta epsilon
+new 02820 epsilon alpha theta kappa alpha beta omega omega
 orig 02821 delta zeta epsilon epsilon alpha sigma zeta zeta
 orig 02822 lambda gamma alpha omega theta kappa beta alpha
 orig 02823 epsilon kappa theta sigma gamma gamma zeta beta
@@ -2838,7 +2838,7 @@ orig 02836 omega lambda sigma omega lambda omega sigma delta
 orig 02837 alpha epsilon omega lambda gamma lambda gamma delta
 orig 02838 kappa sigma alpha beta theta zeta theta kappa
 orig 02839 beta omega lambda theta epsilon lambda lambda alpha
-orig 02840 sigma sigma epsilon beta kappa kappa kappa omega
+new 02840 delta beta beta sigma beta lambda alpha theta
 orig 02841 delta lambda alpha beta kappa alpha zeta zeta
 orig 02842 epsilon zeta delta kappa lambda theta theta gamma
 orig 02843 omega epsilon sigma zeta theta beta gamma beta
@@ -2858,7 +2858,7 @@ orig 02856 zeta lambda sigma kappa epsilon lambda sigma alpha
 orig 02857 sigma sigma alpha zeta sigma lambda kappa kappa
 orig 02858 delta alpha sigma epsilon epsilon delta omega lambda
 orig 02859 alpha sigma epsilon sigma zeta kappa alpha kappa
-orig 02860 lambda epsilon epsilon zeta sigma lambda zeta lambda
+new 02860 theta gamma sigma zeta theta theta sigma zeta
 orig 02861 epsilon omega lambda theta sigma kappa zeta gamma
 orig 02862 delta delta zeta zeta beta zeta delta epsilon
 orig 02863 sigma omega theta delta omega omega epsilon kappa
@@ -2878,7 +2878,7 @@ orig 02876 delta omega delta alpha beta gamma omega beta
 orig 02877 kappa theta sigma kappa kappa beta gamma omega
 orig 02878 epsilon sigma delta kappa epsilon omega alpha delta
 orig 02879 epsilon sigma alpha kappa delta delta gamma sigma
-orig 02880 omega gamma zeta beta omega zeta kappa beta
+new 02880 omega kappa lambda gamma delta beta zeta zeta
 orig 02881 beta gamma theta zeta delta kappa beta beta
 orig 02882 lambda delta epsilon gamma theta theta beta lambda
 orig 02883 epsilon zeta zeta kappa gamma zeta gamma sigma
@@ -2898,7 +2898,7 @@ orig 02896 zeta epsilon epsilon lambda sigma lambda beta omega
 orig 02897 zeta omega gamma gamma theta omega omega sigma
 orig 02898 kappa theta sigma epsilon beta kappa omega kappa
 orig 02899 alpha sigma epsilon kappa alpha sigma kappa gamma
-orig 02900 kappa zeta zeta theta sigma gamma lambda theta
+new 02900 epsilon kappa kappa gamma lambda alpha beta delta
 orig 02901 lambda sigma epsilon beta lambda zeta epsilon epsilon
 orig 02902 alpha omega omega zeta kappa sigma lambda alpha
 orig 02903 kappa theta zeta delta lambda omega alpha lambda
@@ -2918,7 +2918,7 @@ orig 02916 zeta sigma beta delta gamma lambda delta omega
 orig 02917 beta sigma delta beta epsilon lambda lambda zeta
 orig 02918 sigma lambda epsilon alpha alpha sigma beta beta
 orig 02919 sigma sigma omega theta omega epsilon gamma kappa
-orig 02920 alpha epsilon omega epsilon beta sigma epsilon gamma
+new 02920 delta lambda omega epsilon beta sigma theta alpha
 orig 02921 theta alpha beta epsilon omega alpha zeta zeta
 orig 02922 lambda sigma beta gamma alpha gamma omega theta
 orig 02923 sigma gamma theta zeta omega gamma alpha gamma
@@ -2938,7 +2938,7 @@ orig 02936 zeta beta beta omega kappa epsilon zeta omega
 orig 02937 alpha omega zeta omega omega theta epsilon zeta
 orig 02938 zeta beta omega beta kappa alpha alpha beta
 orig 02939 sigma lambda alpha delta sigma epsilon theta beta
-orig 02940 sigma omega zeta gamma beta lambda epsilon zeta
+new 02940 delta delta lambda epsilon sigma sigma epsilon beta
 orig 02941 gamma sigma beta kappa omega omega gamma gamma
 orig 02942 omega omega beta delta sigma theta lambda gamma
 orig 02943 zeta delta theta theta kappa beta delta sigma
@@ -2958,7 +2958,7 @@ orig 02956 kappa gamma sigma gamma delta sigma sigma gamma
 orig 02957 beta zeta lambda omega epsilon theta gamma theta
 orig 02958 gamma kappa kappa delta sigma beta delta zeta
 orig 02959 lambda sigma omega zeta epsilon delta beta zeta
-orig 02960 sigma zeta omega zeta delta lambda beta epsilon
+new 02960 zeta gamma kappa lambda epsilon gamma alpha zeta
 orig 02961 alpha gamma epsilon beta lambda epsilon epsilon epsilon
 orig 02962 alpha alpha sigma alpha gamma beta theta theta
 orig 02963 delta sigma beta sigma beta omega sigma zeta
@@ -2978,7 +2978,7 @@ orig 02976 gamma delta zeta epsilon sigma lambda lambda sigma
 orig 02977 delta alpha epsilon zeta sigma epsilon beta gamma
 orig 02978 beta lambda alpha alpha zeta lambda delta zeta
 orig 02979 theta sigma beta lambda lambda omega theta sigma
-orig 02980 sigma alpha omega zeta epsilon epsilon sigma omega
+new 02980 omega kappa gamma kappa delta sigma kappa theta
 orig 02981 gamma beta kappa kappa beta delta theta delta
 orig 02982 zeta sigma sigma theta sigma sigma theta beta
 orig 02983 theta theta epsilon theta beta alpha beta epsilon
@@ -2998,7 +2998,7 @@ orig 02996 lambda alpha beta epsilon delta kappa theta lambda
 orig 02997 sigma delta lambda beta lambda sigma zeta kappa
 orig 02998 sigma omega beta kappa omega gamma delta theta
 orig 02999 sigma gamma kappa sigma kappa gamma omega alpha
-orig 03000 gamma delta alpha sigma beta kappa delta zeta
+new 03000 alpha zeta zeta beta kappa alpha gamma sigma
 orig 03001 alpha alpha gamma kappa beta kappa delta delta
 orig 03002 alpha kappa omega omega gamma sigma theta zeta
 orig 03003 beta lambda zeta lambda epsilon sigma sigma lambda
@@ -3018,7 +3018,7 @@ orig 03016 epsilon delta beta alpha zeta beta zeta alpha
 orig 03017 omega epsilon epsilon epsilon omega gamma sigma omega
 orig 03018 beta sigma sigma kappa omega delta zeta kappa
 orig 03019 beta beta omega gamma lambda lambda alpha theta
-orig 03020 zeta gamma theta epsilon beta beta omega gamma
+new 03020 alpha gamma beta sigma theta kappa omega theta
 orig 03021 lambda delta sigma gamma kappa theta kappa epsilon
 orig 03022 delta kappa lambda kappa delta kappa kappa lambda
 orig 03023 omega zeta sigma beta kappa omega theta sigma
@@ -3038,7 +3038,7 @@ orig 03036 omega gamma kappa lambda epsilon delta lambda lambda
 orig 03037 epsilon zeta omega sigma omega kappa zeta alpha
 orig 03038 kappa omega delta kappa gamma gamma kappa epsilon
 orig 03039 theta theta epsilon epsilon zeta delta omega theta
-orig 03040 delta lambda beta lambda sigma omega sigma gamma
+new 03040 omega omega alpha lambda omega alpha alpha alpha
 orig 03041 alpha gamma delta theta alpha alpha beta alpha
 orig 03042 sigma zeta alpha zeta kappa delta beta omega
 orig 03043 sigma lambda gamma beta alpha theta kappa theta
@@ -3058,7 +3058,7 @@ orig 03056 delta kappa kappa sigma delta sigma zeta delta
 orig 03057 zeta theta theta delta sigma zeta epsilon omega
 orig 03058 gamma beta epsilon beta gamma beta lambda beta
 orig 03059 lambda gamma kappa zeta sigma sigma kappa theta
-orig 03060 sigma theta beta lambda omega theta sigma sigma
+new 03060 sigma epsilon gamma kappa omega zeta delta beta
 orig 03061 beta gamma omega lambda lambda zeta epsilon lambda
 orig 03062 omega kappa lambda zeta lambda sigma kappa gamma
 orig 03063 zeta delta delta theta lambda omega lambda theta
@@ -3078,7 +3078,7 @@ orig 03076 delta kappa epsilon omega omega delta theta epsilon
 orig 03077 zeta gamma beta kappa zeta sigma sigma epsilon
 orig 03078 beta theta sigma zeta omega zeta lambda gamma
 orig 03079 lambda gamma sigma beta omega alpha omega lambda
-orig 03080 omega zeta lambda gamma beta epsilon lambda omega
+new 03080 gamma gamma zeta kappa sigma kappa kappa theta
 orig 03081 sigma delta zeta sigma sigma epsilon beta gamma
 orig 03082 theta epsilon epsilon delta alpha theta delta omega
 orig 03083 delta gamma delta epsilon zeta theta alpha theta
@@ -3098,7 +3098,7 @@ orig 03096 kappa gamma lambda sigma lambda gamma theta zeta
 orig 03097 lambda epsilon beta zeta omega kappa sigma beta
 orig 03098 zeta theta delta lambda omega alpha sigma kappa
 orig 03099 epsilon epsilon theta gamma omega alpha alpha omega
-orig 03100 zeta epsilon theta gamma omega lambda kappa omega
+new 03100 omega alpha theta kappa epsilon delta zeta zeta
 orig 03101 kappa delta alpha beta zeta alpha zeta zeta
 orig 03102 epsilon omega theta omega lambda theta epsilon sigma
 orig 03103 epsilon beta epsilon epsilon delta sigma alpha epsilon
@@ -3118,7 +3118,7 @@ orig 03116 gamma zeta omega epsilon zeta zeta gamma kappa
 orig 03117 zeta beta zeta epsilon alpha theta epsilon sigma
 orig 03118 sigma theta theta beta sigma omega beta epsilon
 orig 03119 theta epsilon theta sigma sigma theta gamma alpha
-orig 03120 kappa theta theta lambda omega epsilon alpha kappa
+new 03120 lambda sigma beta delta theta epsilon theta kappa
 orig 03121 epsilon lambda lambda zeta sigma sigma epsilon sigma
 orig 03122 alpha delta delta beta gamma beta gamma alpha
 orig 03123 alpha theta beta zeta delta delta kappa lambda
@@ -3138,7 +3138,7 @@ orig 03136 kappa omega zeta epsilon lambda epsilon delta zeta
 orig 03137 lambda sigma delta zeta gamma epsilon zeta kappa
 orig 03138 kappa gamma epsilon zeta zeta kappa lambda omega
 orig 03139 zeta sigma gamma gamma delta beta beta theta
-orig 03140 zeta omega delta beta beta theta alpha alpha
+new 03140 zeta theta omega gamma omega gamma kappa delta
 orig 03141 omega omega sigma theta omega zeta kappa kappa
 orig 03142 zeta omega kappa epsilon alpha sigma sigma alpha
 orig 03143 kappa alpha kappa kappa zeta gamma theta kappa
@@ -3158,7 +3158,7 @@ orig 03156 alpha kappa zeta theta theta beta epsilon delta
 orig 03157 beta kappa delta delta lambda zeta epsilon epsilon
 orig 03158 omega alpha delta omega epsilon theta theta lambda
 orig 03159 sigma epsilon delta alpha sigma theta delta theta
-orig 03160 zeta zeta zeta delta delta alpha alpha sigma
+new 03160 zeta beta omega zeta gamma delta omega sigma
 orig 03161 omega zeta alpha delta zeta epsilon epsilon epsilon
 orig 03162 gamma alpha lambda epsilon epsilon sigma alpha sigma
 orig 03163 beta lambda epsilon omega zeta delta kappa epsilon
@@ -3178,7 +3178,7 @@ orig 03176 zeta omega epsilon theta gamma alpha alpha sigma
 orig 03177 omega omega lambda theta sigma zeta alpha alpha
 orig 03178 lambda theta kappa delta alpha gamma lambda theta
 orig 03179 lambda gamma zeta gamma gamma delta lambda zeta
-orig 03180 delta sigma kappa theta zeta theta beta epsilon
+new 03180 delta kappa gamma omega alpha zeta zeta zeta
 orig 03181 lambda omega beta beta gamma gamma kappa beta
 orig 03182 sigma gamma zeta theta kappa epsilon alpha zeta
 orig 03183 omega delta sigma delta omega zeta beta theta
@@ -3198,7 +3198,7 @@ orig 03196 sigma epsilon alpha zeta delta epsilon omega kappa
 orig 03197 sigma delta beta sigma kappa sigma gamma zeta
 orig 03198 gamma zeta theta theta delta zeta theta zeta
 orig 03199 theta beta alpha epsilon kappa kappa alpha gamma
-orig 03200 theta zeta epsilon delta kappa sigma delta omega
+new 03200 lambda theta theta beta lambda gamma sigma kappa
 orig 03201 beta alpha omega kappa gamma epsilon delta beta
 orig 03202 omega gamma beta gamma kappa epsilon kappa theta
 orig 03203 sigma alpha gamma gamma kappa epsilon omega omega
@@ -3218,7 +3218,7 @@ orig 03216 delta alpha kappa sigma zeta epsilon alpha zeta
 orig 03217 gamma alpha sigma zeta omega alpha beta lambda
 orig 03218 sigma delta sigma epsilon delta zeta omega epsilon
 orig 03219 theta theta beta kappa delta delta kappa omega
-orig 03220 beta omega epsilon gamma lambda delta epsilon omega
+new 03220 kappa delta beta epsilon omega delta sigma theta
 orig 03221 theta epsilon gamma epsilon gamma lambda gamma alpha
 orig 03222 zeta epsilon delta omega delta sigma sigma epsilon
 orig 03223 epsilon omega theta alpha kappa beta zeta omega
@@ -3238,7 +3238,7 @@ orig 03236 epsilon lambda lambda sigma omega sigma beta delta
 orig 03237 theta zeta lambda sigma gamma epsilon epsilon kappa
 orig 03238 alpha beta delta theta lambda zeta kappa zeta
 orig 03239 kappa gamma gamma beta gamma lambda lambda omega
-orig 03240 theta theta epsilon gamma zeta zeta sigma kappa
+new 03240 delta beta sigma gamma gamma epsilon gamma sigma
 orig 03241 delta lambda lambda sigma kappa alpha delta beta
 orig 03242 alpha gamma alpha epsilon omega delta theta gamma
 orig 03243 beta zeta delta delta gamma lambda lambda gamma
@@ -3258,7 +3258,7 @@ orig 03256 sigma omega epsilon alpha epsilon gamma omega sigma
 orig 03257 sigma alpha sigma delta gamma zeta delta kappa
 orig 03258 gamma gamma zeta sigma gamma epsilon gamma kappa
 orig 03259 lambda zeta theta zeta gamma lambda omega lambda
-orig 03260 zeta lambda delta omega epsilon kappa zeta alpha
+new 03260 epsilon omega zeta zeta epsilon sigma gamma epsilon
 orig 03261 gamma gamma lambda epsilon beta delta theta alpha
 orig 03262 beta epsilon beta delta epsilon zeta delta theta
 orig 03263 alpha kappa zeta alpha epsilon alpha sigma omega
@@ -3278,7 +3278,7 @@ orig 03276 delta lambda lambda kappa beta epsilon lambda omega
 orig 03277 epsilon kappa zeta omega gamma delta delta beta
 orig 03278 sigma zeta omega zeta epsilon zeta zeta beta
 orig 03279 delta alpha kappa delta gamma kappa kappa delta
-orig 03280 omega sigma gamma sigma sigma gamma epsilon epsilon
+new 03280 theta gamma alpha alpha epsilon alpha alpha zeta
 orig 03281 epsilon alpha theta kappa theta delta sigma alpha
 orig 03282 lambda beta kappa zeta omega theta zeta zeta
 orig 03283 omega lambda gamma kappa omega omega gamma zeta
@@ -3298,7 +3298,7 @@ orig 03296 sigma kappa gamma alpha lambda delta gamma lambda
 orig 03297 lambda delta sigma delta zeta gamma delta delta
 orig 03298 kappa lambda epsilon epsilon beta kappa alpha theta
 orig 03299 epsilon delta omega gamma omega zeta alpha beta
-orig 03300 theta epsilon omega beta zeta gamma omega delta
+new 03300 zeta lambda zeta lambda kappa kappa alpha theta
 orig 03301 alpha omega epsilon omega beta beta epsilon delta
 orig 03302 sigma kappa beta gamma theta theta alpha kappa
 orig 03303 delta alpha sigma theta lambda alpha kappa alpha
@@ -3318,7 +3318,7 @@ orig 03316 lambda alpha omega omega kappa gamma sigma theta
 orig 03317 lambda alpha alpha beta kappa kappa epsilon epsilon
 orig 03318 gamma beta beta sigma beta lambda theta zeta
 orig 03319 omega omega beta beta epsilon kappa sigma theta
-orig 03320 beta gamma alpha gamma kappa gamma beta delta
+new 03320 beta delta sigma sigma gamma zeta delta delta
 orig 03321 gamma kappa epsilon beta zeta omega omega sigma
 orig 03322 theta delta theta zeta theta omega theta beta
 orig 03323 theta epsilon lambda lambda alpha zeta lambda delta
@@ -3338,7 +3338,7 @@ orig 03336 zeta zeta omega sigma kappa sigma delta alpha
 orig 03337 gamma beta epsilon alpha theta delta epsilon lambda
 orig 03338 epsilon gamma theta delta lambda omega gamma delta
 orig 03339 zeta epsilon zeta sigma sigma delta gamma lambda
-orig 03340 theta lambda gamma theta sigma gamma lambda lambda
+new 03340 alpha alpha sigma beta lambda beta gamma alpha
 orig 03341 delta lambda lambda theta alpha delta zeta kappa
 orig 03342 theta theta zeta zeta gamma theta theta kappa
 orig 03343 zeta alpha delta beta delta zeta beta delta
@@ -3358,7 +3358,7 @@ orig 03356 theta beta omega theta delta alpha delta kappa
 orig 03357 theta alpha zeta omega beta epsilon theta gamma
 orig 03358 zeta beta lambda sigma delta alpha zeta gamma
 orig 03359 omega kappa beta beta epsilon gamma delta delta
-orig 03360 delta omega delta gamma delta beta epsilon alpha
+new 03360 sigma omega epsilon delta lambda delta kappa kappa
 orig 03361 zeta beta theta epsilon lambda epsilon epsilon delta
 orig 03362 omega sigma theta zeta delta epsilon beta lambda
 orig 03363 kappa zeta beta zeta kappa kappa beta theta
@@ -3378,7 +3378,7 @@ orig 03376 sigma alpha theta beta theta sigma epsilon alpha
 orig 03377 theta alpha alpha theta lambda lambda omega omega
 orig 03378 alpha lambda alpha theta delta sigma kappa beta
 orig 03379 kappa epsilon zeta delta omega gamma beta zeta
-orig 03380 alpha omega lambda omega zeta zeta delta kappa
+new 03380 epsilon delta theta zeta kappa gamma theta sigma
 orig 03381 kappa beta alpha beta zeta zeta gamma omega
 orig 03382 delta omega theta theta gamma beta kappa sigma
 orig 03383 delta epsilon beta kappa alpha beta alpha kappa
@@ -3398,7 +3398,7 @@ orig 03396 epsilon omega delta zeta lambda kappa beta lambda
 orig 03397 epsilon delta kappa delta theta omega epsilon beta
 orig 03398 omega epsilon epsilon zeta kappa omega zeta zeta
 orig 03399 gamma delta epsilon gamma gamma lambda gamma beta
-orig 03400 kappa kappa delta epsilon delta delta omega delta
+new 03400 lambda lambda theta beta delta beta zeta delta
 orig 03401 gamma lambda theta theta delta epsilon kappa kappa
 orig 03402 lambda zeta beta beta epsilon zeta alpha zeta
 orig 03403 theta delta gamma gamma sigma omega beta epsilon
@@ -3418,7 +3418,7 @@ orig 03416 sigma lambda beta alpha epsilon delta epsilon kappa
 orig 03417 delta delta epsilon beta delta gamma lambda beta
 orig 03418 zeta lambda omega delta delta sigma theta sigma
 orig 03419 gamma alpha alpha epsilon lambda theta sigma theta
-orig 03420 sigma omega epsilon delta gamma alpha lambda alpha
+new 03420 omega alpha epsilon omega alpha epsilon sigma epsilon
 orig 03421 omega alpha delta beta kappa sigma sigma zeta
 orig 03422 delta epsilon lambda theta theta epsilon epsilon omega
 orig 03423 epsilon beta alpha alpha epsilon theta gamma beta
@@ -3438,7 +3438,7 @@ orig 03436 lambda sigma beta sigma omega beta omega omega
 orig 03437 omega beta theta zeta zeta alpha beta epsilon
 orig 03438 epsilon gamma lambda alpha omega omega lambda delta
 orig 03439 epsilon epsilon gamma sigma delta gamma epsilon omega
-orig 03440 omega theta alpha delta alpha kappa beta epsilon
+new 03440 lambda lambda delta beta lambda lambda sigma gamma
 orig 03441 delta sigma zeta delta beta lambda beta delta
 orig 03442 alpha kappa omega zeta alpha omega sigma kappa
 orig 03443 alpha theta gamma lambda alpha beta theta omega
@@ -3458,7 +3458,7 @@ orig 03456 kappa lambda epsilon gamma delta omega alpha alpha
 orig 03457 beta lambda delta lambda lambda omega sigma theta
 orig 03458 epsilon omega omega sigma epsilon theta lambda theta
 orig 03459 zeta gamma beta theta gamma omega beta omega
-orig 03460 omega omega alpha lambda lambda beta epsilon zeta
+new 03460 gamma lambda lambda kappa omega delta kappa omega
 orig 03461 omega delta sigma lambda delta sigma gamma beta
 orig 03462 zeta omega theta lambda gamma beta zeta beta
 orig 03463 theta lambda beta theta epsilon epsilon alpha zeta
@@ -3478,7 +3478,7 @@ orig 03476 epsilon kappa theta lambda sigma alpha beta gamma
 orig 03477 sigma beta lambda omega zeta kappa beta omega
 orig 03478 lambda omega zeta theta zeta gamma lambda omega
 orig 03479 beta beta delta beta epsilon zeta gamma omega
-orig 03480 lambda epsilon sigma zeta gamma kappa alpha epsilon
+new 03480 omega sigma kappa lambda omega epsilon alpha epsilon
 orig 03481 gamma alpha beta epsilon alpha theta alpha lambda
 orig 03482 theta kappa gamma gamma alpha omega alpha gamma
 orig 03483 theta beta gamma zeta zeta lambda omega alpha
@@ -3498,7 +3498,7 @@ orig 03496 zeta delta omega kappa kappa omega sigma delta
 orig 03497 omega alpha gamma alpha lambda gamma alpha epsilon
 orig 03498 beta kappa alpha alpha epsilon sigma beta lambda
 orig 03499 zeta theta epsilon theta gamma omega theta epsilon
-orig 03500 gamma beta sigma kappa kappa alpha theta kappa
+new 03500 theta sigma kappa kappa kappa kappa gamma delta
 orig 03501 beta lambda epsilon alpha epsilon beta delta delta
 orig 03502 beta alpha kappa delta alpha zeta theta kappa
 orig 03503 epsilon epsilon delta kappa theta gamma delta epsilon
@@ -3518,7 +3518,7 @@ orig 03516 omega lambda omega theta lambda zeta zeta epsilon
 orig 03517 delta omega zeta omega epsilon omega omega sigma
 orig 03518 sigma zeta epsilon alpha beta alpha omega alpha
 orig 03519 theta kappa kappa gamma epsilon omega gamma alpha
-orig 03520 delta zeta sigma alpha beta delta theta kappa
+new 03520 lambda delta epsilon epsilon lambda sigma lambda alpha
 orig 03521 epsilon lambda omega lambda delta lambda lambda theta
 orig 03522 lambda theta lambda delta epsilon beta alpha delta
 orig 03523 beta delta epsilon gamma omega theta omega sigma
@@ -3538,7 +3538,7 @@ orig 03536 kappa sigma lambda beta omega theta gamma kappa
 orig 03537 omega lambda theta zeta alpha sigma alpha sigma
 orig 03538 delta alpha beta alpha alpha zeta zeta kappa
 orig 03539 kappa lambda beta gamma theta epsilon gamma epsilon
-orig 03540 zeta lambda omega zeta sigma alpha alpha kappa
+new 03540 delta lambda lambda sigma lambda delta kappa lambda
 orig 03541 kappa delta lambda delta omega alpha zeta kappa
 orig 03542 zeta alpha kappa theta kappa sigma delta alpha
 orig 03543 delta gamma delta lambda beta alpha epsilon lambda
@@ -3558,7 +3558,7 @@ orig 03556 epsilon sigma delta sigma omega delta theta gamma
 orig 03557 zeta delta beta beta gamma beta kappa omega
 orig 03558 omega theta theta sigma epsilon lambda theta kappa
 orig 03559 beta epsilon alpha sigma zeta sigma kappa theta
-orig 03560 alpha alpha beta delta delta kappa delta omega
+new 03560 gamma delta beta zeta sigma lambda omega lambda
 orig 03561 gamma zeta kappa alpha delta gamma theta theta
 orig 03562 theta beta epsilon delta epsilon kappa sigma omega
 orig 03563 lambda epsilon zeta sigma lambda alpha sigma epsilon
@@ -3578,7 +3578,7 @@ orig 03576 theta lambda delta beta alpha epsilon beta delta
 orig 03577 theta epsilon gamma delta zeta theta kappa lambda
 orig 03578 beta zeta kappa delta alpha epsilon omega omega
 orig 03579 lambda omega gamma omega delta theta epsilon zeta
-orig 03580 epsilon alpha sigma zeta gamma sigma delta alpha
+new 03580 theta zeta sigma kappa delta sigma sigma omega
 orig 03581 alpha epsilon omega delta theta epsilon omega epsilon
 orig 03582 omega alpha kappa kappa lambda kappa kappa sigma
 orig 03583 kappa beta gamma alpha alpha omega epsilon kappa
@@ -3598,7 +3598,7 @@ orig 03596 theta sigma theta lambda delta delta alpha zeta
 orig 03597 gamma alpha alpha zeta alpha kappa theta kappa
 orig 03598 theta alpha sigma epsilon zeta alpha sigma theta
 orig 03599 gamma epsilon epsilon epsilon kappa alpha kappa zeta
-orig 03600 beta zeta lambda kappa delta kappa sigma epsilon
+new 03600 beta lambda lambda epsilon delta kappa alpha gamma
 orig 03601 gamma zeta beta sigma alpha omega epsilon alpha
 orig 03602 omega gamma beta omega epsilon omega kappa lambda
 orig 03603 beta lambda epsilon lambda kappa delta beta kappa
@@ -3618,7 +3618,7 @@ orig 03616 theta beta theta epsilon lambda alpha omega beta
 orig 03617 gamma epsilon alpha zeta zeta sigma alpha beta
 orig 03618 omega theta zeta sigma beta alpha zeta kappa
 orig 03619 gamma delta kappa beta omega delta epsilon sigma
-orig 03620 sigma omega lambda zeta omega zeta lambda theta
+new 03620 gamma alpha delta epsilon gamma omega alpha theta
 orig 03621 sigma lambda beta theta beta omega kappa lambda
 orig 03622 lambda kappa epsilon lambda zeta sigma alpha omega
 orig 03623 delta lambda alpha epsilon epsilon delta gamma alpha
@@ -3638,7 +3638,7 @@ orig 03636 alpha theta zeta sigma sigma lambda sigma omega
 orig 03637 zeta epsilon beta gamma alpha epsilon theta beta
 orig 03638 zeta zeta omega lambda theta omega theta gamma
 orig 03639 epsilon zeta kappa gamma sigma theta gamma beta
-orig 03640 epsilon delta delta alpha epsilon epsilon theta lambda
+new 03640 theta gamma sigma gamma zeta delta sigma zeta
 orig 03641 epsilon epsilon lambda delta zeta sigma zeta lambda
 orig 03642 theta kappa delta epsilon kappa theta theta epsilon
 orig 03643 theta gamma epsilon sigma kappa beta zeta omega
@@ -3658,7 +3658,7 @@ orig 03656 epsilon gamma theta theta sigma omega kappa epsilon
 orig 03657 zeta gamma omega theta zeta alpha sigma kappa
 orig 03658 theta delta omega gamma theta theta theta epsilon
 orig 03659 alpha alpha lambda alpha lambda delta epsilon sigma
-orig 03660 gamma lambda delta omega lambda lambda epsilon alpha
+new 03660 delta gamma kappa zeta beta epsilon omega zeta
 orig 03661 theta epsilon kappa sigma epsilon zeta omega beta
 orig 03662 alpha delta zeta delta lambda lambda gamma lambda
 orig 03663 zeta gamma omega kappa epsilon sigma sigma epsilon
@@ -3678,7 +3678,7 @@ orig 03676 alpha omega theta sigma alpha lambda omega gamma
 orig 03677 kappa delta delta gamma beta gamma zeta theta
 orig 03678 epsilon theta kappa epsilon zeta epsilon sigma kappa
 orig 03679 gamma epsilon delta epsilon lambda alpha delta theta
-orig 03680 omega sigma delta sigma gamma beta beta epsilon
+new 03680 alpha zeta alpha delta gamma lambda zeta theta
 orig 03681 epsilon beta alpha zeta lambda gamma gamma theta
 orig 03682 epsilon gamma gamma alpha theta kappa sigma delta
 orig 03683 omega zeta theta delta omega alpha sigma beta
@@ -3698,7 +3698,7 @@ orig 03696 theta kappa alpha theta beta zeta zeta alpha
 orig 03697 gamma kappa zeta lambda sigma alpha delta zeta
 orig 03698 omega epsilon beta beta zeta zeta zeta beta
 orig 03699 alpha zeta zeta epsilon omega lambda omega omega
-orig 03700 gamma kappa zeta sigma delta theta beta omega
+new 03700 kappa alpha zeta gamma omega sigma epsilon gamma
 orig 03701 epsilon lambda lambda sigma lambda gamma zeta theta
 orig 03702 omega beta delta alpha lambda epsilon kappa zeta
 orig 03703 theta omega theta gamma kappa zeta zeta epsilon
@@ -3718,7 +3718,7 @@ orig 03716 alpha theta beta alpha kappa sigma lambda lambda
 orig 03717 omega theta gamma delta lambda theta zeta sigma
 orig 03718 delta sigma omega kappa kappa gamma omega kappa
 orig 03719 gamma alpha gamma kappa kappa alpha alpha theta
-orig 03720 beta delta sigma kappa epsilon sigma kappa alpha
+new 03720 theta lambda zeta omega lambda sigma theta omega
 orig 03721 gamma gamma alpha kappa omega beta beta kappa
 orig 03722 epsilon beta sigma theta kappa epsilon gamma theta
 orig 03723 beta alpha alpha epsilon theta beta theta alpha
@@ -3738,7 +3738,7 @@ orig 03736 omega theta gamma gamma alpha theta delta delta
 orig 03737 gamma gamma lambda delta gamma omega sigma omega
 orig 03738 theta delta alpha zeta delta zeta lambda delta
 orig 03739 sigma kappa kappa alpha gamma epsilon lambda theta
-orig 03740 theta kappa gamma delta delta theta sigma alpha
+new 03740 beta delta kappa epsilon gamma alpha zeta omega
 orig 03741 gamma omega zeta epsilon zeta omega alpha beta
 orig 03742 delta lambda alpha gamma omega beta kappa kappa
 orig 03743 delta epsilon zeta gamma epsilon delta beta beta
@@ -3758,7 +3758,7 @@ orig 03756 kappa zeta alpha zeta theta alpha lambda theta
 orig 03757 delta omega delta epsilon theta epsilon alpha gamma
 orig 03758 beta zeta omega beta gamma alpha zeta beta
 orig 03759 epsilon delta alpha sigma kappa sigma alpha alpha
-orig 03760 beta beta omega theta kappa lambda theta kappa
+new 03760 zeta gamma delta delta beta beta beta alpha
 orig 03761 zeta lambda kappa sigma zeta lambda delta sigma
 orig 03762 epsilon zeta theta alpha sigma epsilon omega gamma
 orig 03763 lambda sigma epsilon kappa beta sigma sigma sigma
@@ -3778,7 +3778,7 @@ orig 03776 kappa beta delta sigma gamma gamma zeta omega
 orig 03777 omega theta beta kappa omega gamma alpha lambda
 orig 03778 alpha gamma delta kappa zeta beta kappa delta
 orig 03779 theta alpha zeta epsilon lambda gamma delta zeta
-orig 03780 theta epsilon omega theta zeta theta omega gamma
+new 03780 beta delta gamma sigma lambda lambda kappa beta
 orig 03781 gamma epsilon beta theta omega beta kappa kappa
 orig 03782 kappa beta sigma delta gamma beta beta epsilon
 orig 03783 kappa lambda lambda beta omega sigma gamma alpha
@@ -3798,7 +3798,7 @@ orig 03796 delta omega beta gamma alpha lambda theta kappa
 orig 03797 sigma kappa gamma epsilon alpha alpha alpha kappa
 orig 03798 beta kappa delta theta alpha zeta epsilon theta
 orig 03799 lambda omega omega beta sigma alpha sigma lambda
-orig 03800 zeta beta alpha lambda kappa kappa delta epsilon
+new 03800 beta sigma beta delta gamma gamma alpha alpha
 orig 03801 lambda beta beta omega lambda sigma sigma kappa
 orig 03802 beta omega delta delta delta gamma alpha epsilon
 orig 03803 kappa alpha gamma kappa lambda alpha epsilon delta
@@ -3818,7 +3818,7 @@ orig 03816 alpha sigma zeta zeta lambda delta kappa delta
 orig 03817 zeta zeta gamma epsilon sigma omega sigma epsilon
 orig 03818 gamma alpha delta lambda delta omega theta kappa
 orig 03819 omega sigma omega beta kappa gamma lambda sigma
-orig 03820 theta zeta delta kappa epsilon gamma omega kappa
+new 03820 epsilon sigma zeta alpha sigma epsilon lambda sigma
 orig 03821 theta theta lambda beta lambda gamma kappa gamma
 orig 03822 lambda alpha alpha alpha kappa lambda omega zeta
 orig 03823 omega delta beta epsilon alpha beta kappa sigma
@@ -3838,7 +3838,7 @@ orig 03836 epsilon delta zeta gamma beta lambda gamma sigma
 orig 03837 alpha lambda zeta omega alpha zeta alpha lambda
 orig 03838 zeta lambda lambda beta alpha omega alpha kappa
 orig 03839 zeta epsilon kappa beta theta zeta beta delta
-orig 03840 lambda gamma gamma theta theta epsilon beta zeta
+new 03840 lambda zeta delta epsilon sigma omega omega alpha
 orig 03841 epsilon lambda omega theta lambda sigma zeta sigma
 orig 03842 sigma lambda omega lambda gamma omega epsilon omega
 orig 03843 theta gamma sigma beta lambda gamma alpha zeta
@@ -3858,7 +3858,7 @@ orig 03856 delta kappa lambda delta zeta delta beta alpha
 orig 03857 epsilon theta omega lambda epsilon kappa kappa beta
 orig 03858 epsilon omega sigma lambda alpha omega zeta kappa
 orig 03859 lambda beta kappa omega lambda alpha zeta zeta
-orig 03860 zeta lambda lambda theta delta sigma kappa alpha
+new 03860 epsilon kappa theta theta delta zeta zeta kappa
 orig 03861 epsilon kappa omega epsilon gamma zeta alpha gamma
 orig 03862 kappa lambda delta gamma zeta alpha zeta sigma
 orig 03863 epsilon kappa omega zeta kappa zeta omega alpha
@@ -3878,7 +3878,7 @@ orig 03876 epsilon lambda delta sigma epsilon alpha delta beta
 orig 03877 beta theta zeta gamma beta zeta sigma omega
 orig 03878 kappa sigma delta gamma beta beta zeta lambda
 orig 03879 alpha omega omega delta gamma delta gamma gamma
-orig 03880 theta theta alpha alpha lambda epsilon zeta delta
+new 03880 lambda sigma delta alpha epsilon beta zeta alpha
 orig 03881 sigma theta delta sigma gamma delta zeta gamma
 orig 03882 omega delta kappa gamma zeta beta zeta beta
 orig 03883 zeta omega gamma sigma theta delta gamma kappa
@@ -3898,7 +3898,7 @@ orig 03896 sigma epsilon kappa kappa beta kappa alpha sigma
 orig 03897 epsilon omega lambda epsilon lambda lambda gamma delta
 orig 03898 zeta delta gamma alpha omega alpha gamma gamma
 orig 03899 delta omega gamma omega delta zeta kappa gamma
-orig 03900 omega zeta omega zeta kappa epsilon zeta kappa
+new 03900 zeta epsilon epsilon omega delta sigma beta gamma
 orig 03901 kappa kappa epsilon kappa lambda delta sigma lambda
 orig 03902 omega theta epsilon lambda theta kappa delta beta
 orig 03903 theta gamma epsilon lambda epsilon theta kappa omega
@@ -3918,7 +3918,7 @@ orig 03916 omega beta theta zeta delta omega zeta theta
 orig 03917 kappa lambda beta theta beta omega epsilon omega
 orig 03918 sigma kappa zeta delta sigma alpha alpha kappa
 orig 03919 alpha kappa epsilon epsilon zeta kappa kappa alpha
-orig 03920 alpha kappa sigma lambda sigma epsilon gamma kappa
+new 03920 beta delta alpha lambda omega alpha theta delta
 orig 03921 epsilon zeta zeta sigma delta alpha zeta beta
 orig 03922 delta epsilon theta gamma gamma delta zeta beta
 orig 03923 beta beta beta theta lambda sigma zeta beta
@@ -3938,7 +3938,7 @@ orig 03936 lambda kappa alpha gamma alpha alpha zeta alpha
 orig 03937 sigma delta epsilon lambda epsilon alpha lambda beta
 orig 03938 theta delta beta zeta zeta beta theta alpha
 orig 03939 zeta kappa kappa delta beta alpha theta delta
-orig 03940 gamma omega beta omega epsilon kappa lambda kappa
+new 03940 zeta beta theta theta lambda zeta alpha delta
 orig 03941 delta theta gamma sigma alpha delta gamma zeta
 orig 03942 omega theta kappa lambda kappa kappa delta kappa
 orig 03943 epsilon sigma beta theta delta omega sigma alpha
@@ -3958,7 +3958,7 @@ orig 03956 theta delta lambda delta kappa theta beta omega
 orig 03957 omega lambda kappa sigma kappa kappa gamma theta
 orig 03958 beta delta omega epsilon zeta delta lambda zeta
 orig 03959 gamma zeta epsilon lambda delta zeta zeta alpha
-orig 03960 zeta lambda omega lambda omega epsilon lambda gamma
+new 03960 alpha lambda epsilon beta lambda kappa gamma sigma
 orig 03961 epsilon delta lambda gamma gamma beta gamma zeta
 orig 03962 epsilon omega gamma gamma gamma zeta epsilon beta
 orig 03963 omega lambda beta sigma kappa beta beta sigma
@@ -3978,7 +3978,7 @@ orig 03976 delta omega zeta delta omega gamma beta delta
 orig 03977 sigma gamma omega delta lambda alpha kappa omega
 orig 03978 sigma alpha zeta epsilon sigma beta omega delta
 orig 03979 sigma beta lambda lambda omega lambda alpha epsilon
-orig 03980 kappa delta gamma kappa alpha lambda zeta gamma
+new 03980 kappa beta omega gamma gamma delta zeta delta
 orig 03981 zeta delta sigma epsilon epsilon delta alpha kappa
 orig 03982 alpha beta beta alpha lambda omega lambda beta
 orig 03983 alpha gamma delta lambda delta omega beta lambda
@@ -3998,7 +3998,7 @@ orig 03996 lambda theta kappa delta gamma alpha beta theta
 orig 03997 gamma zeta gamma beta theta zeta beta omega
 orig 03998 kappa theta gamma gamma theta kappa beta epsilon
 orig 03999 sigma delta gamma sigma theta zeta kappa omega
-orig 04000 zeta beta epsilon delta theta alpha epsilon delta
+new 04000 gamma sigma sigma lambda delta omega gamma lambda
 orig 04001 alpha lambda kappa kappa omega sigma beta beta
 orig 04002 omega zeta delta omega alpha gamma omega kappa
 orig 04003 lambda kappa beta sigma beta gamma delta epsilon
@@ -4018,7 +4018,7 @@ orig 04016 zeta sigma delta gamma zeta omega omega lambda
 orig 04017 epsilon zeta kappa theta zeta omega kappa kappa
 orig 04018 theta sigma alpha zeta sigma delta lambda alpha
 orig 04019 alpha zeta zeta delta zeta theta sigma zeta
-orig 04020 theta gamma alpha sigma delta lambda gamma alpha
+new 04020 theta delta lambda gamma zeta theta delta gamma
 orig 04021 epsilon zeta zeta delta omega lambda beta gamma
 orig 04022 beta kappa alpha zeta kappa epsilon epsilon kappa
 orig 04023 epsilon theta beta delta delta lambda sigma beta
@@ -4038,7 +4038,7 @@ orig 04036 delta epsilon delta delta epsilon theta lambda gamma
 orig 04037 epsilon omega epsilon kappa omega theta beta epsilon
 orig 04038 gamma omega alpha epsilon zeta sigma lambda epsilon
 orig 04039 theta lambda theta theta omega zeta lambda sigma
-orig 04040 beta delta sigma kappa theta sigma zeta gamma
+new 04040 sigma kappa lambda epsilon kappa beta theta alpha
 orig 04041 gamma omega alpha lambda gamma alpha theta lambda
 orig 04042 theta kappa delta omega zeta delta sigma omega
 orig 04043 omega delta omega theta alpha epsilon beta alpha
@@ -4058,7 +4058,7 @@ orig 04056 theta beta kappa theta beta theta zeta sigma
 orig 04057 kappa alpha epsilon gamma lambda gamma lambda lambda
 orig 04058 epsilon sigma alpha zeta lambda sigma delta epsilon
 orig 04059 zeta zeta kappa epsilon kappa zeta zeta omega
-orig 04060 delta sigma omega sigma omega sigma sigma lambda
+new 04060 alpha gamma delta sigma delta lambda theta kappa
 orig 04061 alpha gamma epsilon delta lambda epsilon epsilon gamma
 orig 04062 zeta alpha omega gamma lambda epsilon delta gamma
 orig 04063 kappa omega delta kappa kappa zeta alpha zeta
@@ -4078,7 +4078,7 @@ orig 04076 lambda zeta zeta gamma theta alpha lambda theta
 orig 04077 epsilon omega kappa omega zeta lambda alpha sigma
 orig 04078 kappa omega beta theta omega kappa gamma delta
 orig 04079 zeta alpha zeta epsilon sigma theta sigma alpha
-orig 04080 zeta sigma sigma theta lambda theta delta omega
+new 04080 zeta zeta lambda beta lambda theta delta epsilon
 orig 04081 omega alpha theta delta lambda zeta sigma sigma
 orig 04082 zeta lambda gamma kappa omega beta epsilon gamma
 orig 04083 lambda alpha lambda omega beta gamma kappa delta
@@ -4098,7 +4098,7 @@ orig 04096 gamma beta lambda gamma omega lambda sigma beta
 orig 04097 zeta sigma kappa beta epsilon alpha zeta alpha
 orig 04098 delta zeta delta alpha kappa delta epsilon delta
 orig 04099 delta kappa omega sigma beta alpha zeta lambda
-orig 04100 omega delta delta omega theta delta zeta sigma
+new 04100 zeta delta zeta alpha zeta delta delta delta
 orig 04101 gamma lambda gamma gamma zeta kappa sigma alpha
 orig 04102 beta theta omega theta zeta theta delta lambda
 orig 04103 theta gamma sigma beta kappa omega delta omega
@@ -4118,7 +4118,7 @@ orig 04116 gamma omega gamma alpha theta theta kappa beta
 orig 04117 kappa alpha delta sigma gamma beta delta zeta
 orig 04118 epsilon beta sigma gamma gamma epsilon delta alpha
 orig 04119 alpha gamma gamma sigma epsilon gamma delta sigma
-orig 04120 theta epsilon alpha alpha lambda gamma delta lambda
+new 04120 theta sigma gamma lambda kappa zeta epsilon alpha
 orig 04121 kappa sigma kappa beta omega lambda beta kappa
 orig 04122 kappa theta delta alpha alpha beta epsilon gamma
 orig 04123 epsilon alpha delta zeta theta sigma kappa gamma
@@ -4138,7 +4138,7 @@ orig 04136 sigma lambda zeta beta gamma epsilon omega sigma
 orig 04137 delta epsilon theta alpha alpha gamma alpha epsilon
 orig 04138 omega kappa delta omega epsilon epsilon epsilon kappa
 orig 04139 beta theta alpha omega sigma kappa delta zeta
-orig 04140 epsilon lambda kappa gamma delta lambda alpha sigma
+new 04140 kappa gamma beta alpha lambda omega kappa theta
 orig 04141 sigma lambda beta epsilon theta lambda epsilon zeta
 orig 04142 beta delta alpha delta alpha alpha zeta epsilon
 orig 04143 kappa beta sigma alpha delta theta alpha gamma
@@ -4158,7 +4158,7 @@ orig 04156 beta theta epsilon kappa delta beta delta epsilon
 orig 04157 sigma gamma delta gamma alpha alpha zeta gamma
 orig 04158 omega omega delta sigma delta kappa kappa delta
 orig 04159 omega zeta omega beta lambda delta omega beta
-orig 04160 omega lambda gamma alpha epsilon delta epsilon delta
+new 04160 theta sigma epsilon zeta beta sigma beta beta
 orig 04161 gamma epsilon zeta alpha theta delta kappa theta
 orig 04162 delta gamma epsilon lambda sigma theta beta kappa
 orig 04163 theta alpha sigma kappa zeta gamma lambda kappa
@@ -4178,7 +4178,7 @@ orig 04176 delta alpha gamma delta gamma zeta beta zeta
 orig 04177 zeta lambda sigma alpha delta delta gamma zeta
 orig 04178 omega epsilon lambda kappa alpha alpha kappa lambda
 orig 04179 alpha omega alpha sigma zeta omega beta theta
-orig 04180 omega kappa kappa omega kappa delta zeta delta
+new 04180 theta beta beta alpha alpha alpha beta alpha
 orig 04181 beta beta zeta beta theta beta kappa zeta
 orig 04182 zeta gamma delta theta theta alpha sigma gamma
 orig 04183 theta sigma kappa theta sigma theta epsilon gamma
@@ -4198,7 +4198,7 @@ orig 04196 gamma beta alpha omega theta delta sigma beta
 orig 04197 beta epsilon zeta delta omega sigma epsilon omega
 orig 04198 sigma beta delta epsilon kappa sigma omega gamma
 orig 04199 gamma theta omega theta zeta beta lambda beta
-orig 04200 kappa gamma lambda zeta beta gamma alpha alpha
+new 04200 lambda beta epsilon beta epsilon theta kappa lambda
 orig 04201 sigma alpha gamma gamma omega sigma sigma lambda
 orig 04202 omega epsilon gamma lambda theta alpha omega lambda
 orig 04203 gamma omega alpha gamma sigma alpha delta omega
@@ -4218,7 +4218,7 @@ orig 04216 theta delta epsilon sigma zeta gamma zeta sigma
 orig 04217 gamma epsilon sigma zeta delta zeta beta sigma
 orig 04218 theta alpha beta delta epsilon gamma theta omega
 orig 04219 lambda theta beta omega gamma omega kappa zeta
-orig 04220 beta omega beta alpha sigma theta zeta theta
+new 04220 sigma sigma gamma delta delta beta sigma epsilon
 orig 04221 theta alpha delta kappa zeta epsilon beta omega
 orig 04222 alpha gamma gamma epsilon zeta alpha lambda zeta
 orig 04223 theta omega lambda zeta delta lambda alpha beta
@@ -4238,7 +4238,7 @@ orig 04236 alpha delta beta delta sigma gamma zeta kappa
 orig 04237 beta delta sigma delta gamma kappa kappa zeta
 orig 04238 gamma beta sigma kappa zeta zeta kappa kappa
 orig 04239 epsilon theta kappa alpha epsilon beta epsilon gamma
-orig 04240 beta sigma alpha beta gamma sigma zeta delta
+new 04240 omega epsilon lambda omega sigma theta theta theta
 orig 04241 sigma delta delta omega alpha kappa delta alpha
 orig 04242 alpha zeta omega theta epsilon sigma gamma sigma
 orig 04243 theta lambda omega delta lambda epsilon delta gamma
@@ -4258,7 +4258,7 @@ orig 04256 beta zeta zeta kappa zeta kappa epsilon delta
 orig 04257 epsilon epsilon alpha alpha lambda theta theta kappa
 orig 04258 theta zeta sigma lambda gamma theta gamma beta
 orig 04259 theta delta beta theta beta zeta theta lambda
-orig 04260 gamma lambda delta gamma sigma omega kappa delta
+new 04260 omega delta delta delta omega epsilon omega kappa
 orig 04261 beta lambda delta omega sigma epsilon zeta omega
 orig 04262 epsilon zeta beta lambda theta epsilon gamma omega
 orig 04263 kappa gamma omega kappa theta theta gamma alpha
@@ -4278,7 +4278,7 @@ orig 04276 kappa delta omega theta sigma sigma zeta zeta
 orig 04277 omega epsilon theta beta beta delta alpha beta
 orig 04278 kappa theta sigma epsilon lambda kappa alpha omega
 orig 04279 zeta alpha kappa theta omega zeta sigma zeta
-orig 04280 delta beta beta gamma delta delta kappa sigma
+new 04280 omega lambda gamma delta gamma beta omega alpha
 orig 04281 kappa theta zeta sigma theta lambda sigma zeta
 orig 04282 gamma alpha beta kappa beta alpha theta theta
 orig 04283 sigma zeta kappa delta epsilon beta omega gamma
@@ -4298,7 +4298,7 @@ orig 04296 lambda alpha zeta gamma omega kappa epsilon omega
 orig 04297 zeta epsilon gamma beta omega alpha lambda delta
 orig 04298 omega lambda gamma omega sigma gamma zeta lambda
 orig 04299 kappa omega alpha omega theta omega sigma gamma
-orig 04300 beta omega gamma omega lambda sigma beta epsilon
+new 04300 gamma gamma zeta kappa alpha kappa omega delta
 orig 04301 beta beta zeta lambda lambda delta alpha delta
 orig 04302 epsilon sigma beta lambda delta omega zeta zeta
 orig 04303 kappa zeta sigma alpha sigma sigma sigma zeta
@@ -4318,7 +4318,7 @@ orig 04316 beta alpha beta sigma theta zeta beta alpha
 orig 04317 zeta sigma lambda sigma zeta kappa beta sigma
 orig 04318 sigma delta delta lambda theta lambda epsilon delta
 orig 04319 sigma beta sigma kappa sigma lambda lambda sigma
-orig 04320 zeta beta zeta sigma gamma beta gamma alpha
+new 04320 alpha delta epsilon delta theta lambda lambda kappa
 orig 04321 kappa lambda alpha kappa theta beta lambda omega
 orig 04322 lambda alpha omega kappa gamma beta omega lambda
 orig 04323 omega omega kappa zeta zeta theta sigma gamma
@@ -4338,7 +4338,7 @@ orig 04336 zeta theta lambda omega beta beta sigma zeta
 orig 04337 zeta omega lambda lambda zeta kappa kappa beta
 orig 04338 sigma omega delta sigma beta epsilon gamma delta
 orig 04339 kappa zeta kappa theta epsilon omega lambda omega
-orig 04340 epsilon omega sigma epsilon gamma gamma beta zeta
+new 04340 zeta theta omega delta kappa epsilon omega zeta
 orig 04341 theta gamma beta sigma sigma beta alpha lambda
 orig 04342 gamma zeta kappa alpha zeta sigma alpha zeta
 orig 04343 zeta sigma gamma gamma omega zeta epsilon delta
@@ -4358,7 +4358,7 @@ orig 04356 theta kappa gamma kappa beta alpha gamma kappa
 orig 04357 gamma epsilon kappa alpha kappa sigma theta sigma
 orig 04358 theta theta delta kappa gamma delta kappa sigma
 orig 04359 theta delta beta lambda epsilon sigma sigma beta
-orig 04360 theta omega theta theta lambda delta delta theta
+new 04360 omega beta kappa omega theta gamma theta delta
 orig 04361 delta theta lambda gamma sigma gamma beta beta
 orig 04362 beta gamma omega omega beta beta sigma sigma
 orig 04363 delta omega omega delta zeta gamma lambda sigma
@@ -4378,7 +4378,7 @@ orig 04376 omega lambda gamma gamma epsilon lambda gamma gamma
 orig 04377 alpha delta kappa alpha sigma lambda alpha omega
 orig 04378 zeta kappa gamma sigma gamma zeta sigma kappa
 orig 04379 zeta alpha epsilon delta alpha sigma alpha alpha
-orig 04380 lambda alpha zeta beta alpha alpha sigma kappa
+new 04380 epsilon delta alpha sigma epsilon alpha omega theta
 orig 04381 theta sigma alpha lambda alpha theta epsilon sigma
 orig 04382 beta kappa alpha theta delta gamma sigma omega
 orig 04383 alpha theta delta theta zeta delta kappa kappa
@@ -4398,7 +4398,7 @@ orig 04396 alpha alpha zeta theta lambda delta lambda epsilon
 orig 04397 epsilon theta theta zeta alpha gamma gamma alpha
 orig 04398 gamma beta zeta omega omega epsilon sigma omega
 orig 04399 omega epsilon theta alpha gamma delta alpha alpha
-orig 04400 sigma delta sigma beta delta theta beta sigma
+new 04400 lambda theta lambda kappa lambda epsilon alpha zeta
 orig 04401 epsilon omega zeta sigma lambda epsilon epsilon sigma
 orig 04402 gamma alpha omega beta zeta gamma delta gamma
 orig 04403 beta kappa gamma delta zeta zeta omega alpha
@@ -4418,7 +4418,7 @@ orig 04416 alpha lambda epsilon alpha kappa gamma gamma alpha
 orig 04417 zeta zeta beta alpha beta kappa omega theta
 orig 04418 sigma omega gamma theta alpha alpha epsilon gamma
 orig 04419 kappa kappa gamma lambda omega epsilon beta lambda
-orig 04420 kappa sigma omega delta kappa epsilon omega lambda
+new 04420 omega zeta lambda epsilon zeta kappa zeta gamma
 orig 04421 kappa delta delta omega kappa kappa beta delta
 orig 04422 omega omega alpha kappa delta kappa sigma omega
 orig 04423 zeta kappa delta beta omega lambda epsilon epsilon
@@ -4438,7 +4438,7 @@ orig 04436 omega zeta omega zeta beta omega beta epsilon
 orig 04437 sigma beta omega beta gamma kappa zeta beta
 orig 04438 kappa alpha zeta zeta gamma alpha epsilon beta
 orig 04439 alpha beta lambda epsilon gamma gamma zeta alpha
-orig 04440 epsilon theta beta epsilon sigma delta epsilon alpha
+new 04440 epsilon epsilon sigma lambda beta kappa epsilon lambda
 orig 04441 beta theta zeta alpha gamma lambda kappa theta
 orig 04442 zeta alpha alpha epsilon omega epsilon alpha delta
 orig 04443 zeta sigma zeta lambda zeta epsilon kappa gamma
@@ -4458,7 +4458,7 @@ orig 04456 delta gamma omega gamma delta epsilon delta omega
 orig 04457 kappa theta zeta beta lambda beta sigma beta
 orig 04458 alpha gamma beta sigma epsilon lambda delta kappa
 orig 04459 beta omega theta zeta beta gamma omega gamma
-orig 04460 epsilon lambda lambda gamma kappa kappa gamma alpha
+new 04460 lambda beta delta sigma theta epsilon beta kappa
 orig 04461 delta theta kappa lambda delta lambda delta beta
 orig 04462 zeta beta alpha epsilon epsilon theta gamma lambda
 orig 04463 kappa zeta beta gamma sigma sigma delta alpha
@@ -4478,7 +4478,7 @@ orig 04476 kappa zeta beta lambda delta omega sigma epsilon
 orig 04477 sigma sigma zeta beta kappa zeta lambda epsilon
 orig 04478 sigma beta delta lambda omega gamma lambda alpha
 orig 04479 lambda beta gamma gamma gamma lambda beta alpha
-orig 04480 delta epsilon alpha beta epsilon sigma theta theta
+new 04480 delta theta lambda theta lambda kappa delta alpha
 orig 04481 beta theta gamma kappa theta delta zeta alpha
 orig 04482 delta gamma delta delta beta omega beta beta
 orig 04483 theta alpha theta theta alpha kappa delta omega
@@ -4498,7 +4498,7 @@ orig 04496 zeta alpha theta delta alpha sigma alpha lambda
 orig 04497 gamma delta theta kappa theta zeta kappa zeta
 orig 04498 omega gamma kappa gamma gamma beta delta kappa
 orig 04499 omega omega theta zeta zeta gamma theta delta
-orig 04500 alpha alpha sigma delta theta sigma epsilon beta
+new 04500 delta theta sigma epsilon alpha theta gamma beta
 orig 04501 kappa delta omega zeta gamma epsilon epsilon alpha
 orig 04502 gamma omega gamma lambda lambda omega zeta lambda
 orig 04503 delta beta alpha beta gamma kappa zeta kappa
@@ -4518,7 +4518,7 @@ orig 04516 gamma omega kappa beta theta zeta sigma omega
 orig 04517 theta sigma alpha lambda lambda delta lambda beta
 orig 04518 theta kappa theta lambda omega sigma beta lambda
 orig 04519 kappa zeta sigma gamma epsilon omega delta alpha
-orig 04520 lambda gamma alpha delta sigma delta gamma gamma
+new 04520 kappa zeta sigma alpha lambda omega theta omega
 orig 04521 sigma theta omega kappa delta alpha lambda theta
 orig 04522 alpha omega epsilon zeta beta sigma delta sigma
 orig 04523 zeta lambda alpha gamma kappa lambda epsilon gamma
@@ -4538,7 +4538,7 @@ orig 04536 zeta lambda theta theta lambda gamma theta zeta
 orig 04537 kappa zeta sigma zeta omega kappa omega delta
 orig 04538 alpha epsilon kappa beta epsilon alpha zeta delta
 orig 04539 lambda sigma lambda gamma sigma epsilon lambda lambda
-orig 04540 sigma sigma kappa beta delta delta gamma alpha
+new 04540 kappa lambda kappa alpha omega zeta sigma epsilon
 orig 04541 alpha sigma sigma lambda omega gamma zeta zeta
 orig 04542 lambda sigma lambda gamma sigma beta sigma beta
 orig 04543 lambda beta zeta omega beta lambda beta alpha
@@ -4558,7 +4558,7 @@ orig 04556 gamma zeta sigma theta zeta omega gamma gamma
 orig 04557 theta theta alpha delta lambda sigma omega lambda
 orig 04558 kappa sigma omega alpha epsilon kappa zeta epsilon
 orig 04559 beta alpha lambda sigma kappa theta gamma zeta
-orig 04560 beta delta gamma delta zeta delta alpha omega
+new 04560 alpha theta theta beta alpha zeta alpha gamma
 orig 04561 kappa delta theta gamma delta epsilon alpha kappa
 orig 04562 alpha theta beta theta gamma gamma beta delta
 orig 04563 omega sigma gamma kappa delta epsilon lambda sigma
@@ -4578,7 +4578,7 @@ orig 04576 omega beta lambda kappa omega kappa epsilon epsilon
 orig 04577 sigma beta kappa lambda beta lambda gamma delta
 orig 04578 sigma beta beta beta epsilon delta theta theta
 orig 04579 epsilon theta beta delta epsilon beta gamma epsilon
-orig 04580 delta theta sigma theta sigma sigma kappa theta
+new 04580 theta alpha alpha lambda beta kappa epsilon omega
 orig 04581 epsilon gamma lambda gamma epsilon sigma theta alpha
 orig 04582 omega zeta delta theta omega alpha zeta theta
 orig 04583 alpha zeta omega kappa lambda gamma delta delta
@@ -4598,7 +4598,7 @@ orig 04596 lambda sigma lambda sigma beta lambda sigma theta
 orig 04597 theta kappa sigma beta gamma sigma gamma lambda
 orig 04598 lambda theta zeta theta delta lambda gamma theta
 orig 04599 kappa theta omega delta lambda alpha gamma beta
-orig 04600 alpha alpha omega beta omega epsilon beta epsilon
+new 04600 sigma beta sigma epsilon sigma zeta kappa epsilon
 orig 04601 omega epsilon zeta lambda gamma omega sigma beta
 orig 04602 epsilon lambda gamma beta sigma omega beta theta
 orig 04603 zeta epsilon epsilon omega beta epsilon alpha gamma
@@ -4618,7 +4618,7 @@ orig 04616 delta theta kappa lambda delta omega delta beta
 orig 04617 gamma alpha gamma theta delta theta gamma sigma
 orig 04618 epsilon epsilon sigma delta beta sigma epsilon sigma
 orig 04619 epsilon sigma gamma kappa gamma kappa alpha zeta
-orig 04620 kappa omega beta theta delta beta kappa theta
+new 04620 alpha omega alpha epsilon epsilon epsilon gamma kappa
 orig 04621 kappa alpha theta alpha zeta omega sigma gamma
 orig 04622 alpha zeta gamma epsilon kappa epsilon alpha delta
 orig 04623 omega omega sigma epsilon gamma theta omega delta
@@ -4638,7 +4638,7 @@ orig 04636 sigma alpha alpha epsilon kappa epsilon epsilon sigma
 orig 04637 epsilon theta gamma omega beta epsilon omega delta
 orig 04638 beta alpha delta alpha beta zeta beta beta
 orig 04639 theta alpha epsilon kappa delta sigma kappa zeta
-orig 04640 lambda gamma sigma theta theta lambda kappa kappa
+new 04640 alpha gamma omega alpha alpha gamma epsilon gamma
 orig 04641 gamma beta sigma lambda omega alpha zeta alpha
 orig 04642 omega beta delta zeta omega lambda gamma epsilon
 orig 04643 theta beta gamma sigma epsilon alpha alpha lambda
@@ -4658,7 +4658,7 @@ orig 04656 zeta zeta alpha omega epsilon epsilon alpha zeta
 orig 04657 lambda sigma epsilon kappa lambda delta epsilon lambda
 orig 04658 omega lambda sigma beta alpha lambda kappa beta
 orig 04659 zeta alpha lambda alpha delta delta delta zeta
-orig 04660 gamma theta omega theta gamma sigma delta kappa
+new 04660 sigma beta alpha alpha gamma lambda delta theta
 orig 04661 alpha delta kappa epsilon sigma epsilon delta kappa
 orig 04662 alpha epsilon gamma gamma epsilon kappa gamma sigma
 orig 04663 alpha sigma kappa sigma zeta beta theta theta
@@ -4678,7 +4678,7 @@ orig 04676 sigma delta lambda lambda kappa epsilon omega sigma
 orig 04677 delta lambda gamma kappa beta zeta epsilon lambda
 orig 04678 gamma beta lambda theta delta sigma delta delta
 orig 04679 gamma alpha epsilon kappa gamma theta sigma kappa
-orig 04680 beta omega beta delta lambda sigma sigma lambda
+new 04680 alpha sigma zeta alpha delta sigma gamma delta
 orig 04681 sigma omega kappa sigma alpha kappa theta omega
 orig 04682 lambda theta omega delta omega theta kappa gamma
 orig 04683 epsilon lambda epsilon theta omega sigma lambda lambda
@@ -4698,7 +4698,7 @@ orig 04696 lambda omega omega gamma omega delta gamma kappa
 orig 04697 zeta lambda kappa sigma lambda delta alpha theta
 orig 04698 epsilon kappa lambda zeta kappa lambda theta lambda
 orig 04699 delta kappa theta beta delta theta lambda zeta
-orig 04700 epsilon alpha theta kappa kappa zeta omega delta
+new 04700 beta gamma delta alpha beta delta theta zeta
 orig 04701 kappa theta alpha epsilon beta lambda alpha theta
 orig 04702 lambda omega beta omega zeta zeta kappa theta
 orig 04703 kappa sigma lambda sigma alpha gamma omega kappa
@@ -4718,7 +4718,7 @@ orig 04716 beta delta epsilon beta zeta omega omega alpha
 orig 04717 beta epsilon gamma zeta zeta theta epsilon lambda
 orig 04718 theta kappa theta zeta beta gamma delta delta
 orig 04719 alpha sigma kappa epsilon delta delta sigma gamma
-orig 04720 lambda kappa alpha lambda kappa alpha kappa zeta
+new 04720 kappa epsilon lambda sigma zeta omega epsilon theta
 orig 04721 kappa omega theta gamma kappa zeta theta theta
 orig 04722 beta alpha kappa theta epsilon epsilon epsilon epsilon
 orig 04723 delta beta sigma beta zeta sigma delta lambda
@@ -4738,7 +4738,7 @@ orig 04736 kappa lambda omega lambda epsilon lambda omega epsilon
 orig 04737 zeta epsilon epsilon omega theta theta delta theta
 orig 04738 alpha sigma beta sigma delta sigma zeta sigma
 orig 04739 zeta beta theta beta beta theta lambda lambda
-orig 04740 omega lambda sigma alpha gamma beta alpha beta
+new 04740 epsilon alpha epsilon alpha zeta omega epsilon kappa
 orig 04741 omega omega theta kappa omega lambda beta zeta
 orig 04742 theta omega gamma kappa alpha delta theta lambda
 orig 04743 delta alpha sigma alpha sigma theta alpha kappa
@@ -4758,7 +4758,7 @@ orig 04756 zeta gamma theta kappa gamma gamma omega alpha
 orig 04757 theta beta omega omega omega gamma zeta alpha
 orig 04758 epsilon zeta theta delta epsilon beta epsilon alpha
 orig 04759 beta delta zeta sigma beta zeta omega theta
-orig 04760 theta sigma kappa epsilon theta gamma kappa epsilon
+new 04760 alpha kappa kappa epsilon gamma theta omega alpha
 orig 04761 alpha delta theta epsilon omega lambda delta omega
 orig 04762 delta delta delta theta epsilon gamma beta sigma
 orig 04763 kappa beta epsilon beta kappa theta lambda theta
@@ -4778,7 +4778,7 @@ orig 04776 beta beta epsilon epsilon beta zeta beta alpha
 orig 04777 gamma theta theta lambda beta lambda beta kappa
 orig 04778 omega lambda kappa lambda beta alpha sigma zeta
 orig 04779 lambda omega omega omega sigma lambda theta beta
-orig 04780 epsilon omega kappa gamma epsilon kappa theta delta
+new 04780 epsilon beta lambda beta beta kappa omega epsilon
 orig 04781 epsilon kappa kappa theta zeta kappa omega theta
 orig 04782 alpha kappa epsilon epsilon omega gamma delta zeta
 orig 04783 kappa theta delta delta theta beta epsilon alpha
@@ -4798,7 +4798,7 @@ orig 04796 sigma kappa delta epsilon beta zeta kappa omega
 orig 04797 theta lambda theta theta lambda gamma kappa epsilon
 orig 04798 delta zeta alpha gamma omega gamma alpha omega
 orig 04799 lambda alpha gamma omega omega omega sigma beta
-orig 04800 zeta omega gamma theta delta beta delta sigma
+new 04800 sigma sigma alpha omega gamma zeta sigma sigma
 orig 04801 kappa kappa gamma kappa sigma gamma beta gamma
 orig 04802 kappa gamma zeta sigma zeta lambda zeta epsilon
 orig 04803 delta gamma zeta beta theta alpha sigma kappa
@@ -4818,7 +4818,7 @@ orig 04816 gamma delta lambda beta omega zeta omega alpha
 orig 04817 beta delta beta delta delta lambda zeta beta
 orig 04818 theta kappa beta sigma beta omega lambda theta
 orig 04819 theta gamma lambda epsilon kappa zeta omega sigma
-orig 04820 delta omega kappa alpha omega beta gamma lambda
+new 04820 alpha theta omega theta zeta epsilon sigma beta
 orig 04821 omega alpha beta zeta omega sigma kappa theta
 orig 04822 beta theta lambda zeta omega zeta beta beta
 orig 04823 sigma omega zeta theta theta beta kappa theta
@@ -4838,7 +4838,7 @@ orig 04836 theta sigma kappa zeta alpha gamma zeta alpha
 orig 04837 epsilon omega lambda zeta epsilon zeta omega sigma
 orig 04838 delta kappa delta alpha beta beta beta theta
 orig 04839 kappa delta zeta kappa delta theta theta sigma
-orig 04840 lambda kappa beta omega gamma zeta lambda delta
+new 04840 lambda delta gamma sigma kappa sigma theta epsilon
 orig 04841 epsilon theta gamma zeta zeta gamma epsilon zeta
 orig 04842 kappa lambda kappa gamma gamma kappa delta delta
 orig 04843 delta sigma delta sigma omega delta delta kappa
@@ -4858,7 +4858,7 @@ orig 04856 kappa omega sigma sigma theta beta theta epsilon
 orig 04857 kappa lambda theta beta lambda beta gamma sigma
 orig 04858 epsilon theta lambda alpha lambda lambda kappa omega
 orig 04859 gamma epsilon sigma zeta zeta epsilon zeta epsilon
-orig 04860 delta beta zeta alpha zeta lambda epsilon theta
+new 04860 omega theta kappa sigma omega lambda alpha lambda
 orig 04861 omega theta lambda omega beta beta epsilon theta
 orig 04862 delta omega theta alpha lambda gamma zeta sigma
 orig 04863 alpha beta zeta lambda epsilon beta zeta epsilon
@@ -4878,7 +4878,7 @@ orig 04876 kappa zeta epsilon alpha theta epsilon kappa zeta
 orig 04877 lambda delta kappa theta omega sigma kappa kappa
 orig 04878 lambda beta sigma epsilon beta epsilon beta theta
 orig 04879 zeta lambda omega lambda gamma gamma theta delta
-orig 04880 gamma beta omega alpha omega kappa sigma delta
+new 04880 epsilon sigma delta lambda sigma delta sigma kappa
 orig 04881 gamma omega beta beta beta delta beta sigma
 orig 04882 alpha epsilon zeta beta zeta sigma gamma lambda
 orig 04883 delta kappa lambda beta theta epsilon zeta kappa
@@ -4898,7 +4898,7 @@ orig 04896 theta theta zeta lambda zeta zeta omega epsilon
 orig 04897 epsilon beta zeta beta theta gamma theta zeta
 orig 04898 omega lambda omega gamma gamma omega delta sigma
 orig 04899 lambda zeta theta alpha delta omega beta lambda
-orig 04900 epsilon delta epsilon sigma gamma epsilon omega gamma
+new 04900 lambda zeta alpha alpha beta gamma delta beta
 orig 04901 lambda theta alpha beta beta kappa beta theta
 orig 04902 kappa beta sigma delta lambda theta theta beta
 orig 04903 alpha omega gamma sigma theta delta omega gamma
@@ -4918,7 +4918,7 @@ orig 04916 delta zeta gamma theta kappa zeta gamma omega
 orig 04917 gamma gamma epsilon epsilon kappa sigma gamma theta
 orig 04918 beta lambda omega alpha omega zeta beta sigma
 orig 04919 lambda lambda zeta delta zeta gamma beta delta
-orig 04920 theta omega beta omega theta zeta sigma beta
+new 04920 zeta beta alpha gamma delta alpha alpha zeta
 orig 04921 alpha lambda gamma zeta kappa sigma epsilon zeta
 orig 04922 theta gamma zeta kappa zeta zeta lambda delta
 orig 04923 lambda beta zeta sigma lambda omega omega beta
@@ -4938,7 +4938,7 @@ orig 04936 gamma lambda zeta zeta zeta epsilon gamma zeta
 orig 04937 alpha zeta theta gamma alpha theta omega lambda
 orig 04938 omega sigma omega omega omega delta lambda alpha
 orig 04939 alpha delta theta zeta sigma lambda omega delta
-orig 04940 omega gamma epsilon beta lambda lambda omega delta
+new 04940 theta theta sigma lambda kappa omega gamma omega
 orig 04941 lambda kappa gamma gamma epsilon theta zeta zeta
 orig 04942 lambda omega kappa lambda sigma delta alpha epsilon
 orig 04943 alpha epsilon sigma beta delta alpha theta epsilon
@@ -4958,7 +4958,7 @@ orig 04956 zeta lambda gamma beta theta kappa delta lambda
 orig 04957 theta kappa alpha theta alpha lambda kappa lambda
 orig 04958 zeta zeta epsilon kappa kappa gamma zeta epsilon
 orig 04959 gamma kappa sigma sigma theta zeta lambda beta
-orig 04960 lambda beta delta alpha zeta omega zeta alpha
+new 04960 delta kappa omega epsilon gamma delta kappa omega
 orig 04961 sigma omega alpha epsilon omega zeta alpha lambda
 orig 04962 epsilon theta omega gamma alpha sigma omega zeta
 orig 04963 beta theta sigma zeta alpha theta zeta delta
@@ -4978,7 +4978,7 @@ orig 04976 omega delta omega delta delta epsilon alpha kappa
 orig 04977 delta delta omega zeta gamma lambda alpha alpha
 orig 04978 kappa beta sigma sigma lambda lambda theta theta
 orig 04979 epsilon lambda sigma beta lambda kappa delta sigma
-orig 04980 sigma zeta zeta gamma sigma delta omega zeta
+new 04980 omega lambda zeta beta alpha gamma lambda beta
 orig 04981 omega lambda kappa gamma delta alpha gamma sigma
 orig 04982 delta lambda theta kappa lambda zeta omega delta
 orig 04983 beta beta lambda gamma kappa epsilon theta lambda
@@ -4998,7 +4998,7 @@ orig 04996 gamma zeta sigma alpha beta theta gamma kappa
 orig 04997 kappa alpha delta delta delta delta theta zeta
 orig 04998 beta gamma omega kappa theta beta kappa omega
 orig 04999 delta delta kappa sigma zeta kappa kappa theta
-orig 05000 zeta lambda epsilon alpha theta epsilon delta lambda
+new 05000 theta kappa beta omega sigma omega theta theta
 orig 05001 theta epsilon beta delta epsilon alpha gamma alpha
 orig 05002 beta omega gamma delta beta sigma alpha epsilon
 orig 05003 alpha gamma sigma omega kappa zeta sigma zeta
@@ -5018,7 +5018,7 @@ orig 05016 theta zeta omega lambda kappa zeta sigma beta
 orig 05017 alpha lambda lambda kappa zeta kappa zeta epsilon
 orig 05018 epsilon epsilon sigma omega beta kappa alpha alpha
 orig 05019 gamma theta kappa alpha omega theta sigma lambda
-orig 05020 sigma epsilon theta omega sigma alpha theta lambda
+new 05020 theta beta gamma beta gamma zeta delta zeta
 orig 05021 beta omega alpha gamma theta beta lambda lambda
 orig 05022 beta omega kappa lambda theta theta omega lambda
 orig 05023 gamma omega kappa gamma lambda sigma alpha theta
@@ -5038,7 +5038,7 @@ orig 05036 sigma alpha epsilon beta beta zeta gamma beta
 orig 05037 kappa sigma gamma zeta delta beta delta gamma
 orig 05038 epsilon epsilon alpha theta alpha epsilon gamma sigma
 orig 05039 kappa gamma alpha theta delta gamma theta gamma
-orig 05040 beta delta gamma beta lambda alpha beta epsilon
+new 05040 sigma gamma zeta delta epsilon kappa sigma delta
 orig 05041 beta lambda omega kappa delta lambda theta gamma
 orig 05042 sigma epsilon epsilon kappa gamma alpha alpha theta
 orig 05043 kappa beta kappa delta lambda lambda sigma sigma
@@ -5058,7 +5058,7 @@ orig 05056 gamma theta kappa sigma delta kappa epsilon epsilon
 orig 05057 kappa delta zeta epsilon lambda zeta kappa gamma
 orig 05058 kappa kappa delta delta lambda theta theta gamma
 orig 05059 sigma sigma zeta epsilon beta delta epsilon gamma
-orig 05060 kappa beta alpha gamma theta zeta lambda delta
+new 05060 delta omega omega beta alpha lambda kappa zeta
 orig 05061 zeta omega sigma alpha kappa delta theta theta
 orig 05062 gamma gamma alpha theta alpha beta omega sigma
 orig 05063 beta kappa sigma kappa alpha zeta gamma omega
@@ -5078,7 +5078,7 @@ orig 05076 beta epsilon lambda epsilon beta delta kappa zeta
 orig 05077 alpha gamma beta gamma delta omega sigma zeta
 orig 05078 gamma gamma kappa gamma epsilon delta lambda gamma
 orig 05079 theta epsilon theta alpha kappa gamma beta alpha
-orig 05080 theta theta theta gamma lambda gamma kappa beta
+new 05080 beta omega alpha lambda zeta epsilon alpha zeta
 orig 05081 zeta delta beta epsilon gamma zeta delta delta
 orig 05082 gamma omega theta gamma sigma kappa sigma kappa
 orig 05083 sigma kappa beta gamma omega beta beta theta
@@ -5098,7 +5098,7 @@ orig 05096 alpha alpha kappa zeta lambda beta gamma omega
 orig 05097 gamma gamma epsilon alpha omega omega omega zeta
 orig 05098 kappa gamma sigma theta alpha kappa delta beta
 orig 05099 delta gamma gamma lambda alpha beta theta beta
-orig 05100 alpha kappa lambda beta epsilon epsilon omega gamma
+new 05100 delta beta gamma delta sigma gamma omega theta
 orig 05101 theta lambda gamma alpha omega alpha zeta kappa
 orig 05102 lambda zeta zeta theta theta theta omega omega
 orig 05103 kappa omega lambda epsilon lambda alpha gamma gamma
@@ -5118,7 +5118,7 @@ orig 05116 theta kappa zeta gamma kappa epsilon delta epsilon
 orig 05117 beta kappa alpha sigma beta zeta theta lambda
 orig 05118 omega omega omega gamma theta zeta alpha epsilon
 orig 05119 sigma theta beta delta theta beta omega gamma
-orig 05120 sigma theta kappa sigma omega lambda beta alpha
+new 05120 epsilon delta beta epsilon epsilon sigma gamma epsilon
 orig 05121 gamma beta kappa kappa alpha omega theta zeta
 orig 05122 beta gamma kappa alpha zeta theta epsilon epsilon
 orig 05123 omega sigma omega kappa beta kappa lambda omega
@@ -5138,7 +5138,7 @@ orig 05136 alpha epsilon epsilon delta omega kappa beta kappa
 orig 05137 gamma omega alpha zeta omega theta delta kappa
 orig 05138 gamma delta beta alpha kappa theta alpha omega
 orig 05139 lambda zeta gamma sigma beta epsilon zeta theta
-orig 05140 sigma delta sigma zeta gamma epsilon beta kappa
+new 05140 gamma omega delta lambda gamma omega theta delta
 orig 05141 gamma alpha gamma sigma theta gamma alpha zeta
 orig 05142 beta beta beta gamma theta lambda delta theta
 orig 05143 theta beta kappa alpha zeta epsilon beta delta
@@ -5158,7 +5158,7 @@ orig 05156 theta zeta zeta beta sigma lambda beta gamma
 orig 05157 zeta alpha beta zeta alpha beta alpha alpha
 orig 05158 theta theta beta sigma beta alpha zeta gamma
 orig 05159 omega gamma delta gamma sigma theta lambda epsilon
-orig 05160 theta theta epsilon beta sigma delta lambda epsilon
+new 05160 omega gamma theta delta delta gamma zeta alpha
 orig 05161 sigma zeta kappa theta lambda kappa alpha kappa
 orig 05162 lambda kappa kappa lambda zeta lambda delta kappa
 orig 05163 sigma sigma delta sigma sigma theta zeta kappa
@@ -5178,7 +5178,7 @@ orig 05176 lambda sigma alpha zeta kappa kappa sigma lambda
 orig 05177 alpha lambda alpha alpha omega epsilon theta omega
 orig 05178 gamma lambda beta epsilon theta alpha zeta delta
 orig 05179 sigma omega epsilon theta beta delta gamma zeta
-orig 05180 gamma delta theta beta lambda omega gamma theta
+new 05180 theta theta lambda sigma alpha beta kappa delta
 orig 05181 sigma sigma omega beta delta omega theta sigma
 orig 05182 beta zeta gamma theta delta beta theta theta
 orig 05183 kappa zeta omega delta epsilon kappa theta theta
@@ -5198,7 +5198,7 @@ orig 05196 beta sigma sigma gamma kappa zeta epsilon gamma
 orig 05197 lambda zeta epsilon zeta beta beta theta theta
 orig 05198 sigma kappa zeta theta zeta theta omega gamma
 orig 05199 gamma sigma zeta zeta lambda zeta delta zeta
-orig 05200 kappa zeta theta sigma zeta alpha sigma zeta
+new 05200 alpha theta zeta lambda alpha epsilon alpha delta
 orig 05201 beta lambda zeta theta zeta omega kappa omega
 orig 05202 alpha theta kappa lambda sigma kappa theta alpha
 orig 05203 epsilon omega theta sigma gamma sigma alpha omega
@@ -5218,7 +5218,7 @@ orig 05216 sigma omega sigma gamma delta beta epsilon lambda
 orig 05217 gamma beta zeta theta theta kappa zeta gamma
 orig 05218 omega delta kappa lambda lambda lambda omega epsilon
 orig 05219 alpha gamma zeta beta alpha sigma beta epsilon
-orig 05220 kappa omega omega kappa zeta sigma lambda alpha
+new 05220 zeta delta delta epsilon zeta epsilon alpha alpha
 orig 05221 beta epsilon delta omega beta zeta sigma epsilon
 orig 05222 omega omega alpha epsilon epsilon theta alpha beta
 orig 05223 sigma epsilon zeta gamma kappa beta zeta kappa
@@ -5238,7 +5238,7 @@ orig 05236 epsilon omega omega omega kappa delta epsilon kappa
 orig 05237 sigma beta delta delta zeta delta theta gamma
 orig 05238 epsilon epsilon sigma sigma lambda theta beta theta
 orig 05239 epsilon kappa alpha lambda theta theta beta gamma
-orig 05240 theta gamma beta kappa kappa sigma kappa theta
+new 05240 sigma theta kappa lambda kappa kappa sigma lambda
 orig 05241 zeta gamma delta delta lambda beta kappa beta
 orig 05242 lambda gamma epsilon epsilon lambda beta zeta zeta
 orig 05243 beta delta epsilon omega alpha gamma lambda alpha
@@ -5258,7 +5258,7 @@ orig 05256 theta sigma alpha sigma delta lambda lambda alpha
 orig 05257 omega beta sigma kappa sigma alpha sigma omega
 orig 05258 zeta alpha gamma epsilon delta lambda alpha theta
 orig 05259 theta sigma kappa alpha lambda omega kappa sigma
-orig 05260 zeta theta lambda alpha alpha beta zeta theta
+new 05260 delta lambda delta zeta zeta epsilon theta gamma
 orig 05261 beta sigma lambda gamma alpha omega gamma gamma
 orig 05262 lambda zeta lambda beta kappa epsilon theta beta
 orig 05263 epsilon sigma beta theta beta beta epsilon delta
@@ -5278,7 +5278,7 @@ orig 05276 gamma alpha sigma alpha beta omega alpha omega
 orig 05277 sigma theta delta epsilon gamma lambda kappa kappa
 orig 05278 kappa zeta epsilon sigma sigma lambda sigma kappa
 orig 05279 beta alpha gamma zeta kappa zeta delta epsilon
-orig 05280 kappa epsilon lambda kappa alpha delta lambda lambda
+new 05280 alpha zeta theta sigma zeta sigma kappa alpha
 orig 05281 theta gamma beta omega omega lambda beta omega
 orig 05282 beta epsilon kappa zeta kappa delta alpha zeta
 orig 05283 theta epsilon omega omega delta gamma omega omega
@@ -5298,7 +5298,7 @@ orig 05296 gamma theta gamma kappa gamma omega zeta lambda
 orig 05297 kappa beta kappa zeta gamma sigma lambda theta
 orig 05298 theta theta kappa kappa kappa zeta zeta omega
 orig 05299 zeta delta delta zeta alpha delta delta gamma
-orig 05300 beta gamma alpha gamma gamma theta lambda theta
+new 05300 delta beta alpha alpha alpha lambda sigma zeta
 orig 05301 gamma theta epsilon lambda alpha alpha omega delta
 orig 05302 gamma omega beta gamma epsilon beta kappa sigma
 orig 05303 kappa theta alpha delta beta omega lambda zeta
@@ -5318,7 +5318,7 @@ orig 05316 alpha beta lambda gamma alpha kappa lambda beta
 orig 05317 omega sigma sigma delta beta lambda lambda epsilon
 orig 05318 epsilon beta beta beta sigma lambda gamma delta
 orig 05319 beta delta theta sigma omega zeta theta omega
-orig 05320 beta epsilon lambda beta theta sigma beta sigma
+new 05320 alpha zeta delta alpha omega kappa lambda sigma
 orig 05321 kappa epsilon alpha beta sigma beta theta gamma
 orig 05322 sigma zeta alpha gamma kappa delta theta lambda
 orig 05323 theta sigma lambda sigma epsilon theta lambda delta
@@ -5338,7 +5338,7 @@ orig 05336 delta omega sigma gamma delta lambda delta beta
 orig 05337 zeta sigma delta delta lambda omega sigma omega
 orig 05338 sigma epsilon zeta epsilon alpha gamma theta zeta
 orig 05339 lambda kappa lambda zeta sigma kappa zeta omega
-orig 05340 epsilon alpha sigma alpha kappa lambda epsilon delta
+new 05340 delta lambda sigma beta gamma kappa lambda alpha
 orig 05341 gamma gamma kappa gamma omega epsilon sigma lambda
 orig 05342 theta theta epsilon sigma omega delta epsilon theta
 orig 05343 theta sigma kappa alpha gamma sigma theta lambda
@@ -5358,7 +5358,7 @@ orig 05356 beta epsilon zeta theta lambda gamma epsilon gamma
 orig 05357 omega theta epsilon theta alpha zeta lambda sigma
 orig 05358 delta theta gamma alpha epsilon omega epsilon zeta
 orig 05359 lambda kappa lambda kappa epsilon kappa omega alpha
-orig 05360 sigma alpha gamma delta alpha delta omega epsilon
+new 05360 theta gamma zeta omega theta gamma alpha delta
 orig 05361 zeta omega alpha alpha sigma sigma sigma delta
 orig 05362 delta lambda alpha zeta omega theta theta sigma
 orig 05363 omega alpha omega sigma gamma epsilon kappa omega
@@ -5378,7 +5378,7 @@ orig 05376 epsilon sigma alpha omega gamma delta gamma lambda
 orig 05377 alpha sigma omega kappa kappa lambda omega alpha
 orig 05378 beta lambda omega gamma sigma delta gamma delta
 orig 05379 sigma omega beta epsilon omega zeta theta sigma
-orig 05380 omega lambda gamma zeta lambda zeta delta kappa
+new 05380 alpha kappa epsilon kappa sigma kappa omega zeta
 orig 05381 alpha alpha omega beta beta zeta lambda alpha
 orig 05382 alpha gamma beta theta epsilon theta theta lambda
 orig 05383 theta theta kappa gamma zeta lambda alpha epsilon
@@ -5398,7 +5398,7 @@ orig 05396 sigma zeta kappa sigma gamma beta epsilon delta
 orig 05397 lambda omega lambda theta sigma kappa alpha omega
 orig 05398 sigma sigma delta epsilon epsilon zeta omega lambda
 orig 05399 lambda delta sigma beta sigma sigma zeta kappa
-orig 05400 sigma zeta omega zeta beta delta epsilon epsilon
+new 05400 theta sigma zeta lambda beta kappa kappa epsilon
 orig 05401 sigma beta alpha sigma gamma theta kappa beta
 orig 05402 sigma epsilon theta theta delta gamma beta sigma
 orig 05403 lambda theta gamma kappa epsilon zeta alpha sigma
@@ -5418,7 +5418,7 @@ orig 05416 sigma omega delta alpha delta kappa alpha epsilon
 orig 05417 kappa lambda kappa lambda alpha zeta delta sigma
 orig 05418 lambda omega omega alpha epsilon lambda omega sigma
 orig 05419 zeta omega gamma alpha lambda alpha zeta sigma
-orig 05420 epsilon kappa alpha sigma gamma gamma sigma kappa
+new 05420 theta zeta gamma theta epsilon alpha gamma gamma
 orig 05421 epsilon gamma lambda lambda epsilon gamma omega omega
 orig 05422 alpha epsilon zeta lambda lambda zeta epsilon gamma
 orig 05423 delta theta beta kappa kappa delta delta beta
@@ -5438,7 +5438,7 @@ orig 05436 lambda zeta alpha gamma delta theta beta gamma
 orig 05437 sigma kappa delta sigma theta zeta beta sigma
 orig 05438 zeta epsilon beta sigma beta kappa gamma sigma
 orig 05439 sigma zeta zeta kappa sigma beta omega epsilon
-orig 05440 gamma theta omega kappa zeta epsilon omega delta
+new 05440 delta beta lambda omega kappa sigma epsilon beta
 orig 05441 epsilon sigma kappa lambda gamma epsilon delta lambda
 orig 05442 lambda sigma delta theta alpha lambda omega kappa
 orig 05443 omega epsilon gamma beta beta zeta delta gamma
@@ -5458,7 +5458,7 @@ orig 05456 zeta kappa delta omega kappa gamma epsilon delta
 orig 05457 omega lambda theta gamma alpha delta kappa delta
 orig 05458 omega omega beta lambda epsilon gamma omega sigma
 orig 05459 theta gamma kappa theta beta omega zeta alpha
-orig 05460 beta lambda delta sigma epsilon beta sigma zeta
+new 05460 epsilon lambda lambda kappa lambda beta beta kappa
 orig 05461 sigma alpha kappa kappa theta alpha epsilon omega
 orig 05462 delta lambda alpha beta delta gamma epsilon epsilon
 orig 05463 kappa kappa sigma zeta zeta theta lambda omega
@@ -5478,7 +5478,7 @@ orig 05476 theta kappa delta epsilon alpha omega zeta zeta
 orig 05477 theta omega omega kappa alpha zeta lambda kappa
 orig 05478 alpha sigma theta lambda delta zeta alpha omega
 orig 05479 beta beta zeta theta lambda zeta lambda beta
-orig 05480 beta sigma epsilon gamma kappa epsilon sigma lambda
+new 05480 lambda lambda sigma gamma lambda alpha alpha delta
 orig 05481 beta zeta gamma beta kappa kappa zeta zeta
 orig 05482 beta zeta alpha theta gamma alpha kappa alpha
 orig 05483 lambda theta gamma kappa omega theta kappa beta
@@ -5498,7 +5498,7 @@ orig 05496 sigma delta omega lambda zeta sigma kappa alpha
 orig 05497 zeta beta alpha zeta theta theta alpha gamma
 orig 05498 gamma beta alpha epsilon omega gamma zeta theta
 orig 05499 omega gamma zeta alpha zeta lambda theta kappa
-orig 05500 beta epsilon beta lambda delta zeta zeta delta
+new 05500 alpha alpha epsilon gamma zeta lambda gamma zeta
 orig 05501 kappa kappa sigma theta alpha beta kappa sigma
 orig 05502 beta beta delta epsilon beta kappa zeta alpha
 orig 05503 lambda lambda theta delta gamma beta omega zeta
@@ -5518,7 +5518,7 @@ orig 05516 zeta lambda beta beta epsilon kappa omega delta
 orig 05517 zeta beta epsilon delta gamma alpha zeta sigma
 orig 05518 gamma theta zeta sigma lambda theta zeta delta
 orig 05519 gamma epsilon lambda alpha epsilon lambda lambda epsilon
-orig 05520 sigma alpha delta theta gamma zeta alpha omega
+new 05520 epsilon sigma kappa delta theta kappa gamma lambda
 orig 05521 alpha gamma beta gamma alpha zeta theta beta
 orig 05522 kappa kappa zeta theta omega zeta theta beta
 orig 05523 theta zeta zeta gamma zeta beta delta kappa
@@ -5538,7 +5538,7 @@ orig 05536 kappa sigma theta alpha gamma lambda alpha theta
 orig 05537 alpha omega kappa theta theta beta gamma epsilon
 orig 05538 delta omega lambda zeta kappa delta omega lambda
 orig 05539 epsilon epsilon epsilon alpha kappa epsilon omega sigma
-orig 05540 alpha beta lambda omega omega delta sigma sigma
+new 05540 gamma theta zeta zeta epsilon lambda zeta omega
 orig 05541 beta zeta gamma kappa kappa epsilon theta gamma
 orig 05542 omega zeta gamma beta gamma delta theta zeta
 orig 05543 beta theta alpha gamma alpha zeta zeta kappa
@@ -5558,7 +5558,7 @@ orig 05556 epsilon sigma zeta sigma omega alpha alpha theta
 orig 05557 beta lambda alpha delta sigma delta delta epsilon
 orig 05558 lambda omega theta kappa zeta epsilon lambda delta
 orig 05559 alpha beta gamma alpha kappa delta alpha beta
-orig 05560 beta zeta theta lambda zeta lambda alpha theta
+new 05560 zeta theta epsilon beta kappa theta sigma delta
 orig 05561 kappa lambda alpha alpha alpha alpha theta omega
 orig 05562 alpha omega kappa omega delta zeta lambda sigma
 orig 05563 omega omega kappa omega alpha delta theta alpha
@@ -5578,7 +5578,7 @@ orig 05576 delta lambda kappa beta beta beta alpha sigma
 orig 05577 epsilon alpha zeta lambda alpha alpha gamma alpha
 orig 05578 delta beta lambda zeta theta alpha delta beta
 orig 05579 sigma omega zeta delta gamma theta omega gamma
-orig 05580 sigma delta beta delta gamma lambda epsilon lambda
+new 05580 omega zeta kappa sigma delta zeta sigma delta
 orig 05581 lambda theta lambda alpha omega delta kappa epsilon
 orig 05582 theta delta zeta kappa theta omega kappa kappa
 orig 05583 beta kappa omega omega zeta zeta alpha epsilon
@@ -5598,7 +5598,7 @@ orig 05596 omega lambda epsilon alpha epsilon theta lambda alpha
 orig 05597 delta alpha delta gamma delta sigma delta kappa
 orig 05598 theta theta theta alpha epsilon omega omega beta
 orig 05599 epsilon omega beta theta sigma zeta epsilon omega
-orig 05600 gamma beta beta delta delta kappa gamma zeta
+new 05600 sigma alpha zeta beta zeta kappa sigma kappa
 orig 05601 theta epsilon omega zeta gamma omega zeta beta
 orig 05602 alpha beta gamma zeta theta zeta gamma delta
 orig 05603 delta gamma theta kappa gamma lambda theta alpha
@@ -5618,7 +5618,7 @@ orig 05616 theta zeta gamma lambda alpha zeta theta gamma
 orig 05617 gamma omega lambda kappa zeta zeta epsilon epsilon
 orig 05618 alpha lambda theta beta theta sigma kappa alpha
 orig 05619 delta zeta lambda omega epsilon sigma omega theta
-orig 05620 alpha epsilon zeta gamma epsilon gamma omega sigma
+new 05620 sigma lambda delta omega theta lambda theta alpha
 orig 05621 omega alpha delta omega epsilon omega zeta epsilon
 orig 05622 sigma gamma omega delta epsilon sigma zeta epsilon
 orig 05623 epsilon epsilon delta lambda kappa zeta sigma zeta
@@ -5638,7 +5638,7 @@ orig 05636 zeta lambda gamma delta epsilon epsilon zeta theta
 orig 05637 sigma theta lambda epsilon delta sigma lambda lambda
 orig 05638 sigma sigma lambda alpha omega delta alpha sigma
 orig 05639 kappa omega zeta zeta omega epsilon epsilon theta
-orig 05640 kappa delta gamma omega omega theta gamma sigma
+new 05640 gamma theta kappa lambda beta zeta lambda epsilon
 orig 05641 delta omega beta gamma gamma lambda zeta beta
 orig 05642 beta omega theta beta theta lambda gamma gamma
 orig 05643 alpha lambda lambda zeta delta delta zeta gamma
@@ -5658,7 +5658,7 @@ orig 05656 gamma gamma sigma gamma delta kappa lambda sigma
 orig 05657 theta zeta omega beta theta sigma epsilon lambda
 orig 05658 omega gamma kappa sigma theta alpha lambda lambda
 orig 05659 alpha omega omega zeta sigma lambda sigma theta
-orig 05660 alpha beta sigma theta lambda delta lambda kappa
+new 05660 sigma delta gamma lambda beta omega theta delta
 orig 05661 delta zeta zeta kappa omega omega epsilon lambda
 orig 05662 zeta omega beta beta alpha sigma omega omega
 orig 05663 epsilon gamma gamma kappa epsilon omega omega beta
@@ -5678,7 +5678,7 @@ orig 05676 beta gamma zeta lambda zeta theta epsilon omega
 orig 05677 alpha delta alpha alpha lambda omega lambda omega
 orig 05678 sigma lambda sigma theta gamma delta zeta zeta
 orig 05679 sigma beta epsilon delta kappa zeta delta delta
-orig 05680 zeta zeta theta epsilon zeta beta delta zeta
+new 05680 zeta sigma gamma alpha epsilon omega omega alpha
 orig 05681 epsilon omega lambda epsilon lambda beta zeta lambda
 orig 05682 theta theta gamma kappa epsilon zeta alpha omega
 orig 05683 zeta delta zeta omega kappa kappa gamma delta
@@ -5698,7 +5698,7 @@ orig 05696 beta alpha omega zeta epsilon alpha zeta epsilon
 orig 05697 sigma omega alpha omega lambda kappa alpha sigma
 orig 05698 kappa omega zeta epsilon epsilon zeta beta epsilon
 orig 05699 zeta lambda omega zeta sigma epsilon gamma lambda
-orig 05700 gamma delta delta epsilon lambda theta beta gamma
+new 05700 kappa omega zeta delta gamma theta alpha omega
 orig 05701 alpha sigma delta gamma kappa theta gamma beta
 orig 05702 theta sigma theta kappa lambda epsilon alpha alpha
 orig 05703 lambda gamma theta kappa alpha theta beta beta
@@ -5718,7 +5718,7 @@ orig 05716 omega alpha gamma lambda kappa kappa delta zeta
 orig 05717 epsilon omega theta kappa alpha kappa kappa lambda
 orig 05718 omega epsilon alpha delta alpha kappa kappa delta
 orig 05719 lambda sigma alpha zeta kappa epsilon omega zeta
-orig 05720 beta sigma gamma kappa omega sigma beta omega
+new 05720 gamma omega epsilon zeta beta theta kappa kappa
 orig 05721 beta omega theta sigma kappa lambda beta kappa
 orig 05722 gamma alpha gamma delta delta zeta delta alpha
 orig 05723 kappa epsilon omega kappa omega delta delta sigma
@@ -5738,7 +5738,7 @@ orig 05736 delta alpha zeta gamma lambda sigma omega beta
 orig 05737 gamma delta sigma epsilon zeta lambda gamma gamma
 orig 05738 zeta theta theta gamma delta beta kappa theta
 orig 05739 epsilon lambda theta lambda epsilon zeta omega theta
-orig 05740 lambda alpha kappa zeta omega alpha delta delta
+new 05740 epsilon alpha gamma delta beta zeta epsilon epsilon
 orig 05741 kappa zeta zeta kappa epsilon lambda theta kappa
 orig 05742 lambda delta zeta sigma omega zeta alpha zeta
 orig 05743 beta lambda sigma beta alpha kappa lambda kappa
@@ -5758,7 +5758,7 @@ orig 05756 omega beta kappa theta theta omega delta omega
 orig 05757 kappa gamma delta lambda alpha theta kappa delta
 orig 05758 sigma lambda sigma omega sigma lambda kappa gamma
 orig 05759 alpha epsilon zeta theta omega alpha sigma beta
-orig 05760 gamma zeta lambda delta epsilon zeta epsilon theta
+new 05760 kappa lambda sigma beta alpha epsilon delta lambda
 orig 05761 lambda gamma lambda gamma gamma kappa lambda omega
 orig 05762 beta theta alpha kappa alpha epsilon delta zeta
 orig 05763 gamma kappa omega theta epsilon theta alpha delta
@@ -5778,7 +5778,7 @@ orig 05776 lambda gamma beta zeta zeta sigma omega sigma
 orig 05777 delta lambda kappa beta lambda kappa omega gamma
 orig 05778 theta beta omega zeta lambda omega theta omega
 orig 05779 zeta delta kappa sigma theta omega gamma sigma
-orig 05780 delta omega kappa theta epsilon zeta alpha beta
+new 05780 sigma sigma kappa sigma omega epsilon epsilon theta
 orig 05781 epsilon kappa omega lambda gamma beta theta kappa
 orig 05782 beta epsilon omega zeta epsilon lambda zeta delta
 orig 05783 zeta alpha sigma kappa lambda delta epsilon sigma
@@ -5798,7 +5798,7 @@ orig 05796 delta delta sigma theta zeta theta theta alpha
 orig 05797 alpha gamma delta gamma sigma gamma gamma epsilon
 orig 05798 zeta zeta delta delta theta gamma gamma lambda
 orig 05799 alpha epsilon sigma zeta alpha zeta theta kappa
-orig 05800 theta alpha kappa zeta sigma epsilon theta theta
+new 05800 sigma omega lambda theta sigma gamma beta alpha
 orig 05801 alpha beta kappa beta beta alpha gamma epsilon
 orig 05802 beta beta delta beta gamma sigma gamma epsilon
 orig 05803 zeta kappa gamma gamma kappa epsilon alpha alpha
@@ -5818,7 +5818,7 @@ orig 05816 gamma lambda zeta gamma beta gamma zeta alpha
 orig 05817 omega zeta zeta kappa lambda omega gamma epsilon
 orig 05818 epsilon alpha delta beta delta alpha beta lambda
 orig 05819 gamma theta kappa epsilon theta gamma theta delta
-orig 05820 beta alpha lambda kappa beta gamma lambda theta
+new 05820 zeta epsilon kappa zeta gamma omega alpha gamma
 orig 05821 omega beta epsilon delta beta alpha omega alpha
 orig 05822 sigma kappa sigma gamma omega lambda gamma alpha
 orig 05823 theta lambda epsilon beta alpha theta gamma gamma
@@ -5838,7 +5838,7 @@ orig 05836 zeta alpha beta epsilon alpha delta theta kappa
 orig 05837 omega beta alpha alpha epsilon gamma gamma omega
 orig 05838 kappa delta omega lambda alpha zeta gamma lambda
 orig 05839 kappa epsilon zeta beta delta gamma sigma theta
-orig 05840 beta alpha zeta alpha sigma delta alpha theta
+new 05840 sigma delta omega alpha delta delta epsilon beta
 orig 05841 lambda sigma lambda kappa epsilon omega sigma zeta
 orig 05842 epsilon epsilon omega omega gamma kappa sigma lambda
 orig 05843 zeta epsilon beta alpha epsilon sigma delta gamma
@@ -5858,7 +5858,7 @@ orig 05856 delta lambda gamma alpha alpha epsilon theta delta
 orig 05857 theta lambda gamma sigma theta kappa delta sigma
 orig 05858 lambda theta delta omega epsilon zeta beta alpha
 orig 05859 theta lambda kappa alpha zeta theta epsilon epsilon
-orig 05860 beta delta beta beta lambda theta beta kappa
+new 05860 gamma beta beta omega epsilon alpha beta lambda
 orig 05861 delta kappa lambda lambda epsilon zeta epsilon alpha
 orig 05862 gamma lambda lambda beta alpha sigma omega delta
 orig 05863 theta sigma zeta epsilon alpha sigma theta sigma
@@ -5878,7 +5878,7 @@ orig 05876 sigma lambda kappa kappa epsilon delta delta beta
 orig 05877 sigma beta kappa beta lambda gamma zeta sigma
 orig 05878 gamma lambda delta beta gamma omega epsilon beta
 orig 05879 gamma delta omega theta alpha beta lambda omega
-orig 05880 beta alpha lambda alpha zeta zeta delta lambda
+new 05880 gamma kappa zeta lambda lambda lambda theta delta
 orig 05881 zeta epsilon kappa zeta gamma lambda alpha delta
 orig 05882 epsilon zeta epsilon alpha delta beta epsilon omega
 orig 05883 kappa epsilon lambda alpha lambda epsilon zeta gamma
@@ -5898,7 +5898,7 @@ orig 05896 kappa lambda gamma alpha gamma delta alpha omega
 orig 05897 sigma theta delta theta theta kappa sigma epsilon
 orig 05898 kappa zeta lambda sigma beta omega alpha zeta
 orig 05899 lambda alpha lambda gamma delta gamma epsilon gamma
-orig 05900 kappa theta sigma theta beta lambda sigma alpha
+new 05900 beta epsilon gamma lambda beta zeta gamma epsilon
 orig 05901 beta omega theta delta beta epsilon gamma zeta
 orig 05902 alpha beta alpha omega omega beta lambda lambda
 orig 05903 kappa epsilon kappa zeta lambda gamma beta omega
@@ -5918,7 +5918,7 @@ orig 05916 omega gamma sigma gamma kappa alpha delta gamma
 orig 05917 beta omega kappa gamma lambda theta alpha sigma
 orig 05918 zeta zeta kappa delta kappa sigma omega beta
 orig 05919 kappa omega gamma beta lambda delta delta kappa
-orig 05920 sigma epsilon sigma sigma theta delta lambda beta
+new 05920 omega delta epsilon omega alpha beta gamma omega
 orig 05921 gamma kappa alpha lambda omega gamma alpha kappa
 orig 05922 epsilon omega omega delta omega delta zeta zeta
 orig 05923 epsilon sigma epsilon beta sigma epsilon delta epsilon
@@ -5938,7 +5938,7 @@ orig 05936 delta lambda epsilon epsilon omega beta zeta alpha
 orig 05937 kappa kappa beta sigma kappa delta sigma epsilon
 orig 05938 lambda lambda zeta omega beta alpha epsilon delta
 orig 05939 omega epsilon epsilon zeta theta zeta alpha zeta
-orig 05940 theta sigma alpha lambda kappa omega gamma theta
+new 05940 alpha alpha lambda delta omega gamma epsilon gamma
 orig 05941 sigma alpha lambda sigma zeta kappa alpha gamma
 orig 05942 zeta gamma kappa delta kappa epsilon kappa gamma
 orig 05943 alpha sigma zeta epsilon beta sigma zeta zeta
@@ -5958,7 +5958,7 @@ orig 05956 gamma zeta omega zeta kappa omega sigma kappa
 orig 05957 beta zeta alpha omega theta epsilon sigma lambda
 orig 05958 lambda omega beta theta lambda delta delta sigma
 orig 05959 beta gamma lambda kappa theta theta omega beta
-orig 05960 sigma lambda beta epsilon epsilon gamma gamma beta
+new 05960 beta omega lambda gamma gamma delta delta gamma
 orig 05961 sigma delta beta epsilon theta kappa epsilon gamma
 orig 05962 delta kappa lambda alpha sigma theta lambda alpha
 orig 05963 delta delta alpha sigma zeta theta gamma epsilon
@@ -5978,7 +5978,7 @@ orig 05976 delta alpha zeta gamma epsilon zeta omega gamma
 orig 05977 lambda lambda alpha zeta lambda theta theta epsilon
 orig 05978 beta sigma delta sigma beta beta beta delta
 orig 05979 delta gamma theta lambda beta delta delta zeta
-orig 05980 epsilon beta omega beta epsilon alpha epsilon theta
+new 05980 theta delta sigma alpha epsilon zeta sigma lambda
 orig 05981 zeta theta gamma sigma theta gamma beta beta
 orig 05982 kappa sigma kappa zeta alpha gamma gamma zeta
 orig 05983 epsilon gamma sigma epsilon zeta lambda alpha zeta
