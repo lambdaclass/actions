@@ -178,25 +178,28 @@ jobs:
             const footer = `\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`;
             const budget = 60000 - footer.length - 200;
             const pieces = [];
-            let cur = '';
+            let cur = null;
             for (let line of raw.split('\n')) {
               while (line.length > budget) {
-                if (cur) {
+                if (cur !== null) {
                   pieces.push(cur);
-                  cur = '';
+                  cur = null;
                 }
                 pieces.push(line.slice(0, budget));
                 line = line.slice(budget);
               }
-              const joined = cur ? `${cur}\n${line}` : line;
-              if (joined.length > budget) {
+              if (cur === null) {
+                cur = line;
+              } else if (cur.length + 1 + line.length > budget) {
                 pieces.push(cur);
                 cur = line;
               } else {
-                cur = joined;
+                cur = `${cur}\n${line}`;
               }
             }
-            pieces.push(cur);
+            if (cur !== null) {
+              pieces.push(cur);
+            }
             for (let j = 0; j < pieces.length; j++) {
               const tag = pieces.length > 1 ? ` (comment ${j + 1}/${pieces.length})` : '';
               await github.rest.issues.createComment({

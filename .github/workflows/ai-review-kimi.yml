@@ -173,6 +173,7 @@ jobs:
             exit 0
           fi
 
+          rm -rf /tmp/parts
           cat > /tmp/chunk.py <<'PY'
           import json
           import os
@@ -181,6 +182,9 @@ jobs:
           budget = int(sys.argv[1])
           src, out_dir, prefix = sys.argv[2], sys.argv[3], sys.argv[4]
           inherited = sys.argv[5] if len(sys.argv) > 5 else ""
+          inherited_hunk = sys.argv[6] if len(sys.argv) > 6 else ""
+          if budget < 1024:
+              sys.exit(f"budget {budget} is below 1024 bytes")
 
           data = open(src, "rb").read()
 
@@ -199,6 +203,12 @@ jobs:
 
           def path_of(header):
               text = header.rstrip(b"\n").decode("utf-8", "replace")
+              rest = text[len("diff --git "):]
+              if len(rest) % 2 == 1:
+                  half = len(rest) // 2
+                  old, new = rest[:half], rest[half + 1:]
+                  if old.startswith("a/") and new.startswith("b/") and old[2:] == new[2:]:
+                      return new[2:]
               k = text.rfind(" b/")
               return text[k + 3:] if k != -1 else text[len("diff --git "):]
 
@@ -211,7 +221,8 @@ jobs:
               files[-1][1].append(line)
 
           parts = []
-          cur = {"chunks": [], "size": 0, "paths": [], "mid": ""}
+          cur = {"chunks": [], "size": 0, "paths": [], "mid": "", "mid_hunk": ""}
+          hunk = {"last": inherited_hunk}
           warned = False
 
 
@@ -219,12 +230,21 @@ jobs:
               global cur
               if cur["chunks"]:
                   parts.append(cur)
-              cur = {"chunks": [], "size": 0, "paths": [], "mid": ""}
+              cur = {"chunks": [], "size": 0, "paths": [], "mid": "", "mid_hunk": ""}
 
 
           def append(chunk, path):
+              if chunk.startswith(b"diff --git "):
+                  hunk["last"] = ""
               if not cur["chunks"] and not chunk.startswith(b"diff --git "):
                   cur["mid"] = path
+                  if not chunk.startswith(b"@@ "):
+                      cur["mid_hunk"] = hunk["last"]
+              k = chunk.rfind(b"\n@@ ")
+              start = k + 1 if k != -1 else (0 if chunk.startswith(b"@@ ") else -1)
+              if start != -1:
+                  end = chunk.find(b"\n", start)
+                  hunk["last"] = chunk[start:end if end != -1 else len(chunk)].decode("utf-8", "replace")
               cur["chunks"].append(chunk)
               cur["size"] += len(chunk)
               if not cur["paths"] or cur["paths"][-1] != path:
@@ -265,6 +285,8 @@ jobs:
                   while end < len(chunk) and end > i and (chunk[end] & 0xC0) == 0x80:
                       end -= 1
                   if end == i:
+                      if not cur["chunks"]:
+                          sys.exit("a multibyte character does not fit the budget")
                       close()
                       continue
                   append(chunk[i:end], path)
@@ -314,15 +336,20 @@ jobs:
                   "first_file": p["paths"][0],
                   "last_file": p["paths"][-1],
                   "mid_file_path": p["mid"],
+                  "mid_hunk": p["mid_hunk"],
               }
               with open(name + ".meta", "w") as f:
                   json.dump(meta, f)
           PY
-          python3 /tmp/chunk.py "$MAX_BYTES" /tmp/pr_diff.txt /tmp/parts "" ""
-          if ! cat /tmp/parts/*.diff | cmp -s - /tmp/pr_diff.txt; then
-            echo "::error::The diff parts do not add up to the diff"
-            exit 1
+          if ! python3 /tmp/chunk.py "$MAX_BYTES" /tmp/pr_diff.txt /tmp/parts "" "" > /tmp/chunk.log 2>&1 || ! cat /tmp/parts/*.diff | cmp -s - /tmp/pr_diff.txt; then
+            cat /tmp/chunk.log
+            MESSAGE="Could not split the diff into parts of max_diff_bytes ($MAX_BYTES): $(tail -n1 /tmp/chunk.log | tr -d '\r' | head -c 300)"
+            echo "::error::${MESSAGE//%/%25}"
+            echo "error=true" >> "$GITHUB_OUTPUT"
+            echo "error_message=$MESSAGE" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          cat /tmp/chunk.log
           PARTS=$(find /tmp/parts -name '*.diff' | wc -l | tr -d ' ')
           echo "parts=$PARTS" >> "$GITHUB_OUTPUT"
           echo "Diff: $TOTAL_LINES lines, $TOTAL_BYTES bytes, $FILES files, $PARTS part(s) of at most $MAX_BYTES bytes"
@@ -350,13 +377,12 @@ jobs:
             exit 0
           fi
 
-          CURL_MAX_TIME=$(( TIMEOUT_MINUTES * 60 - 120 ))
-          if [ "$CURL_MAX_TIME" -lt 60 ]; then
-            CURL_MAX_TIME=60
-          fi
-          OVERFLOW_RE='input_too_large|context_length|context window|maximum context length|token limit|input token|prompt is too long|too (large|long)|exceed.*token|token.*exceed'
+          DEADLINE=$(( TIMEOUT_MINUTES * 60 - 180 ))
+          MAX_PARALLEL=4
+          OVERFLOW_RE='input_too_large|context_length_exceeded|exceeded model token limit|maximum context length is|prompt is too long|input token count.*exceeds the maximum'
 
           one_line() { tr '\n\r' '  ' | sed 's/ *$//' | head -c "${1:-500}"; }
+          warn() { local m=$1; echo "::warning::${m//%/%25}"; }
           blank() { [ -z "$(tr -d '[:space:]' < "$1" 2> /dev/null)" ]; }
           error_detail() {
             jq -r 'if (.error | type) == "object" then (.error.message // (.error | tojson)) else (.error // .) end' "$1" 2> /dev/null | one_line
@@ -386,7 +412,7 @@ jobs:
           }
 
           call_api() {
-            curl -sS -o "$1.resp" -D "$1.headers" -w '%{http_code}' --max-time "$CURL_MAX_TIME" \
+            curl -sS -o "$1.resp" -D "$1.headers" -w '%{http_code}' --max-time "$2" \
               -X POST "https://api.moonshot.ai/v1/chat/completions" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer $API_KEY" \
@@ -407,8 +433,9 @@ jobs:
           }
 
           review_part() {
-            local name=$1 depth=$2 note=$3 d="/tmp/parts/$1" code rc attempt=0 wait_s start=$SECONDS mid
+            local name=$1 depth=$2 note=$3 d="/tmp/parts/$1" code rc attempt=0 wait_s start=$SECONDS mid mid_hunk left
             mid=$(jq -r '.mid_file_path' "$d.meta")
+            mid_hunk=$(jq -r '.mid_hunk // ""' "$d.meta")
             {
               printf 'REPO: %s\nPR NUMBER: %s\n\n' "$REPO" "$PR_NUMBER"
               printf '%s' 'Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:'
@@ -418,26 +445,36 @@ jobs:
               if [ -n "$mid" ]; then
                 printf ' It begins inside the diff of %s, continued from the previous part.' "$mid"
               fi
+              if [ -n "$mid_hunk" ]; then
+                printf ' Its first lines continue the hunk %s.' "$mid_hunk"
+              fi
             } > "$d.user"
             if ! build_payload "$d.diff" "$d.user" > "$d.payload"; then
               echo "could not build the request payload" > "$d.error"
               return
             fi
             while :; do
+              left=$(( DEADLINE - SECONDS ))
+              if [ "$left" -lt 60 ]; then
+                echo "ran out of time before the request could be sent; raise timeout_minutes" > "$d.error"
+                return
+              fi
               rc=0
-              code=$(call_api "$d") || rc=$?
-              if [ "$rc" -eq 0 ] && [[ "$code" =~ ^(429|500|502|503|504|529)$ ]] && [ "$attempt" -lt 3 ]; then
-                wait_s=$(grep -i '^retry-after:' "$d.headers" | head -n1 | tr -dc '0-9')
+              code=$(call_api "$d" "$left") || rc=$?
+              if { [ "$rc" -eq 0 ] && [[ "$code" =~ ^(429|500|502|503|504|529)$ ]]; } || [[ "$rc" =~ ^(6|7|35|52|55|56)$ ]]; then
+                wait_s=$(grep -i '^retry-after:' "$d.headers" 2> /dev/null | head -n1 | tr -dc '0-9')
                 if [ -z "$wait_s" ]; then
                   wait_s=$(( 30 << attempt ))
                 fi
                 if [ "$wait_s" -gt 300 ]; then
                   wait_s=300
                 fi
-                echo "::warning::Part $name: HTTP $code, retrying in ${wait_s}s"
-                sleep "$wait_s"
-                attempt=$(( attempt + 1 ))
-                continue
+                if [ "$attempt" -lt 3 ] && [ $(( DEADLINE - SECONDS - wait_s )) -ge 120 ]; then
+                  warn "Part $name: $([ "$rc" -eq 0 ] && echo "HTTP $code" || echo "curl exit $rc"), retrying in ${wait_s}s"
+                  sleep "$wait_s"
+                  attempt=$(( attempt + 1 ))
+                  continue
+                fi
               fi
               break
             done
@@ -459,19 +496,18 @@ jobs:
           }
 
           split_part() {
-            local name=$1 depth=$2 note=$3 d="/tmp/parts/$1" size mid n i=0 child sub
+            local name=$1 depth=$2 note=$3 d="/tmp/parts/$1" size n i=0 child sub
             size=$(wc -c < "$d.diff" | tr -d ' ')
             if [ "$depth" -ge 2 ]; then
               echo "still over the model's context window after 2 splits ($size bytes, $(error_detail "$d.resp")). Lower max_diff_bytes." > "$d.error"
               return
             fi
-            mid=$(jq -r '.mid_file_path' "$d.meta")
-            if ! python3 /tmp/chunk.py $(( size * 11 / 20 + 1 )) "$d.diff" /tmp/parts "$name-" "$mid"; then
+            if ! python3 /tmp/chunk.py $(( size * 11 / 20 + 1 )) "$d.diff" /tmp/parts "$name-" "$(jq -r '.mid_file_path' "$d.meta")" "$(jq -r '.mid_hunk // ""' "$d.meta")"; then
               echo "could not split the part after the model rejected it as too long" > "$d.error"
               return
             fi
             n=$(find /tmp/parts -name "$name-???.diff" | wc -l | tr -d ' ')
-            echo "::warning::Part $name ($size bytes) is over the model's context window: $(error_detail "$d.resp"). Split into $n and retried."
+            warn "Part $name ($size bytes) is over the model's context window: $(error_detail "$d.resp"). Split into $n and retried."
             rm -f "$d.diff" "$d.meta" "$d.user" "$d.payload" "$d.resp" "$d.headers" "$d.seconds" "$d.usage"
             for child in $(find /tmp/parts -name "$name-???.diff" | sort); do
               i=$(( i + 1 ))
@@ -490,6 +526,9 @@ jobs:
           i=0
           # Workers write only their own files under /tmp/parts; GITHUB_OUTPUT is written here, after wait.
           for f in $TOP; do
+            while [ "$(jobs -rp | wc -l)" -ge "$MAX_PARALLEL" ]; do
+              wait -n
+            done
             i=$(( i + 1 ))
             note=""
             if [ "$N" -gt 1 ]; then
@@ -558,27 +597,31 @@ jobs:
 
             const splitText = (text, budget) => {
               const out = [];
-              let cur = '';
+              let cur = null;
               for (let line of text.split('\n')) {
                 while (line.length > budget) {
-                  if (cur) {
+                  if (cur !== null) {
                     out.push(cur);
-                    cur = '';
+                    cur = null;
                   }
                   out.push(line.slice(0, budget));
                   line = line.slice(budget);
                 }
-                const joined = cur ? `${cur}\n${line}` : line;
-                if (joined.length > budget) {
+                if (cur === null) {
+                  cur = line;
+                } else if (cur.length + 1 + line.length > budget) {
                   out.push(cur);
                   cur = line;
                 } else {
-                  cur = joined;
+                  cur = `${cur}\n${line}`;
                 }
               }
-              out.push(cur);
+              if (cur !== null) {
+                out.push(cur);
+              }
               return out;
             };
+            const code = (path) => `\`${path.replace(/`/g, "'")}\``;
 
             for (let i = 0; i < names.length; i++) {
               const base = `${dir}/${names[i]}`;
@@ -589,8 +632,8 @@ jobs:
               let note = '';
               if (names.length > 1) {
                 partTag = ` (part ${i + 1}/${names.length})`;
-                const span = meta.first_file === meta.last_file ? meta.first_file : `${meta.first_file} to ${meta.last_file}`;
-                const inside = meta.mid_file_path ? `, starting inside ${meta.mid_file_path}` : '';
+                const span = meta.first_file === meta.last_file ? code(meta.first_file) : `${code(meta.first_file)} to ${code(meta.last_file)}`;
+                const inside = meta.mid_file_path ? `, starting inside ${code(meta.mid_file_path)}` : '';
                 note = `> Part ${i + 1} of ${names.length} of the diff (${meta.lines} lines, ${meta.files} ${meta.files === 1 ? 'file' : 'files'}: ${span}${inside}), split to fit the model's context window. The other parts are reviewed in separate comments.\n\n`;
               }
               const footer = `\n\n---\n*Automated review by ${reviewer} · ${model}${promptNote}*`;
