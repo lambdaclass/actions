@@ -109,7 +109,8 @@ from the pulls API, which refuses diffs over 20000 lines. The whole diff is alwa
   posts an error comment and fails. The default is 200000.
 - The job log prints the provider's input token count for each part, next to its bytes.
 
-A 130000-line, 6 MB PR is about 6 Grok requests (1.2 MB each) and 3 for the others (2.4 MB).
+A 130000-line, 6 MB PR is about 6 Grok requests (1.2 MB each), 4 Claude requests (1.8 MB) and
+3 for Kimi, DeepSeek and Gemini (2.4 MB).
 Codex reads the whole diff from `/tmp/pr_diff.txt` itself and only takes the ceiling.
 
 #### Claude (`ai-review-claude-api.yml`)
@@ -124,7 +125,7 @@ jobs:
       model: 'claude-opus-5-5'         # Claude model
       effort: 'high'                   # 'low', 'medium', 'high', 'xhigh', 'max'; '' omits (medium)
       max_diff_lines: 200000           # Ceiling: a larger diff fails the review instead of trimming it
-      max_diff_bytes: 2400000          # Bytes per request, sized to the 1M window; a larger diff is reviewed in parts
+      max_diff_bytes: 1800000          # Bytes per request; Claude's tokenizer is ~2.4 bytes/token on code; a larger diff is reviewed in parts
       max_tokens: 32000                # Max response tokens, thinking included
       timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)

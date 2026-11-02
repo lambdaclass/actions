@@ -29,8 +29,8 @@ on:
         default: 200000
       max_diff_bytes:
         description: >-
-          Bytes of diff per request, sized to the model's context window at
-          three bytes per token. A larger diff is split on file, then hunk,
+          Bytes of diff per request, sized to stay under the model's context
+          window at the bytes per token its tokenizer gets on code. A larger diff is split on file, then hunk,
           then line boundaries into parts, each reviewed in its own request and
           comment; a part the model still rejects as too long is split in two
           and retried, at most twice.
@@ -455,7 +455,7 @@ jobs:
               return
             fi
             mid=$(jq -r '.mid_file_path' "$d.meta")
-            if ! python3 /tmp/chunk.py $(( size / 2 + 1 )) "$d.diff" /tmp/parts "$name-" "$mid"; then
+            if ! python3 /tmp/chunk.py $(( size * 11 / 20 + 1 )) "$d.diff" /tmp/parts "$name-" "$mid"; then
               echo "could not split the part after the model rejected it as too long" > "$d.error"
               return
             fi
@@ -580,7 +580,7 @@ jobs:
                 partTag = ` (part ${i + 1}/${names.length})`;
                 const span = meta.first_file === meta.last_file ? meta.first_file : `${meta.first_file} to ${meta.last_file}`;
                 const inside = meta.mid_file_path ? `, starting inside ${meta.mid_file_path}` : '';
-                note = `> Part ${i + 1} of ${names.length} of the diff (${meta.lines} lines, ${meta.files} files: ${span}${inside}), split to fit the model's context window. The other parts are reviewed in separate comments.\n\n`;
+                note = `> Part ${i + 1} of ${names.length} of the diff (${meta.lines} lines, ${meta.files} ${meta.files === 1 ? 'file' : 'files'}: ${span}${inside}), split to fit the model's context window. The other parts are reviewed in separate comments.\n\n`;
               }
               const footer = `\n\n---\n*Automated review by ${reviewer} · ${model}${promptNote}*`;
               const pieces = splitText(review, limit - note.length - footer.length - 200);
