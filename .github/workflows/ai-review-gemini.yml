@@ -52,7 +52,8 @@ jobs:
   review:
     if: |
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.draft == false && github.event.pull_request.user.login != 'dependabot[bot]') ||
+      github.event.pull_request.draft == false && github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.actor != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && (startsWith(github.event.comment.body, '/gemini') || startsWith(github.event.comment.body, '/review')) && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout_minutes }}
