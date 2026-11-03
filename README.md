@@ -305,6 +305,8 @@ jobs:
 ### Security
 
 - **Fork protection**: Reviews will not run on PRs from forks (to protect secrets)
+- **Drafts and Dependabot**: Automatic reviews do not run when a draft PR is opened, or when Dependabot opened the PR or triggered the run (it gets no secrets); a draft is reviewed when it is marked ready for review. Comment commands still work on both
+- **Comment commands run from the default branch**: `/review` and the per-model commands only work once the caller workflow is on the repository's default branch
 - **Access control**: Slash commands only work for users with write access
 
 ### Versioning

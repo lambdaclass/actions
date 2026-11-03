@@ -1,7 +1,8 @@
 # Example: Using all AI code reviewers
 #
 # Triggers:
-# - Automatically on PR open/ready_for_review
+# - Automatically when a non-draft PR is opened or marked ready for review (not Dependabot)
+# - Comment commands only work once this file is on the default branch
 # - On-demand via PR comments: /review for every reviewer, or /claude, /kimi, /codex, /deepseek,
 #   /gemini, /grok for one (requires write access)
 #
