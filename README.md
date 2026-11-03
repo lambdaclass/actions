@@ -34,7 +34,7 @@ name: AI Code Review
 
 on:
   pull_request:
-    types: [opened, ready_for_review]
+    types: [opened, reopened, ready_for_review]
   issue_comment:
     types: [created]
 
@@ -262,7 +262,7 @@ name: AI Code Review
 
 on:
   pull_request:
-    types: [opened, ready_for_review]
+    types: [opened, reopened, ready_for_review]
   issue_comment:
     types: [created]
 
@@ -305,6 +305,8 @@ jobs:
 ### Security
 
 - **Fork protection**: Reviews will not run on PRs from forks (to protect secrets)
+- **Drafts and Dependabot**: Reviews do not run when a draft PR is opened or on Dependabot PRs; a draft is reviewed when it is marked ready for review
+- **Comment commands run from the default branch**: `/review` and the per-model commands only work once the caller workflow is on the repository's default branch
 - **Access control**: Slash commands only work for users with write access
 
 ### Versioning
