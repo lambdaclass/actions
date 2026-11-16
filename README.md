@@ -105,7 +105,7 @@ Every reviewer also takes these inputs:
       exclude_paths: |                 # Extra globs left out of the diff, one per line
         research/**
       max_auto_review_lines: 15000     # Automatic runs above this many changed lines post a notice instead; 0 turns it off
-      price_per_mtok: ''               # 'in/out' USD per million tokens for the footer; '' uses the default model's price (not Codex)
+      price_per_mtok: ''               # 'in/out' USD per million tokens for the footer ('in/out/cached' for Codex); '' uses the default model's price
 ```
 
 - **Excluded files.** Lockfiles, `*.min.js`, `*.min.css`, `*.map`, `vendor/`, `node_modules/`, `dist/`,
@@ -121,7 +121,8 @@ Every reviewer also takes these inputs:
 - **Cost in the footer.** Each API reviewer shows the tokens it used and an estimated cost,
   e.g. `· 41.2k in / 3.1k out · ~$0.23`, also in a hidden `<!-- ai-review-usage {...} -->`
   tag for spend reports. The estimate uses list prices (DeepSeek at its peak rate) and
-  ignores cache discounts. Codex's footer shows the model only.
+  ignores cache discounts. Codex reads its totals from its session log and prices cached input
+  separately, since an agent run re-sends most of its context.
 
 #### Claude (`ai-review-claude.yml`)
 
