@@ -108,10 +108,12 @@ Every reviewer also takes these inputs:
       price_per_mtok: ''               # 'in/out' USD per million tokens for the footer; '' uses the default model's price (not Codex)
 ```
 
-- **Excluded files.** Lockfiles, `*.min.js`, `*.min.css`, `*.map`, `vendor/`, `node_modules/`,
-  `dist/`, `build/`, CSV, TSV, Parquet, notebooks, images and PDFs are left out of the diff
+- **Excluded files.** Lockfiles, `*.min.js`, `*.min.css`, `*.map`, `vendor/`, `node_modules/`, `dist/`,
+  CSV, TSV, Parquet, notebooks, images and PDFs are left out of the diff
   before anything else, plus whatever `exclude_paths` lists. A PR that changes only those
-  files gets a notice instead of a review.
+  files gets a notice instead of a review. The reviewers get the list of excluded files that
+  changed, so a lockfile change is still visible to them, and the footer shows how many
+  were excluded.
 - **Size limit for automatic runs.** On a `pull_request` event, a diff with more than
   `max_auto_review_lines` changed lines (added plus deleted, after the exclusions) is not
   sent to the models. One "AI Code Review" notice is posted for all reviewers, and a

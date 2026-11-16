@@ -47,7 +47,7 @@ on:
         description: >-
           Extra glob pathspecs to leave out of the reviewed diff, one per line,
           e.g. 'research/**'. They add to the built-in list: lockfiles, minified
-          and source-map files, vendor, node_modules, dist and build trees, data
+          and source-map files, vendor, node_modules and dist trees, data
           files, images and PDFs.
         required: false
         type: string
@@ -164,7 +164,7 @@ jobs:
           git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
           PATHSPECS=(.)
           for p in '*.lock' package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock go.sum \
-            '*.min.js' '*.min.css' '*.map' 'vendor/**' 'node_modules/**' 'dist/**' 'build/**' \
+            '*.min.js' '*.min.css' '*.map' 'vendor/**' 'node_modules/**' 'dist/**' \
             '*.csv' '*.tsv' '*.parquet' '*.ipynb' \
             '*.png' '*.jpg' '*.jpeg' '*.gif' '*.webp' '*.ico' '*.pdf'; do
             PATHSPECS+=(":(exclude,glob)**/$p")
@@ -176,7 +176,15 @@ jobs:
             fi
           done <<< "$EXCLUDE_PATHS"
 
-          ALL_FILES=$(git -C "$PR_REPO" diff --name-only "$MERGE_BASE" "$HEAD_SHA" | wc -l)
+          git -C "$PR_REPO" diff --name-only "$MERGE_BASE" "$HEAD_SHA" | sort > /tmp/all_files.txt
+          git -C "$PR_REPO" diff --name-only "$MERGE_BASE" "$HEAD_SHA" -- "${PATHSPECS[@]}" | sort > /tmp/kept_files.txt
+          comm -23 /tmp/all_files.txt /tmp/kept_files.txt > /tmp/excluded_all.txt
+          ALL_FILES=$(wc -l < /tmp/all_files.txt)
+          EXCLUDED_COUNT=$(wc -l < /tmp/excluded_all.txt)
+          head -n 200 /tmp/excluded_all.txt > /tmp/excluded_files.txt
+          if [ "$EXCLUDED_COUNT" -gt 200 ]; then
+            echo "... and $((EXCLUDED_COUNT - 200)) more" >> /tmp/excluded_files.txt
+          fi
           git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" -- "${PATHSPECS[@]}" > /tmp/pr_diff.txt
           CHANGED_LINES=$(git -C "$PR_REPO" diff --numstat "$MERGE_BASE" "$HEAD_SHA" -- "${PATHSPECS[@]}" | awk '{ n += $1 + $2 } END { print n + 0 }')
           rm -rf "$PR_REPO"
@@ -187,6 +195,7 @@ jobs:
           fi
 
           echo "changed_lines=$CHANGED_LINES" >> "$GITHUB_OUTPUT"
+          echo "excluded_count=$EXCLUDED_COUNT" >> "$GITHUB_OUTPUT"
           if [ ! -s /tmp/pr_diff.txt ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "skip_reason=Every changed file is a lockfile, a generated, vendored or data file, or matches exclude_paths, so there is nothing to review." >> "$GITHUB_OUTPUT"
@@ -262,11 +271,12 @@ jobs:
             --arg user "$USER_PROMPT" \
             --argjson max_output_tokens "$MAX_OUTPUT_TOKENS" \
             --arg thinking_level "$THINKING_LEVEL" \
+            --rawfile excluded /tmp/excluded_files.txt \
             --rawfile diff /tmp/pr_diff_truncated.txt \
             '{
               systemInstruction: { parts: [ { text: $system } ] },
               contents: [
-                { role: "user", parts: [ { text: ($user + "\n\nDiff:\n" + $diff) } ] }
+                { role: "user", parts: [ { text: ($user + (if $excluded == "" then "" else "\n\nChanged files left out of the diff:\n" + $excluded end) + "\n\nDiff:\n" + $diff) } ] }
               ],
               generationConfig: (
                 { maxOutputTokens: $max_output_tokens }
@@ -353,7 +363,7 @@ jobs:
               issue_number: context.issue.number,
               per_page: 100,
             });
-            if (comments.some((c) => (c.body || '').includes(marker))) {
+            if (comments.some((c) => c.user?.login === 'github-actions[bot]' && (c.body || '').includes(marker))) {
               core.info('Another reviewer already posted the notice');
               return;
             }
@@ -373,6 +383,7 @@ jobs:
           OUT_TOKENS: ${{ steps.gemini_review.outputs.out_tokens }}
           COST: ${{ steps.gemini_review.outputs.cost }}
           TRUNCATED: ${{ steps.diff.outputs.truncated }}
+          EXCLUDED_COUNT: ${{ steps.diff.outputs.excluded_count }}
           TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
           SENT_LINES: ${{ steps.diff.outputs.sent_lines }}
           PROMPT_SOURCE: ${{ steps.load_prompt.outputs.source }}
@@ -380,7 +391,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const raw = fs.readFileSync('/tmp/review.txt', 'utf8');
+            const raw = fs.readFileSync('/tmp/review.txt', 'utf8').replace(/<!--\s*ai-review-/g, '<!-- quoted-ai-review-');
+            const excludedCount = Number(process.env.EXCLUDED_COUNT || 0);
+            const excludedNote = excludedCount ? ` · ${excludedCount} excluded file${excludedCount === 1 ? '' : 's'}` : '';
             const limit = 60000;
             const review = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
             const truncated = process.env.TRUNCATED === 'true';
@@ -399,7 +412,7 @@ jobs:
             const outTokens = Number(process.env.OUT_TOKENS || 0);
             const cost = process.env.COST ? Number(process.env.COST) : null;
             const usageNote = inTokens || outTokens ? ` · ${fmtTokens(inTokens)} in / ${fmtTokens(outTokens)} out${cost === null ? '' : ` · ~$${cost.toFixed(2)}`}` : '';
-            const usageTag = `\n<!-- ai-review-usage ${JSON.stringify({ reviewer: 'gemini', model: process.env.MODEL || '', in: inTokens, out: outTokens, usd: cost })} -->`;
+            const usageTag = `\n<!-- ai-review-usage ${JSON.stringify({ reviewer: 'gemini', model: process.env.MODEL || '', in: inTokens, out: outTokens, usd: cost }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')} -->`;
             let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
 
             if (review && review.trim() !== '') {
@@ -407,7 +420,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `## 🤖 Gemini Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Gemini · ${model}${promptNote}${usageNote}*${usageTag}`
+                body: `## 🤖 Gemini Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Gemini · ${model}${promptNote}${excludedNote}${usageNote}*${usageTag}`
               });
             }
 
@@ -429,7 +442,7 @@ jobs:
             const outTokens = Number(process.env.OUT_TOKENS || 0);
             const cost = process.env.COST ? Number(process.env.COST) : null;
             const usageNote = inTokens || outTokens ? ` · ${fmtTokens(inTokens)} in / ${fmtTokens(outTokens)} out${cost === null ? '' : ` · ~$${cost.toFixed(2)}`}` : '';
-            const usageTag = `\n<!-- ai-review-usage ${JSON.stringify({ reviewer: 'gemini', model: process.env.MODEL || '', in: inTokens, out: outTokens, usd: cost })} -->`;
+            const usageTag = `\n<!-- ai-review-usage ${JSON.stringify({ reviewer: 'gemini', model: process.env.MODEL || '', in: inTokens, out: outTokens, usd: cost }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')} -->`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
