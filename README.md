@@ -68,7 +68,7 @@ You can customize the review prompt in three ways (in order of priority):
 
 1. **`prompt` input** - Pass a custom prompt directly in the workflow
 2. **`.github/prompts/ai-review.md`** - Create this file in your repo with custom instructions. It is read from the PR's base branch, so a PR cannot change the prompt that reviews it; a fetch error other than a missing file fails the review rather than falling back to the default prompt
-3. **Default prompt** - Generic security/bugs/performance review
+3. **Default prompt** - Security-only review (see [Default Review Focus](#default-review-focus))
 
 When a custom prompt is used, the review footer will show "· custom prompt".
 
@@ -97,6 +97,32 @@ The diff comes from git, a blob-filtered fetch of the merge base and the PR head
 from the pulls API, which refuses diffs over 20000 lines. `max_diff_lines` caps lines and
 `max_diff_bytes` caps the payload after that, so a reviewer never receives more than its context
 window holds; Codex reads the repository itself and only takes the line cap.
+
+Every reviewer also takes these inputs:
+
+```yaml
+    with:
+      exclude_paths: |                 # Extra globs left out of the diff, one per line
+        research/**
+      max_auto_review_lines: 15000     # Automatic runs above this many changed lines post a notice instead; 0 turns it off
+      price_per_mtok: ''               # 'in/out' USD per million tokens for the footer ('in/out/cached' for Codex); '' uses the default model's price
+```
+
+- **Excluded files.** Lockfiles, `*.min.js`, `*.min.css`, `*.map`, `vendor/`, `node_modules/`, `dist/`,
+  CSV, TSV, Parquet, notebooks, images and PDFs are left out of the diff
+  before anything else, plus whatever `exclude_paths` lists. A PR that changes only those
+  files gets a notice instead of a review. The reviewers get the list of excluded files that
+  changed, so a lockfile change is still visible to them, and the footer shows how many
+  were excluded.
+- **Size limit for automatic runs.** On a `pull_request` event, a diff with more than
+  `max_auto_review_lines` changed lines (added plus deleted, after the exclusions) is not
+  sent to the models. One "AI Code Review" notice is posted for all reviewers, and a
+  `/review` comment still runs them, within `max_diff_lines` and `max_diff_bytes`.
+- **Cost in the footer.** Each API reviewer shows the tokens it used and an estimated cost,
+  e.g. `· 41.2k in / 3.1k out · ~$0.23`, also in a hidden `<!-- ai-review-usage {...} -->`
+  tag for spend reports. The estimate uses list prices (DeepSeek at its peak rate) and
+  ignores cache discounts. Codex reads its totals from its session log and prices cached input
+  separately, since an agent run re-sends most of its context.
 
 #### Claude (`ai-review-claude.yml`)
 
@@ -181,7 +207,7 @@ jobs:
       reasoning_effort: 'high'         # 'none' disables thinking; 'low', 'high', 'max'; '' omits
       max_diff_lines: 10000            # Max lines of diff to review
       max_diff_bytes: 2400000          # Byte cap after the line cap, sized to the 1M window
-      max_tokens: 65536                # Max response tokens, reasoning included
+      max_tokens: 196608               # Max response tokens, reasoning included (the model allows 384K)
       temperature: ''                  # '' omits it; ignored in thinking mode anyway
       timeout_minutes: 20              # Cancel the review job after this long
       prompt: ''                       # Custom prompt (overrides prompt file)
@@ -247,11 +273,15 @@ jobs:
 
 ### Default Review Focus
 
-All workflows use a default prompt that focuses on:
+Without a custom prompt, the reviewers look for security issues only: injection, authn and
+authz, secrets, crypto misuse, unsafe deserialization, SSRF and path traversal, dependency
+risk, smart-contract issues, races with a security impact, and CI or infrastructure
+exposure. Each finding gets a Critical, High, Medium or Low label and a file and line.
+Style, general bugs and performance are left out unless they have a security impact.
 
-1. **Security vulnerabilities** - Labeled by criticality (Critical/High/Medium/Low)
-2. **Bugs** - Logic errors, edge cases, incorrect behavior
-3. **Significant performance issues** - Only obvious problems like O(n²) loops
+The API reviewers are also told that they only have the diff and no tools, so they review
+what it shows instead of describing files they would open. This applies to custom prompts
+too.
 
 ### Using Multiple Reviewers
 

@@ -32,6 +32,32 @@ on:
         required: false
         type: number
         default: 20
+      exclude_paths:
+        description: >-
+          Extra glob pathspecs to leave out of the reviewed diff, one per line,
+          e.g. 'research/**'. They add to the built-in list: lockfiles, minified
+          and source-map files, vendor, node_modules and dist trees, data
+          files, images and PDFs.
+        required: false
+        type: string
+        default: ''
+      max_auto_review_lines:
+        description: >-
+          Changed lines, added plus deleted after the exclusions, above which an
+          automatic pull_request run posts a notice instead of a review. A
+          /review comment still reviews the PR. 0 turns the limit off.
+        required: false
+        type: number
+        default: 15000
+      price_per_mtok:
+        description: >-
+          'input/output/cached-input' USD per million tokens for the cost
+          estimate in the comment footer, e.g. '2/10/0.1'. '' uses the built-in
+          price of the default model; with any other model the footer shows
+          token counts only.
+        required: false
+        type: string
+        default: ''
     secrets:
       OPENAI_API_KEY:
         description: 'OpenAI API key'
@@ -52,7 +78,7 @@ jobs:
     # ubuntu-latest is 26.04 since 2026-11, where the runner user has no sudo and drop-sudo cannot run.
     runs-on: ubuntu-24.04
     outputs:
-      reported: ${{ steps.review.outcome == 'success' || steps.error.outcome == 'success' }}
+      reported: ${{ steps.review.outcome == 'success' || steps.error.outcome == 'success' || steps.post_skip.outcome == 'success' }}
     timeout-minutes: ${{ inputs.timeout_minutes }}
     steps:
       - uses: actions/checkout@v4
@@ -76,18 +102,24 @@ jobs:
             if PROMPT=$(gh api -H "Accept: application/vnd.github.raw+json" "repos/$REPO/contents/.github/prompts/ai-review.md?ref=$BASE_SHA" 2> /tmp/prompt_error.txt); then
               echo "source=custom" >> $GITHUB_OUTPUT
             elif grep -q "HTTP 404" /tmp/prompt_error.txt; then
-              PROMPT="You are a code reviewer. Review ONLY the changes in this pull request diff, not the entire codebase.
+              PROMPT="You are a security reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
 
-          Focus on:
-          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
-          2. **Bugs** - Logic errors, edge cases, incorrect behavior
-          3. **Significant performance issues** - Only flag obvious problems
+          Report only security issues that this diff introduces or exposes:
+          - Injection: SQL, command, template, header and code injection, XSS
+          - Authentication and authorization: missing or bypassable checks, privilege escalation, broken tenant or ownership scoping
+          - Secrets: credentials, keys or tokens committed, logged or exposed to clients
+          - Cryptography: weak or misused primitives, predictable randomness, missing signature or MAC verification
+          - Unsafe deserialization, SSRF, path traversal, open redirects, unsafe file handling
+          - Dependencies: new or changed packages that are unpinned, unmaintained, typosquatted or known to be vulnerable
+          - Smart contracts: reentrancy, access control, unchecked external calls, oracle or price manipulation
+          - Race conditions, integer overflows and unvalidated input with a security impact
+          - CI and infrastructure: workflow injection, over-broad permissions or tokens, services exposed publicly
 
           Guidelines:
-          - Be concise and actionable
-          - Reference specific file names and line numbers
-          - Only flag real issues, not style preferences
-          - If no issues found, say so briefly"
+          - Label each finding Critical, High, Medium or Low and give the file and line
+          - Say in a few lines how it could be exploited and how to fix it
+          - Do not comment on style, naming, general bugs, performance or tests unless they have a security impact
+          - If there are no security issues, say so in one sentence"
               echo "source=default" >> $GITHUB_OUTPUT
             else
               cat /tmp/prompt_error.txt
@@ -106,6 +138,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
+          EXCLUDE_PATHS: ${{ inputs.exclude_paths }}
+          MAX_AUTO_LINES: ${{ inputs.max_auto_review_lines }}
+          EVENT_NAME: ${{ github.event_name }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
           BASE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefOid --jq .baseRefOid)
@@ -121,8 +156,50 @@ jobs:
           git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
           git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
           git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
-          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff_full.txt
+          PATHSPECS=(.)
+          for p in '*.lock' package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock go.sum \
+            '*.min.js' '*.min.css' '*.map' 'vendor/**' 'node_modules/**' 'dist/**' \
+            '*.csv' '*.tsv' '*.parquet' '*.ipynb' \
+            '*.png' '*.jpg' '*.jpeg' '*.gif' '*.webp' '*.ico' '*.pdf'; do
+            PATHSPECS+=(":(exclude,glob)**/$p")
+          done
+          while IFS= read -r p; do
+            p=$(printf '%s' "$p" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+            if [ -n "$p" ]; then
+              PATHSPECS+=(":(exclude,glob)$p")
+            fi
+          done <<< "$EXCLUDE_PATHS"
+
+          git -C "$PR_REPO" diff --name-only "$MERGE_BASE" "$HEAD_SHA" | sort > /tmp/all_files.txt
+          git -C "$PR_REPO" diff --name-only "$MERGE_BASE" "$HEAD_SHA" -- "${PATHSPECS[@]}" | sort > /tmp/kept_files.txt
+          comm -23 /tmp/all_files.txt /tmp/kept_files.txt > /tmp/excluded_all.txt
+          ALL_FILES=$(wc -l < /tmp/all_files.txt)
+          EXCLUDED_COUNT=$(wc -l < /tmp/excluded_all.txt)
+          head -n 200 /tmp/excluded_all.txt > /tmp/excluded_files.txt
+          if [ "$EXCLUDED_COUNT" -gt 200 ]; then
+            echo "... and $((EXCLUDED_COUNT - 200)) more" >> /tmp/excluded_files.txt
+          fi
+          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" -- "${PATHSPECS[@]}" > /tmp/pr_diff_full.txt
+          CHANGED_LINES=$(git -C "$PR_REPO" diff --numstat "$MERGE_BASE" "$HEAD_SHA" -- "${PATHSPECS[@]}" | awk '{ n += $1 + $2 } END { print n + 0 }')
           rm -rf "$PR_REPO"
+
+          if [ "$ALL_FILES" -eq 0 ]; then
+            echo "::error::The PR diff is empty"
+            exit 1
+          fi
+
+          echo "changed_lines=$CHANGED_LINES" >> "$GITHUB_OUTPUT"
+          echo "excluded_count=$EXCLUDED_COUNT" >> "$GITHUB_OUTPUT"
+          if [ ! -s /tmp/pr_diff_full.txt ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=Every changed file is a lockfile, a generated, vendored or data file, or matches exclude_paths, so there is nothing to review." >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$EVENT_NAME" = pull_request ] && [ "$MAX_AUTO_LINES" -gt 0 ] && [ "$CHANGED_LINES" -gt "$MAX_AUTO_LINES" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=This PR changes $CHANGED_LINES lines, over the $MAX_AUTO_LINES-line limit for automatic reviews. Comment \`/review\` to run them anyway." >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff_full.txt)
 
@@ -141,11 +218,13 @@ jobs:
 
       - name: Run Codex Code Review
         id: codex
+        if: steps.diff.outputs.skip != 'true'
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           model: ${{ inputs.model }}
           safety-strategy: ${{ inputs.safety_strategy }}
+          codex-home: ${{ runner.temp }}/codex-home
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
@@ -154,15 +233,82 @@ jobs:
 
             The PR diff is available at /tmp/pr_diff.txt. Read it with: cat /tmp/pr_diff.txt
 
+      # Every reviewer reaches the same skip; staggered starts let the first one post the notice and the rest find it.
+      - name: Post skip notice
+        id: post_skip
+        if: steps.diff.outputs.skip == 'true'
+        uses: actions/github-script@v7
+        env:
+          SKIP_REASON: ${{ steps.diff.outputs.skip_reason }}
+        with:
+          script: |
+            await new Promise((resolve) => setTimeout(resolve, 30000));
+            const key = context.payload.pull_request?.head?.sha || `comment-${context.payload.comment?.id}`;
+            const marker = `<!-- ai-review-skip:${key} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            if (comments.some((c) => c.user?.login === 'github-actions[bot]' && (c.body || '').includes(marker))) {
+              core.info('Another reviewer already posted the notice');
+              return;
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 AI Code Review\n\n${process.env.SKIP_REASON}\n\n---\n*Automated reviews not run (first reported by Codex)*\n${marker}`
+            });
+
+      # codex-action returns only the final message; the token totals are in Codex's session log.
+      - name: Read token usage
+        id: usage
+        if: ${{ !cancelled() && steps.codex.outcome != 'skipped' }}
+        env:
+          MODEL: ${{ inputs.model }}
+          PRICE_PER_MTOK: ${{ inputs.price_per_mtok }}
+        run: |
+          read -r IN_TOKENS CACHED_TOKENS OUT_TOKENS < <(find "$RUNNER_TEMP/codex-home" -name 'rollout-*.jsonl' -print0 2> /dev/null \
+            | xargs -0 -r cat 2> /dev/null \
+            | jq -c '.. | objects | select(has("total_token_usage")) | .total_token_usage' 2> /dev/null \
+            | tail -n 1 \
+            | jq -r '[.input_tokens, .cached_input_tokens, .output_tokens] | map(tonumber? // 0 | floor) | @tsv' 2> /dev/null \
+            || echo "0 0 0")
+          IN_TOKENS=${IN_TOKENS:-0}
+          CACHED_TOKENS=${CACHED_TOKENS:-0}
+          OUT_TOKENS=${OUT_TOKENS:-0}
+          echo "Codex used $IN_TOKENS input tokens ($CACHED_TOKENS cached) and $OUT_TOKENS output tokens"
+          PRICE="$PRICE_PER_MTOK"
+          if [ -z "$PRICE" ]; then
+            case "$MODEL" in
+              gpt-6.1-sol) PRICE=2/10/0.1 ;;
+            esac
+          fi
+          COST=""
+          if [ $((IN_TOKENS + OUT_TOKENS)) -gt 0 ] && [[ "$PRICE" =~ ^[0-9.]+/[0-9.]+(/[0-9.]+)?$ ]]; then
+            COST=$(awk -v i="$IN_TOKENS" -v c="$CACHED_TOKENS" -v o="$OUT_TOKENS" -v p="$PRICE" 'BEGIN { n = split(p, a, "/"); if (n < 3) a[3] = a[1]; printf "%.4f", ((i - c) * a[1] + c * a[3] + o * a[2]) / 1000000 }')
+          fi
+          {
+            echo "in_tokens=$IN_TOKENS"
+            echo "out_tokens=$OUT_TOKENS"
+            echo "cost=$COST"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Post review comment
         id: review
         if: steps.codex.outputs.final-message != ''
         uses: actions/github-script@v7
         env:
           CODEX_FINAL_MESSAGE: ${{ steps.codex.outputs.final-message }}
+          IN_TOKENS: ${{ steps.usage.outputs.in_tokens }}
+          OUT_TOKENS: ${{ steps.usage.outputs.out_tokens }}
+          COST: ${{ steps.usage.outputs.cost }}
           PROMPT_SOURCE: ${{ steps.prompt.outputs.source }}
           MODEL: ${{ inputs.model }}
           TRUNCATED: ${{ steps.diff.outputs.truncated }}
+          EXCLUDED_COUNT: ${{ steps.diff.outputs.excluded_count }}
           TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
         with:
@@ -171,7 +317,14 @@ jobs:
             const source = process.env.PROMPT_SOURCE;
             const model = process.env.MODEL;
             const promptNote = (source === 'custom' || source === 'input') ? ' · custom prompt' : '';
-            const raw = process.env.CODEX_FINAL_MESSAGE;
+            const raw = process.env.CODEX_FINAL_MESSAGE.replace(/<!--\s*ai-review-/g, '<!-- quoted-ai-review-');
+            const excludedCount = Number(process.env.EXCLUDED_COUNT || 0);
+            const fmtTokens = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+            const inTokens = Number(process.env.IN_TOKENS || 0);
+            const outTokens = Number(process.env.OUT_TOKENS || 0);
+            const cost = process.env.COST ? Number(process.env.COST) : null;
+            const usageNote = inTokens || outTokens ? ` · ${fmtTokens(inTokens)} in / ${fmtTokens(outTokens)} out${cost === null ? '' : ` · ~$${cost.toFixed(2)}`}` : '';
+            const excludedNote = excludedCount ? ` · ${excludedCount} excluded file${excludedCount === 1 ? '' : 's'}` : '';
             const limit = 60000;
             const message = raw.length > limit ? raw.slice(0, limit) + "\n\n> Review truncated to fit GitHub's comment size limit." : raw;
             const truncationWarning = process.env.TRUNCATED === 'true'
@@ -181,12 +334,12 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request?.number || context.payload.issue?.number,
-              body: `## 🤖 Codex Code Review\n${truncationWarning}\n${message}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}*`,
+              body: `## 🤖 Codex Code Review\n${truncationWarning}\n${message}\n\n---\n*Automated review by OpenAI Codex · ${model}${promptNote}${excludedNote}${usageNote}*\n<!-- ai-review-usage ${JSON.stringify({ reviewer: 'codex', model, in: inTokens, out: outTokens, usd: cost }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')} -->`,
             });
 
       - name: Post error comment
         id: error
-        if: ${{ success() && steps.codex.outputs.final-message == '' }}
+        if: ${{ success() && steps.diff.outputs.skip != 'true' && steps.codex.outputs.final-message == '' }}
         uses: actions/github-script@v7
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -201,7 +354,7 @@ jobs:
             });
 
       - name: Fail the job if no review was produced
-        if: ${{ success() && steps.codex.outputs.final-message == '' }}
+        if: ${{ success() && steps.diff.outputs.skip != 'true' && steps.codex.outputs.final-message == '' }}
         run: |
           echo "::error::Codex produced no final message"
           exit 1
