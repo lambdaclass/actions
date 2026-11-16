@@ -43,6 +43,31 @@ on:
         required: false
         type: number
         default: 20
+      exclude_paths:
+        description: >-
+          Extra glob pathspecs to leave out of the reviewed diff, one per line,
+          e.g. 'research/**'. They add to the built-in list: lockfiles, minified
+          and source-map files, vendor, node_modules, dist and build trees, data
+          files, images and PDFs.
+        required: false
+        type: string
+        default: ''
+      max_auto_review_lines:
+        description: >-
+          Changed lines, added plus deleted after the exclusions, above which an
+          automatic pull_request run posts a notice instead of a review. A
+          /review comment still reviews the PR. 0 turns the limit off.
+        required: false
+        type: number
+        default: 15000
+      price_per_mtok:
+        description: >-
+          'input/output' USD per million tokens for the cost estimate in the
+          comment footer, e.g. '4/20'. '' uses the built-in price of the default
+          model; with any other model the footer shows token counts only.
+        required: false
+        type: string
+        default: ''
     secrets:
       GEMINI_API_KEY:
         description: 'Gemini API key'
@@ -58,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout_minutes }}
     outputs:
-      reported: ${{ steps.post_review.outcome == 'success' || steps.post_error.outcome == 'success' }}
+      reported: ${{ steps.post_review.outcome == 'success' || steps.post_error.outcome == 'success' || steps.post_skip.outcome == 'success' }}
     permissions:
       contents: read
       pull-requests: write
@@ -84,18 +109,24 @@ jobs:
             echo "source=custom" >> $GITHUB_OUTPUT
           elif grep -q "HTTP 404" /tmp/prompt_error.txt; then
             cat << 'PROMPT_EOF' > /tmp/prompt.txt
-          You are a code reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
+          You are a security reviewer. Review ONLY the changes in the pull request diff, not the entire codebase.
 
-          Focus on:
-          1. **Security vulnerabilities** - Label by criticality (Critical/High/Medium/Low)
-          2. **Bugs** - Logic errors, edge cases, incorrect behavior
-          3. **Significant performance issues** - Only flag obvious problems
+          Report only security issues that this diff introduces or exposes:
+          - Injection: SQL, command, template, header and code injection, XSS
+          - Authentication and authorization: missing or bypassable checks, privilege escalation, broken tenant or ownership scoping
+          - Secrets: credentials, keys or tokens committed, logged or exposed to clients
+          - Cryptography: weak or misused primitives, predictable randomness, missing signature or MAC verification
+          - Unsafe deserialization, SSRF, path traversal, open redirects, unsafe file handling
+          - Dependencies: new or changed packages that are unpinned, unmaintained, typosquatted or known to be vulnerable
+          - Smart contracts: reentrancy, access control, unchecked external calls, oracle or price manipulation
+          - Race conditions, integer overflows and unvalidated input with a security impact
+          - CI and infrastructure: workflow injection, over-broad permissions or tokens, services exposed publicly
 
           Guidelines:
-          - Be concise and actionable
-          - Reference specific file names and line numbers
-          - Only flag real issues, not style preferences
-          - If no issues found, say so briefly
+          - Label each finding Critical, High, Medium or Low and give the file and line
+          - Say in a few lines how it could be exploited and how to fix it
+          - Do not comment on style, naming, general bugs, performance or tests unless they have a security impact
+          - If there are no security issues, say so in one sentence
           PROMPT_EOF
             echo "source=default" >> $GITHUB_OUTPUT
           else
@@ -111,6 +142,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           MAX_LINES: ${{ inputs.max_diff_lines }}
+          EXCLUDE_PATHS: ${{ inputs.exclude_paths }}
+          MAX_AUTO_LINES: ${{ inputs.max_auto_review_lines }}
+          EVENT_NAME: ${{ github.event_name }}
           MAX_BYTES: ${{ inputs.max_diff_bytes }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: |
@@ -128,12 +162,40 @@ jobs:
           git -C "$PR_REPO" remote add origin "$GITHUB_SERVER_URL/$REPO.git"
           git -C "$PR_REPO" config credential.helper '!gh auth git-credential'
           git -C "$PR_REPO" fetch -q --filter=blob:none --depth=1 origin "$MERGE_BASE" "$HEAD_SHA"
-          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" > /tmp/pr_diff.txt
+          PATHSPECS=(.)
+          for p in '*.lock' package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock go.sum \
+            '*.min.js' '*.min.css' '*.map' 'vendor/**' 'node_modules/**' 'dist/**' 'build/**' \
+            '*.csv' '*.tsv' '*.parquet' '*.ipynb' \
+            '*.png' '*.jpg' '*.jpeg' '*.gif' '*.webp' '*.ico' '*.pdf'; do
+            PATHSPECS+=(":(exclude,glob)**/$p")
+          done
+          while IFS= read -r p; do
+            p=$(printf '%s' "$p" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+            if [ -n "$p" ]; then
+              PATHSPECS+=(":(exclude,glob)$p")
+            fi
+          done <<< "$EXCLUDE_PATHS"
+
+          ALL_FILES=$(git -C "$PR_REPO" diff --name-only "$MERGE_BASE" "$HEAD_SHA" | wc -l)
+          git -C "$PR_REPO" diff "$MERGE_BASE" "$HEAD_SHA" -- "${PATHSPECS[@]}" > /tmp/pr_diff.txt
+          CHANGED_LINES=$(git -C "$PR_REPO" diff --numstat "$MERGE_BASE" "$HEAD_SHA" -- "${PATHSPECS[@]}" | awk '{ n += $1 + $2 } END { print n + 0 }')
           rm -rf "$PR_REPO"
 
-          if [ ! -s /tmp/pr_diff.txt ]; then
+          if [ "$ALL_FILES" -eq 0 ]; then
             echo "::error::The PR diff is empty"
             exit 1
+          fi
+
+          echo "changed_lines=$CHANGED_LINES" >> "$GITHUB_OUTPUT"
+          if [ ! -s /tmp/pr_diff.txt ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=Every changed file is a lockfile, a generated, vendored or data file, or matches exclude_paths, so there is nothing to review." >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$EVENT_NAME" = pull_request ] && [ "$MAX_AUTO_LINES" -gt 0 ] && [ "$CHANGED_LINES" -gt "$MAX_AUTO_LINES" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=This PR changes $CHANGED_LINES lines, over the $MAX_AUTO_LINES-line limit for automatic reviews. Comment \`/review\` to run them anyway." >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           TOTAL_LINES=$(wc -l < /tmp/pr_diff.txt)
@@ -168,7 +230,9 @@ jobs:
 
       - name: Call Gemini API for review
         id: gemini_review
+        if: steps.diff.outputs.skip != 'true'
         env:
+          PRICE_PER_MTOK: ${{ inputs.price_per_mtok }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           MODEL: ${{ inputs.model }}
           THINKING_LEVEL: ${{ inputs.thinking_level }}
@@ -191,7 +255,7 @@ jobs:
           USER_PROMPT="REPO: ${{ github.repository }}
           PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
-          Review this PR diff and provide feedback on any issues found. Be specific about file names and line numbers when possible:"
+          Review this PR diff. You only have the diff below: you have no tools and cannot open other files, so review what it shows and do not describe steps you would take. Lockfiles, generated, vendored and data files were left out of it. Be specific about file names and line numbers:"
 
           jq -n \
             --arg system "$SYSTEM_PROMPT" \
@@ -230,6 +294,21 @@ jobs:
             exit 0
           fi
 
+          read -r IN_TOKENS OUT_TOKENS < <(printf '%s' "$BODY" | jq -r '[(.usageMetadata.promptTokenCount // 0), ((.usageMetadata.candidatesTokenCount // 0) + (.usageMetadata.thoughtsTokenCount // 0))] | map(tonumber? // 0 | floor) | @tsv' 2> /dev/null || echo "0 0")
+          PRICE="$PRICE_PER_MTOK"
+          if [ -z "$PRICE" ]; then
+            case "$MODEL" in
+              gemini-4-argon) if [ "$(date -u +%Y%m%d)" -lt 20261201 ]; then PRICE=2/10; else PRICE=4/20; fi ;;
+            esac
+          fi
+          COST=""
+          if [[ "$PRICE" =~ ^[0-9.]+/[0-9.]+$ ]]; then
+            COST=$(awk -v i="${IN_TOKENS:-0}" -v o="${OUT_TOKENS:-0}" -v p="$PRICE" 'BEGIN { split(p, a, "/"); printf "%.4f", (i * a[1] + o * a[2]) / 1000000 }')
+          fi
+          echo "in_tokens=${IN_TOKENS:-0}" >> $GITHUB_OUTPUT
+          echo "out_tokens=${OUT_TOKENS:-0}" >> $GITHUB_OUTPUT
+          echo "cost=$COST" >> $GITHUB_OUTPUT
+
           BLOCK_REASON=$(echo "$BODY" | jq -r '.promptFeedback.blockReason // ""' | tr -d '\n\r' | head -c 100)
           if [ -n "$BLOCK_REASON" ]; then
             echo "error=true" >> $GITHUB_OUTPUT
@@ -256,11 +335,43 @@ jobs:
           echo "model=$(echo "$BODY" | jq -r --arg m "$MODEL" '.modelVersion // $m' | tr -d '\n\r' | head -c 100)" >> $GITHUB_OUTPUT
           echo "success=true" >> $GITHUB_OUTPUT
 
+      # Every reviewer reaches the same skip; staggered starts let the first one post the notice and the rest find it.
+      - name: Post skip notice
+        id: post_skip
+        if: steps.diff.outputs.skip == 'true'
+        uses: actions/github-script@v7
+        env:
+          SKIP_REASON: ${{ steps.diff.outputs.skip_reason }}
+        with:
+          script: |
+            await new Promise((resolve) => setTimeout(resolve, 60000));
+            const key = context.payload.pull_request?.head?.sha || `comment-${context.payload.comment?.id}`;
+            const marker = `<!-- ai-review-skip:${key} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            if (comments.some((c) => (c.body || '').includes(marker))) {
+              core.info('Another reviewer already posted the notice');
+              return;
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 AI Code Review\n\n${process.env.SKIP_REASON}\n\n---\n*Automated reviews not run (first reported by Gemini)*\n${marker}`
+            });
+
       - name: Post review comment
         id: post_review
         if: steps.gemini_review.outputs.success == 'true'
         uses: actions/github-script@v7
         env:
+          IN_TOKENS: ${{ steps.gemini_review.outputs.in_tokens }}
+          OUT_TOKENS: ${{ steps.gemini_review.outputs.out_tokens }}
+          COST: ${{ steps.gemini_review.outputs.cost }}
           TRUNCATED: ${{ steps.diff.outputs.truncated }}
           TOTAL_LINES: ${{ steps.diff.outputs.total_lines }}
           SENT_LINES: ${{ steps.diff.outputs.sent_lines }}
@@ -283,6 +394,12 @@ jobs:
               truncationWarning = `\n> ⚠️ **Warning:** Diff was truncated from ${totalLines} to ${sentLines} lines. Some changes were not reviewed.\n`;
             }
 
+            const fmtTokens = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+            const inTokens = Number(process.env.IN_TOKENS || 0);
+            const outTokens = Number(process.env.OUT_TOKENS || 0);
+            const cost = process.env.COST ? Number(process.env.COST) : null;
+            const usageNote = inTokens || outTokens ? ` · ${fmtTokens(inTokens)} in / ${fmtTokens(outTokens)} out${cost === null ? '' : ` · ~$${cost.toFixed(2)}`}` : '';
+            const usageTag = `\n<!-- ai-review-usage ${JSON.stringify({ reviewer: 'gemini', model: process.env.MODEL || '', in: inTokens, out: outTokens, usd: cost })} -->`;
             let promptNote = promptSource === 'custom' ? ' · custom prompt' : '';
 
             if (review && review.trim() !== '') {
@@ -290,7 +407,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `## 🤖 Gemini Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Gemini · ${model}${promptNote}*`
+                body: `## 🤖 Gemini Code Review\n${truncationWarning}\n${review}\n\n---\n*Automated review by Gemini · ${model}${promptNote}${usageNote}*${usageTag}`
               });
             }
 
@@ -299,15 +416,25 @@ jobs:
         if: steps.gemini_review.outputs.error == 'true'
         uses: actions/github-script@v7
         env:
+          IN_TOKENS: ${{ steps.gemini_review.outputs.in_tokens }}
+          OUT_TOKENS: ${{ steps.gemini_review.outputs.out_tokens }}
+          COST: ${{ steps.gemini_review.outputs.cost }}
+          MODEL: ${{ inputs.model }}
           ERROR_MESSAGE: ${{ steps.gemini_review.outputs.error_message }}
         with:
           script: |
             const errorMessage = process.env.ERROR_MESSAGE || 'Unknown error';
+            const fmtTokens = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+            const inTokens = Number(process.env.IN_TOKENS || 0);
+            const outTokens = Number(process.env.OUT_TOKENS || 0);
+            const cost = process.env.COST ? Number(process.env.COST) : null;
+            const usageNote = inTokens || outTokens ? ` · ${fmtTokens(inTokens)} in / ${fmtTokens(outTokens)} out${cost === null ? '' : ` · ~$${cost.toFixed(2)}`}` : '';
+            const usageTag = `\n<!-- ai-review-usage ${JSON.stringify({ reviewer: 'gemini', model: process.env.MODEL || '', in: inTokens, out: outTokens, usd: cost })} -->`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## 🤖 Gemini Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by Gemini*`
+              body: `## 🤖 Gemini Code Review\n\n⚠️ Review failed: ${errorMessage}\n\n---\n*Automated review by Gemini${usageNote}*${usageTag}`
             });
 
       - name: Fail the job if the review did not run
