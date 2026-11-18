@@ -1,0 +1,301 @@
+{
+  "models": {
+    "anthropic/claude-fable-5.2": {
+      "slug": "air-anthropic-claude-fable-5-2",
+      "provider": {
+        "order": [
+          "anthropic"
+        ],
+        "allow_fallbacks": false
+      },
+      "preset_id": "fa3877d4-5a70-49df-a10d-03f975acafe5",
+      "version": 2,
+      "stored_config": {
+        "model": "anthropic/claude-fable-5.2",
+        "provider": {
+          "order": [
+            "anthropic"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:04"
+    },
+    "anthropic/claude-haiku-5.5": {
+      "slug": "air-anthropic-claude-haiku-5-5",
+      "provider": {
+        "order": [
+          "anthropic"
+        ],
+        "allow_fallbacks": false
+      },
+      "preset_id": "a15bc860-34fa-41fa-bd7c-3be89e13a3e0",
+      "version": 2,
+      "stored_config": {
+        "model": "anthropic/claude-haiku-5.5",
+        "provider": {
+          "order": [
+            "anthropic"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:05"
+    },
+    "anthropic/claude-opus-5.5": {
+      "slug": "air-anthropic-claude-opus-5-5",
+      "provider": {
+        "order": [
+          "anthropic"
+        ],
+        "allow_fallbacks": false
+      },
+      "preset_id": "94d74755-0537-44ca-95c0-4dc63b4e5cca",
+      "version": 2,
+      "stored_config": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": {
+          "order": [
+            "anthropic"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:06"
+    },
+    "deepseek/deepseek-v4-pro-0813": {
+      "slug": "air-deepseek-deepseek-v4-pro-0813",
+      "provider": {
+        "order": [
+          "baidu",
+          "novita",
+          "gmicloud",
+          "nebius",
+          "coreweave",
+          "parasail",
+          "siliconflow"
+        ],
+        "allow_fallbacks": false,
+        "quantizations": [
+          "fp8"
+        ],
+        "ignore": [
+          "parasail/fast"
+        ]
+      },
+      "preset_id": "4b940871-7230-4169-bcb1-bc1a9b9a6826",
+      "version": 2,
+      "stored_config": {
+        "model": "deepseek/deepseek-v4-pro-0813",
+        "provider": {
+          "order": [
+            "baidu",
+            "novita",
+            "gmicloud",
+            "nebius",
+            "coreweave",
+            "parasail",
+            "siliconflow"
+          ],
+          "ignore": [
+            "parasail/fast"
+          ],
+          "quantizations": [
+            "fp8"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:07"
+    },
+    "google/gemini-4-argon": {
+      "slug": "air-google-gemini-4-argon",
+      "provider": {
+        "order": [
+          "google-vertex",
+          "google-ai-studio"
+        ],
+        "allow_fallbacks": false
+      },
+      "preset_id": "4a2b8555-97aa-451c-9e34-3f179102bb65",
+      "version": 2,
+      "stored_config": {
+        "model": "google/gemini-4-argon",
+        "provider": {
+          "order": [
+            "google-vertex",
+            "google-ai-studio"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:08"
+    },
+    "moonshotai/kimi-k3.1-pro": {
+      "slug": "air-moonshotai-kimi-k3-1-pro",
+      "provider": {
+        "order": [
+          "moonshotai"
+        ],
+        "allow_fallbacks": false,
+        "ignore": [
+          "moonshotai/highspeed"
+        ]
+      },
+      "preset_id": "ca921f38-dcd9-48f3-989f-11483d9ea399",
+      "version": 2,
+      "stored_config": {
+        "model": "moonshotai/kimi-k3.1-pro",
+        "provider": {
+          "order": [
+            "moonshotai"
+          ],
+          "ignore": [
+            "moonshotai/highspeed"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:11"
+    },
+    "openai/gpt-6.1-sol": {
+      "slug": "air-openai-gpt-6-1-sol",
+      "provider": {
+        "order": [
+          "openai"
+        ],
+        "allow_fallbacks": false
+      },
+      "preset_id": "f8d0c0db-2a30-4376-b0d5-62a99d66bf65",
+      "version": 2,
+      "stored_config": {
+        "model": "openai/gpt-6.1-sol",
+        "provider": {
+          "order": [
+            "openai"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:12"
+    },
+    "openai/gpt-6.1-sol-pro": {
+      "slug": "air-openai-gpt-6-1-sol-pro",
+      "provider": {
+        "order": [
+          "openai"
+        ],
+        "allow_fallbacks": false
+      },
+      "preset_id": "d7e317a4-cce8-4d60-ba99-05e120b6cf0e",
+      "version": 2,
+      "stored_config": {
+        "model": "openai/gpt-6.1-sol-pro",
+        "provider": {
+          "order": [
+            "openai"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:14"
+    },
+    "x-ai/grok-4.7": {
+      "slug": "air-x-ai-grok-4-7",
+      "provider": {
+        "order": [
+          "xai"
+        ],
+        "allow_fallbacks": false
+      },
+      "preset_id": "eb694744-ea55-482b-8c1b-08e920cce155",
+      "version": 2,
+      "stored_config": {
+        "model": "x-ai/grok-4.7",
+        "provider": {
+          "order": [
+            "xai"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:15"
+    },
+    "z-ai/glm-5.3": {
+      "slug": "air-z-ai-glm-5-3",
+      "provider": {
+        "order": [
+          "baidu",
+          "novita",
+          "sail-research"
+        ],
+        "allow_fallbacks": false,
+        "quantizations": [
+          "fp8"
+        ],
+        "ignore": [
+          "sail-research/fp8"
+        ]
+      },
+      "preset_id": "05dc2ac3-f8ac-4b61-9414-98c572d33e08",
+      "version": 2,
+      "stored_config": {
+        "model": "z-ai/glm-5.3",
+        "provider": {
+          "order": [
+            "baidu",
+            "novita",
+            "sail-research"
+          ],
+          "ignore": [
+            "sail-research/fp8"
+          ],
+          "quantizations": [
+            "fp8"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-11T20:20:16"
+    },
+    "deepseek/deepseek-v4-flash": {
+      "slug": "air-deepseek-deepseek-v4-flash",
+      "provider": {
+        "order": [
+          "baidu",
+          "streamlake",
+          "deepinfra",
+          "gmicloud",
+          "siliconflow",
+          "parasail",
+          "mancer"
+        ],
+        "allow_fallbacks": false,
+        "quantizations": [
+          "fp8"
+        ]
+      },
+      "preset_id": "050aa4c2-009e-4df5-b282-c2337a843390",
+      "version": 1,
+      "stored_config": {
+        "model": "deepseek/deepseek-v4-flash",
+        "provider": {
+          "order": [
+            "baidu",
+            "streamlake",
+            "deepinfra",
+            "gmicloud",
+            "siliconflow",
+            "parasail",
+            "mancer"
+          ],
+          "quantizations": [
+            "fp8"
+          ],
+          "allow_fallbacks": false
+        }
+      },
+      "updated": "2026-11-12T16:58:25"
+    }
+  }
+}

@@ -1,72 +1,49 @@
 name: AI Code Review
 
+# Reviews this repository's PRs with its own reusable workflow, called by
+# local reference: comment triggers run the copy on the default branch, the
+# label trigger runs the PR's own copy (so a PR can review itself with its
+# changes). Other repositories pin a commit SHA.
+#
+# Reviews run only on demand. Comment `/review` on a PR, or add a label
+# starting with `ai-review`, for the multi-model review (several models,
+# findings checked by a judge, one comment); add `continue` to a `/review`
+# comment to finish a budget-limited review or `budget=N` to raise its
+# budget.
+
 on:
-  pull_request:
-    types: [opened, reopened, ready_for_review]
   issue_comment:
     types: [created]
+  pull_request:
+    types: [labeled]
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 jobs:
-  claude-review:
+  multi-review:
+    # A label needs triage or write access to add; fork PRs are refused here and again in the workflow.
     if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
-      github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'issue_comment' &&
-      (startsWith(github.event.comment.body, '/claude') || startsWith(github.event.comment.body, '/review')))
-    uses: ./.github/workflows/ai-review-claude.yml
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
+        (github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ') || startsWith(github.event.comment.body, fromJSON('"/review\n"')) || startsWith(github.event.comment.body, fromJSON('"/review\r"')))
+      ) ||
+      (
+        github.event_name == 'pull_request' &&
+        startsWith(github.event.label.name, 'ai-review') &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
+    # A local reference: this repository's own copy at the commit the event runs (main for comments,
+    # the PR's merge commit for the label).
+    uses: ./.github/workflows/pr_review_multi.yml
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+    with:
+      command: /review
     secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-  kimi-review:
-    if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
-      github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'issue_comment' &&
-      (startsWith(github.event.comment.body, '/kimi') || startsWith(github.event.comment.body, '/review')))
-    uses: ./.github/workflows/ai-review-kimi.yml
-    secrets:
-      KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
-
-  codex-review:
-    if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
-      github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'issue_comment' &&
-      (startsWith(github.event.comment.body, '/codex') || startsWith(github.event.comment.body, '/review')))
-    uses: ./.github/workflows/ai-review-codex.yml
-    secrets:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
-  deepseek-review:
-    if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
-      github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'issue_comment' &&
-      (startsWith(github.event.comment.body, '/deepseek') || startsWith(github.event.comment.body, '/review')))
-    uses: ./.github/workflows/ai-review-deepseek.yml
-    secrets:
-      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-
-  gemini-review:
-    if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
-      github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'issue_comment' &&
-      (startsWith(github.event.comment.body, '/gemini') || startsWith(github.event.comment.body, '/review')))
-    uses: ./.github/workflows/ai-review-gemini.yml
-    secrets:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
-  grok-review:
-    if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false &&
-      github.event.pull_request.user.login != 'dependabot[bot]') ||
-      (github.event_name == 'issue_comment' &&
-      (startsWith(github.event.comment.body, '/grok') || startsWith(github.event.comment.body, '/review')))
-    uses: ./.github/workflows/ai-review-grok.yml
-    secrets:
-      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}

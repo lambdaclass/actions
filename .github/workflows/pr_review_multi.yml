@@ -1,0 +1,408 @@
+# Reusable multi-model AI security review.
+#
+# Several models review the pull request, each as an agent in a read-only sandbox with a soft budget
+# (Opus, GPT, Kimi, GLM and DeepSeek by default). Their findings are merged, a judge model checks the
+# findings against the code, and one comment is posted: a table of findings to check, collapsed
+# sections for duplicates, pre-existing bugs, dismissed findings and housekeeping notes (stale docs,
+# missing tests), and what the review cost. One review covers the whole PR; a PR over 20,000 effective
+# changed lines is not reviewed, and the comment asks for it to be split.
+#
+# Callers comment `<command>` on a PR (or add a label), optionally followed by:
+#   continue    finish an earlier review of the same commit that stopped at its budget or time limit
+#   budget=N    use N USD for this review (at most `max_budget`)
+#
+# Usage: see "Multi-model PR Review" in the README.
+
+name: Multi-model PR Review
+
+on:
+  workflow_call:
+    inputs:
+      command:
+        description: "The comment command that runs this review in the caller, e.g. '/review'. Used in the comment's hint for partial reviews"
+        required: false
+        type: string
+        default: '/review'
+      pr_budget:
+        description: 'USD limit for one review. 0 = the default, $30'
+        required: false
+        type: number
+        default: 0
+      max_budget:
+        description: "Highest budget a '<command> budget=N' comment may ask for"
+        required: false
+        type: number
+        default: 100
+      lanes:
+        description: "Comma-separated reviewer models (claude, gpt, kimi, glm, deepseek, gemini, grok, fable). Empty = claude,gpt,kimi,glm,deepseek"
+        required: false
+        type: string
+        default: ''
+      config_dir:
+        description: 'Directory of the reviewed repository holding the optional config.toml and threat_model.md, read from the PR base branch'
+        required: false
+        type: string
+        default: '.github/ai-review'
+      housekeeping:
+        description: 'Also run the cheap housekeeping reviewer (stale docs, missing tests, leftovers, inconsistencies)'
+        required: false
+        type: boolean
+        default: true
+      sandbox_check:
+        description: "Before any paid call, check that a command in the Codex reviewers' sandbox runs and cannot read other processes' environments (where the API keys are); the Claude Code sandbox (Opus) is not checked. 'strict' stops the review if the check fails, 'warn' only logs it, 'off' skips it"
+        required: false
+        type: string
+        default: 'strict'
+    secrets:
+      OPENROUTER_API_KEY:
+        description: 'OpenRouter key of the account holding the air-* provider presets (every model but Claude)'
+        required: true
+      ANTHROPIC_API_KEY:
+        description: 'Anthropic API key for the Claude reviewer; required unless lanes leaves out claude'
+        required: false
+
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    # The runner skips the judge if the reviewers end more than 285 minutes after the start
+    # (--deadline-min 240), so a review ends, with its report, inside this limit.
+    timeout-minutes: 330
+    # One review per PR at a time; a second request waits instead of killing a paid run.
+    concurrency:
+      group: ai-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read   # `continue`: download the earlier review of the same commit
+    outputs:
+      artifact: ${{ steps.collect.outputs.artifact }}
+      blocked: ${{ steps.fork.outputs.blocked }}
+      error: ${{ steps.collect.outputs.error || steps.secrets.outputs.error || steps.opts.outputs.error || steps.fork.outputs.error || steps.source.outputs.error }}
+      started: ${{ steps.opts.outputs.command != '' }}
+    env:
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+
+    steps:
+      - name: Block fork PRs
+        id: fork
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! cross=$(gh pr view "$PR_NUMBER" --json isCrossRepository --jq .isCrossRepository); then
+            echo "error=could not read the pull request from the GitHub API" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          case "$cross" in
+            false) ;;
+            true)
+              echo "blocked=true" >> "$GITHUB_OUTPUT"
+              echo "::error::Fork PRs are not reviewed, to protect the API keys"
+              exit 1 ;;
+            *)
+              echo "error=could not tell whether the pull request comes from a fork" >> "$GITHUB_OUTPUT"
+              exit 1 ;;
+          esac
+
+      - name: Read options
+        id: opts
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+          COMMAND: ${{ inputs.command }}
+          PR_BUDGET: ${{ inputs.pr_budget }}
+          MAX_BUDGET: ${{ inputs.max_budget }}
+          SANDBOX_CHECK: ${{ inputs.sandbox_check }}
+        run: |
+          # The first line of the comment: "<command> [continue] [budget=N]". Label triggers have none.
+          set -f
+          fail() { echo "error=$1" >> "$GITHUB_OUTPUT"; echo "::error::$1"; exit 1; }
+          case "$SANDBOX_CHECK" in strict|warn|off) ;; *) fail "sandbox_check must be strict, warn or off" ;; esac
+          read -r -a words <<< "$(printf '%s\n' "$COMMENT" | head -n1 | tr -d '\r')"
+          command="$COMMAND"
+          [[ "${words[0]:-}" =~ ^/[A-Za-z0-9_-]+$ ]] && command="${words[0]}"
+          continue=false
+          budget="$PR_BUDGET"
+          for word in "${words[@]:1}"; do
+            case "$word" in
+              continue) continue=true ;;
+              budget=*)
+                budget="${word#budget=}"
+                [[ "$budget" =~ ^[0-9]+([.][0-9]+)?$ ]] || fail "budget must be a number of USD, e.g. budget=80"
+                awk -v b="$budget" -v m="$MAX_BUDGET" 'BEGIN { exit !(b > 0 && b <= m) }' \
+                  || fail "budget must be above 0 and at most $MAX_BUDGET"
+                ;;
+            esac
+          done
+          {
+            echo "command=$command"
+            echo "continue=$continue"
+            echo "budget=$budget"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check the secrets
+        id: secrets
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LANES: ${{ inputs.lanes }}
+        run: |
+          fail() { echo "error=$1" >> "$GITHUB_OUTPUT"; echo "::error::$1"; exit 1; }
+          [ -n "$OPENROUTER_API_KEY" ] || fail "the OPENROUTER_API_KEY secret is empty or not passed to the workflow"
+          if [ -z "$LANES" ] || [[ ",$LANES," == *",claude,"* || ",$LANES," == *",fable,"* ]]; then
+            [ -n "$ANTHROPIC_API_KEY" ] || fail "the ANTHROPIC_API_KEY secret is empty, and the reviewers include Claude"
+          fi
+
+      - name: Check the runner source
+        id: source
+        env:
+          RUNNER_REPO: ${{ job.workflow_repository }}
+          RUNNER_SHA: ${{ job.workflow_sha }}
+        run: |
+          # Empty values would make checkout fall back to the caller's repository and run its code.
+          if [ -z "$RUNNER_REPO" ] || [ -z "$RUNNER_SHA" ]; then
+            echo "error=could not tell which repository and commit hold the review runner" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+      - name: Check out the review runner
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: runner
+          persist-credentials: false
+          sparse-checkout: ai-review
+
+      - name: Read the review config from the PR base
+        id: config
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONFIG_DIR: ${{ inputs.config_dir }}
+        run: |
+          # Read from the base branch, so a PR's own changes to the config do not apply to its review.
+          BASE_SHA=$(gh pr view "$PR_NUMBER" --json baseRefOid --jq .baseRefOid)
+          dest="$RUNNER_TEMP/ai-review-config"
+          mkdir -p "$dest"
+          if ! gh api "repos/$GH_REPO/contents/$CONFIG_DIR?ref=$BASE_SHA" \
+               --jq '.[] | select(.type == "file") | .name' > "$RUNNER_TEMP/config_files.txt" 2> "$RUNNER_TEMP/config_error.txt"; then
+            grep -q 'HTTP 404' "$RUNNER_TEMP/config_error.txt" || { cat "$RUNNER_TEMP/config_error.txt"; exit 1; }
+            echo "::notice::No $CONFIG_DIR on the base branch: reviewing with the built-in rules and the default prompt"
+            exit 0
+          fi
+          while read -r f; do
+            case "$f" in
+              *.toml|*.md)
+                gh api -H 'Accept: application/vnd.github.raw+json' "repos/$GH_REPO/contents/$CONFIG_DIR/$f?ref=$BASE_SHA" > "$dest/$f" ;;
+            esac
+          done < "$RUNNER_TEMP/config_files.txt"
+          # either file is optional: a threat model alone gets an empty config, which reads it from next to it
+          if [ ! -f "$dest/config.toml" ] && [ -f "$dest/threat_model.md" ]; then
+            : > "$dest/config.toml"
+          fi
+          if [ -f "$dest/config.toml" ]; then
+            echo "path=$dest/config.toml" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Install the review tools
+        run: |
+          sudo apt-get update -qq
+          # bubblewrap + socat: the Codex and Claude Code sandboxes. zsh: Codex runs each command
+          # through the user's login shell, and the soft-budget gate is a zsh startup file.
+          sudo apt-get install -y -qq bubblewrap socat zsh
+          sudo chsh -s /bin/zsh "$(whoami)"
+          # The sandboxes need unprivileged user namespaces, which Ubuntu 24.04 restricts by default.
+          if sysctl -n kernel.apparmor_restrict_unprivileged_userns > /dev/null 2>&1; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
+          # Outside $RUNNER_TEMP, which the reviewers may not read.
+          tools="$HOME/.ai-review/tools"
+          npm install --global --prefix "$tools" --no-fund --no-audit \
+            @openai/codex@0.142.2 @anthropic-ai/claude-code@2.1.323
+          echo "AI_REVIEW_PATH=$tools/bin:$(dirname "$(command -v node)")" >> "$GITHUB_ENV"
+
+      - name: Restore the earlier review of this commit
+        id: previous
+        if: steps.opts.outputs.continue == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          HEAD_SHA=$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)
+          name="ai-review-$PR_NUMBER-$HEAD_SHA"
+          # Only artifacts of this workflow's own runs in this repository: a fork PR's workflow can
+          # upload an artifact with the same name.
+          caller="${GITHUB_WORKFLOW_REF#"$GH_REPO"/}"
+          caller="${caller%%@*}"
+          found=""
+          while read -r id run; do
+            [ -n "$id" ] || continue
+            path=$(gh api "repos/$GH_REPO/actions/runs/$run" --jq '.path' 2>/dev/null || true)
+            if [ "${path%%@*}" = "$caller" ]; then found="$id"; break; fi
+          done < <(gh api "repos/$GH_REPO/actions/artifacts?name=$name&per_page=100" --jq \
+                   '[.artifacts[] | select(.expired | not)
+                     | select(.workflow_run.head_repository_id == .workflow_run.repository_id)]
+                    | sort_by(.created_at) | reverse | .[] | "\(.id) \(.workflow_run.id)"' || true)
+          if [ -z "$found" ]; then
+            echo "::warning::No earlier review of $HEAD_SHA to continue: reviewing the whole PR"
+            exit 0
+          fi
+          if ! gh api "repos/$GH_REPO/actions/artifacts/$found/zip" > "$RUNNER_TEMP/previous.zip"; then
+            echo "::warning::Could not download the earlier review: reviewing the whole PR"
+            exit 0
+          fi
+          # Extract without symlinks or paths outside the target, with a size limit.
+          if ! python3 - "$RUNNER_TEMP/previous.zip" "$RUNNER_TEMP/previous" <<'PY'
+          import os, stat, sys, zipfile
+          zf, dest = zipfile.ZipFile(sys.argv[1]), os.path.realpath(sys.argv[2])
+          total = 0
+          for info in zf.infolist():
+              if stat.S_ISLNK(info.external_attr >> 16):
+                  sys.exit(f"symlink in the artifact: {info.filename}")
+              target = os.path.realpath(os.path.join(dest, info.filename))
+              if not target.startswith(dest + os.sep):
+                  sys.exit(f"path outside the target: {info.filename}")
+              total += info.file_size
+              if total > 500 * 2**20:
+                  sys.exit("artifact larger than 500 MB")
+          zf.extractall(dest)
+          PY
+          then
+            echo "::warning::The earlier review's artifact is not usable: reviewing the whole PR"
+            exit 0
+          fi
+          dir=$(find "$RUNNER_TEMP/previous" -name summary.json -printf '%h\n' | head -n1)
+          if [ -n "$dir" ]; then
+            echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SHELL: /bin/zsh
+          COMMAND: ${{ steps.opts.outputs.command }}
+          BUDGET: ${{ steps.opts.outputs.budget }}
+          LANES: ${{ inputs.lanes }}
+          HOUSEKEEPING: ${{ inputs.housekeeping }}
+          SANDBOX_CHECK: ${{ inputs.sandbox_check }}
+          CONFIG: ${{ steps.config.outputs.path }}
+          PREVIOUS: ${{ steps.previous.outputs.dir }}
+        run: |
+          args=(--repo "$GH_REPO" --pr "$PR_NUMBER" --mode agentic --isolate shared --claude-auth anthropic
+                --experiment-cap 0 --deadline-min 240 --sandbox-check "$SANDBOX_CHECK"
+                --runs-dir "$HOME/.ai-review/runs" --reports-dir "$RUNNER_TEMP/out"
+                --continue-command "$COMMAND continue")
+          if [ "$BUDGET" != 0 ]; then args+=(--pr-budget "$BUDGET"); fi
+          if [ -n "$LANES" ]; then args+=(--lanes "$LANES"); fi
+          if [ "$HOUSEKEEPING" != true ]; then args+=(--no-housekeeping); fi
+          if [ -n "$CONFIG" ]; then args+=(--repo-config "$CONFIG"); fi
+          if [ -n "$PREVIOUS" ]; then args+=(--reuse-from "$PREVIOUS" --reuse-lanes all); fi
+          # Reviewers may not read these: the earlier review and the config, the runner checkout, the
+          # other reviewers' live output (each lane's own gate folder stays readable), and the Actions
+          # runner's own directory.
+          export AI_REVIEW_DENY="$RUNNER_TEMP:$GITHUB_WORKSPACE:$HOME/.ai-review/runs:/home/runner/runners:/home/runner/actions-runner"
+          export AI_REVIEW_ERROR_FILE="$RUNNER_TEMP/error.txt"
+          # Private repositories: the runner's own git fetches authenticate with the job token. The
+          # header lives only in the runner's environment; review lanes get a minimal environment.
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$auth"
+          export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="http.https://github.com/.extraheader" \
+                 GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $auth"
+          # exec: the runner replaces this shell (which holds the secrets too) and receives the
+          # cancellation signal itself, so it can still write its report.
+          exec python3 runner/ai-review/run_pilot.py "${args[@]}"
+
+      - name: Collect the review
+        id: collect
+        if: always() && steps.fork.outputs.blocked != 'true'
+        run: |
+          if [ -s "$RUNNER_TEMP/error.txt" ]; then
+            echo "error=$(head -c 400 "$RUNNER_TEMP/error.txt" | tr '\r\n' '  ')" >> "$GITHUB_OUTPUT"
+          fi
+          run_dir=$(ls -td "$HOME"/.ai-review/runs/*/ 2>/dev/null | head -n1)
+          comment=$(ls -t "$RUNNER_TEMP"/out/*.comment.md 2>/dev/null | head -n1)
+          if [ -z "$run_dir" ] || [ -z "$comment" ]; then
+            echo "No review report was written"
+            exit 0
+          fi
+          out="$RUNNER_TEMP/artifact"
+          mkdir -p "$out"
+          cp "$comment" "$out/comment.md"
+          cp "${comment%.comment.md}.md" "$out/report.md" 2>/dev/null || true
+          # Results, merged findings, verdicts and lane logs; not the lanes' tool homes and configs.
+          rsync -a --exclude codex_home --exclude claude_config --exclude zdotdir --exclude gate \
+            "$run_dir" "$out/run/"
+          head=$(jq -r '.head // empty' "$run_dir/summary.json" 2>/dev/null)
+          echo "artifact=ai-review-$PR_NUMBER-${head:-unknown}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the review
+        if: always() && steps.collect.outputs.artifact != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.collect.outputs.artifact }}
+          path: ${{ runner.temp }}/artifact
+          retention-days: 30
+
+  post:
+    needs: review
+    if: always() && needs.review.result != 'skipped'
+    runs-on: ubuntu-24.04
+    # The only job with write access. It never runs a model or sees an API key.
+    permissions:
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+    steps:
+      - name: Download the review
+        if: needs.review.outputs.artifact != ''
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.review.outputs.artifact }}
+          path: review
+
+      - name: Post the review
+        if: always()
+        env:
+          RESULT: ${{ needs.review.result }}
+          BLOCKED: ${{ needs.review.outputs.blocked }}
+          ERROR: ${{ needs.review.outputs.error }}
+          STARTED: ${{ needs.review.outputs.started }}
+        run: |
+          body="$RUNNER_TEMP/body.md"
+          if [ "$BLOCKED" = true ]; then
+            printf '## AI security review\n\nFork PRs are not reviewed, to protect the API keys.\n' > "$body"
+          elif [ -f review/comment.md ]; then
+            # GitHub rejects comments over 65,536 characters.
+            if [ "$(wc -c < review/comment.md)" -gt 60000 ]; then
+              head -c 60000 review/comment.md > "$body"
+              printf '\n\n> Comment truncated. The full report is in the artifacts of the [workflow run](%s).\n' "$RUN_URL" >> "$body"
+            else
+              cp review/comment.md "$body"
+            fi
+            if [ "$RESULT" != success ]; then
+              printf '\n\n> The review did not finish cleanly%s: findings above may be incomplete. [Job log](%s)\n' \
+                "${ERROR:+ ($ERROR)}" "$RUN_URL" >> "$body"
+            fi
+          elif [ "$RESULT" = cancelled ] && [ "$STARTED" != true ]; then
+            # Superseded by a newer request while waiting: nothing to report.
+            echo "The review was cancelled before it started"
+            exit 0
+          elif [ "$RESULT" = cancelled ]; then
+            printf '## AI security review\n\nThe review was cancelled or timed out before it wrote a report. [Job log](%s)\n' \
+              "$RUN_URL" > "$body"
+          else
+            printf '## AI security review\n\n⚠️ The review failed before it wrote a report%s. [Job log](%s)\n' \
+              "${ERROR:+: $ERROR}" "$RUN_URL" > "$body"
+          fi
+          gh pr comment "$PR_NUMBER" --body-file "$body"

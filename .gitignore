@@ -1,0 +1,6 @@
+.idea
+__pycache__/
+# multi-model review runner output (local runs)
+ai-review/runs/
+ai-review/reports/
+ai-review/spend_ledger.jsonl

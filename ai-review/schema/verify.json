@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "verdict",
+    "reason",
+    "evidence",
+    "adjusted_severity"
+  ],
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "bug",
+        "suspected",
+        "pre_existing",
+        "likely_non_issue"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "description": "Short explanation of the verdict."
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "file:line references (PR head) with a short note each, e.g. 'src/a.rs:120 bound checked here'."
+    },
+    "adjusted_severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ]
+    }
+  }
+}

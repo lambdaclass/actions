@@ -1,0 +1,64 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "verdicts"
+  ],
+  "properties": {
+    "verdicts": {
+      "type": "array",
+      "description": "Exactly one entry per finding id.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "verdict",
+          "reason",
+          "evidence",
+          "adjusted_severity",
+          "duplicate_of"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The finding id, e.g. M3."
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "bug",
+              "suspected",
+              "pre_existing",
+              "likely_non_issue"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Short explanation of the verdict."
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "file:line references (PR head) with a short note each, e.g. 'src/a.rs:120 bound checked here'."
+          },
+          "adjusted_severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "duplicate_of": {
+            "type": "string",
+            "description": "The id of an earlier finding in this list that describes the same underlying problem (same root cause, same fix), e.g. 'M1'; empty string if none."
+          }
+        }
+      }
+    }
+  }
+}
