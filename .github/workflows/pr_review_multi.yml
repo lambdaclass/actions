@@ -11,6 +11,9 @@
 #   continue    finish an earlier review of the same commit that stopped at its budget or time limit
 #   budget=N    use N USD for this review (at most `max_budget`)
 #
+# A request comment gets a 👀 reaction as soon as the run starts, and a 👍 when the review is posted
+# (😕 if it failed). GitHub has no ✅ reaction.
+#
 # Usage: see "Multi-model PR Review" in the README.
 
 name: Multi-model PR Review
@@ -67,6 +70,24 @@ on:
         required: false
 
 jobs:
+  acknowledge:
+    # 👀 on the request comment right away, even while the review waits behind an earlier one. Label
+    # triggers have no comment. Separate from `review`, whose token stays read-only.
+    if: github.event_name == 'issue_comment'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: React to the request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          gh api --method POST "repos/$GH_REPO/issues/comments/$COMMENT_ID/reactions" -f content=eyes --silent \
+            || echo "::warning::Could not add the 👀 reaction to the request comment"
+
   review:
     runs-on: ubuntu-24.04
     # The runner skips the judge if the reviewers end more than 285 minutes after the start
@@ -357,7 +378,8 @@ jobs:
           retention-days: 30
 
   post:
-    needs: review
+    # After `acknowledge` too, so its 👀 is in place before this job replaces it.
+    needs: [acknowledge, review]
     if: always() && needs.review.result != 'skipped'
     runs-on: ubuntu-24.04
     # The only job with write access. It never runs a model or sees an API key.
@@ -379,6 +401,7 @@ jobs:
           path: review
 
       - name: Post the review
+        id: post
         if: always()
         env:
           RESULT: ${{ needs.review.result }}
@@ -413,3 +436,34 @@ jobs:
               "${ERROR:+: $ERROR}" "$RUN_URL" > "$body"
           fi
           gh pr comment "$PR_NUMBER" --body-file "$body"
+
+      - name: React to the request
+        if: always() && github.event_name == 'issue_comment'
+        env:
+          COMMENT_ID: ${{ github.event.comment.id }}
+          RESULT: ${{ needs.review.result }}
+          STARTED: ${{ needs.review.outputs.started }}
+          POSTED: ${{ steps.post.outcome }}
+        run: |
+          # 👀 becomes 👍 once the review is posted, 😕 if it failed. A request superseded while it
+          # waited (nothing posted) only loses its 👀.
+          result=confused
+          if [ "$RESULT" = success ] && [ "$POSTED" = success ]; then
+            result=+1
+          elif [ "$RESULT" = cancelled ] && [ "$STARTED" != true ]; then
+            result=""
+          fi
+          reactions="repos/$GH_REPO/issues/comments/$COMMENT_ID/reactions"
+          # Remove this workflow's own 👀, and the result of an earlier attempt if this is a re-run.
+          gh api --paginate "$reactions?per_page=100" \
+              --jq '.[] | select(.user.login == "github-actions[bot]") | "\(.id) \(.content)"' \
+            | while read -r id content; do
+                case "$content" in
+                  eyes|+1|confused)
+                    [ "$content" = "$result" ] || gh api --method DELETE "$reactions/$id" --silent || true ;;
+                esac
+              done
+          if [ -n "$result" ]; then
+            gh api --method POST "$reactions" -f content="$result" --silent \
+              || echo "::warning::Could not add the $result reaction to the request comment"
+          fi
