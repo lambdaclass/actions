@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "items"],
+  "properties": {
+    "summary": {"type": "string"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "title", "file", "line", "quote", "change", "problem", "fix"],
+        "properties": {
+          "kind": {"type": "string", "enum": ["stale-docs", "missing-test", "leftover", "inconsistency"]},
+          "title": {"type": "string"},
+          "file": {"type": "string", "description": "Path of the stale or missing thing, relative to the repository root."},
+          "line": {"type": "integer"},
+          "quote": {"type": "string", "description": "The exact stale text or code line, copied from the file."},
+          "change": {"type": "string", "description": "file:line of the change in this PR that caused it."},
+          "problem": {"type": "string"},
+          "fix": {"type": "string"}
+        }
+      }
+    }
+  }
+}

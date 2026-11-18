@@ -1,0 +1,129 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "findings"
+  ],
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "One or two sentences: what the change does and what you checked."
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "category",
+          "severity",
+          "confidence",
+          "label",
+          "file",
+          "line",
+          "quote",
+          "trigger",
+          "mechanism",
+          "impact",
+          "assumption",
+          "how_to_confirm",
+          "expected_result_if_real",
+          "pre_existing"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Short unique id within this output, e.g. F1."
+          },
+          "title": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "soundness",
+              "consensus/state",
+              "funds-loss",
+              "key/secret handling",
+              "crypto misuse",
+              "authz/authn",
+              "injection",
+              "DoS/resource",
+              "memory safety/panic",
+              "supply chain",
+              "logic",
+              "other",
+              "docs"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "enum": [
+              "Bug",
+              "Suspected"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "description": "Path relative to the repository root."
+          },
+          "line": {
+            "type": "integer",
+            "description": "Line number in the PR head version of the file."
+          },
+          "quote": {
+            "type": "string",
+            "description": "The exact code line(s) the finding is about."
+          },
+          "trigger": {
+            "type": "string",
+            "description": "Input or scenario that makes it happen."
+          },
+          "mechanism": {
+            "type": "string",
+            "description": "Why the code fails in that scenario."
+          },
+          "impact": {
+            "type": "string"
+          },
+          "assumption": {
+            "type": "string",
+            "description": "Suspected only: what you could not verify. Empty string for Bug."
+          },
+          "how_to_confirm": {
+            "type": "string",
+            "description": "Suspected only: how to check it. Empty string for Bug."
+          },
+          "expected_result_if_real": {
+            "type": "string",
+            "description": "Suspected only: what result of that check means it is real. Empty string for Bug."
+          },
+          "pre_existing": {
+            "type": "boolean",
+            "description": "True if the problem exists on the base branch too and the PR only exposes or touches it."
+          }
+        }
+      }
+    }
+  }
+}

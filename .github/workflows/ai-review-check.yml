@@ -1,0 +1,41 @@
+name: AI review runner check
+
+# Cheap checks of the multi-model review runner on every PR that changes it or its workflows: it
+# compiles, its CLI parses, its schemas, presets and this repository's review config are valid, and
+# its offline tests pass (unit planning, coverage of changed files, the PR comment).
+
+on:
+  pull_request:
+    paths:
+      - 'ai-review/**'
+      - '.github/ai-review/**'
+      - '.github/workflows/ai-review-check.yml'
+      - '.github/workflows/pr_review_multi.yml'
+      - '.github/workflows/ai-review.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the runner
+        run: |
+          python3 -m py_compile ai-review/run_pilot.py ai-review/seed.py
+          python3 ai-review/run_pilot.py --help > /dev/null
+          python3 - <<'PY'
+          import json, pathlib, tomllib
+          for p in sorted(pathlib.Path("ai-review/schema").glob("*.json")) + [pathlib.Path("ai-review/presets.json")]:
+              json.loads(p.read_text())
+          cfg = tomllib.loads(pathlib.Path(".github/ai-review/config.toml").read_text())
+          assert (pathlib.Path(".github/ai-review") / cfg.get("threat_model", "threat_model.md")).is_file()
+          PY
+
+      - name: Test the runner
+        # standard library only: temporary git repositories, no network, no keys, no model
+        run: python3 -I -B -m unittest discover -s ai-review/tests -v

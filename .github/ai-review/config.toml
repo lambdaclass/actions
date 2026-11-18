@@ -1,0 +1,10 @@
+# Review config for this repository, read by pr_review_multi.yml from the PR base branch.
+# Format: see "Multi-model PR Review" in the README.
+threat_model = "threat_model.md"
+
+# Everything here runs in other repositories' CI with their secrets, so nothing is low-risk.
+# These Markdown files are model prompts, not docs: a change to them changes what the reviews do.
+always_review = [
+  "ai-review/prompts/**",   # the multi-model reviewers, judge and housekeeping
+  ".github/ai-review/**",   # this repository's threat model
+]
