@@ -1,5 +1,5 @@
 """parse_lane_findings: a reviewer that answered without a tool call keeps its answer (the diff is in
-its prompt), with a note; an answer that does not parse still fails the lane.
+its prompt); an answer that does not parse still fails the lane.
 
 Offline: imports run_pilot (no main()), no network, no keys.
 Run: python3 -I -B -m unittest discover -s ai-review/tests -v
@@ -35,15 +35,11 @@ class ZeroToolCalls(unittest.TestCase):
         res = self.lane(json.dumps({"summary": "s", "findings": [FINDING]}), 0)
         self.assertEqual(res["status"], "ok")
         self.assertEqual([f["title"] for f in res["findings"]], [FINDING["title"]])
-        self.assertTrue(any("0 tool calls" in w for w in res["warnings"]))
+        self.assertEqual(res["warnings"], [])
 
     def test_no_findings_without_tool_calls_is_ok(self):
         res = self.lane(json.dumps({"summary": "nothing", "findings": []}), 0)
         self.assertEqual((res["status"], res["findings"]), ("ok", []))
-
-    def test_no_note_with_tool_calls(self):
-        res = self.lane(json.dumps({"summary": "nothing", "findings": []}), 3)
-        self.assertEqual(res["warnings"], [])
 
     def test_unparseable_answer_still_fails(self):
         res = self.lane("I could not finish.", 0)

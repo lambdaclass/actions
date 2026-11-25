@@ -2189,14 +2189,12 @@ def verification_queue(merged: list[dict], verify_min: str) -> list[dict]:
     return queue
 
 
-def parse_lane_findings(res: dict, out_dir: Path, agentic: bool = True) -> None:
+def parse_lane_findings(res: dict, out_dir: Path) -> None:
     """Attach findings to a finder lane result; a lane whose output cannot be parsed is failed (it must
     not look like "no findings"). An agentic lane that never called a tool keeps its answer: the diff is
     in the prompt, and a reviewer can judge a small one from it alone (vertex #5084 at Opus medium and
-    high, 2026-11-25). The report says so in the lane's notes."""
+    high, 2026-11-25); the report's tool-calls column shows the 0."""
     res["findings"], res["schema_problems"] = [], []
-    if res.get("status") == "ok" and agentic and not res.get("tool_calls"):
-        res.setdefault("warnings", []).append("answered from the diff in the prompt alone (0 tool calls)")
     if res.get("status") != "ok":
         write_json(out_dir / "result.json", res)
         return
@@ -4833,7 +4831,7 @@ def run_paid(args, run_dir: Path, meta: dict, wt: Path, mb: str, head: str, plan
                     r = run_static(x, model, prompt, schema_obj, out_dir, lease.get(), prices, routing)
                 r["mode"], r["unit"] = m, u.uid
                 stop_on_cap(r, job, iso)
-                parse_lane_findings(r, out_dir, agentic=(m == "agentic"))
+                parse_lane_findings(r, out_dir)
                 return r
             job = Job(label, f"{u.uid}/{m}", "finder", cap, est, fn,
                       {"lane": x, "model": model, "harness": harness if m == "agentic" else "api", "mode": m,
@@ -4944,7 +4942,7 @@ def run_paid(args, run_dir: Path, meta: dict, wt: Path, mb: str, head: str, plan
                     row = aux_row("docs", DOCS_MODEL, c, unit=u.uid)
                     row["final_text"] = c["text"]
                     row["mode"], row["unit"] = "docs", u.uid
-                    parse_lane_findings(row, udir / "docs", agentic=False)
+                    parse_lane_findings(row, udir / "docs")
                     for f in row.get("findings", []):
                         f["category"] = "docs"
                     return row
