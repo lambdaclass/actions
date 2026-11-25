@@ -2190,12 +2190,13 @@ def verification_queue(merged: list[dict], verify_min: str) -> list[dict]:
 
 
 def parse_lane_findings(res: dict, out_dir: Path, agentic: bool = True) -> None:
-    """Attach findings to a finder lane result; a lane whose output cannot be parsed, or an
-    agentic lane that never called a tool, is failed (it must not look like "no findings")."""
+    """Attach findings to a finder lane result; a lane whose output cannot be parsed is failed (it must
+    not look like "no findings"). An agentic lane that never called a tool keeps its answer: the diff is
+    in the prompt, and a reviewer can judge a small one from it alone (vertex #5084 at Opus medium and
+    high, 2026-11-25). The report says so in the lane's notes."""
     res["findings"], res["schema_problems"] = [], []
     if res.get("status") == "ok" and agentic and not res.get("tool_calls"):
-        res["status"] = "failed"
-        res["error"] = "degenerate: answered without reading any code (0 tool calls)"
+        res.setdefault("warnings", []).append("answered from the diff in the prompt alone (0 tool calls)")
     if res.get("status") != "ok":
         write_json(out_dir / "result.json", res)
         return
@@ -3999,10 +4000,6 @@ def rerender(run_dir: Path, repo: str, pr: int, out: Path | None) -> None:
         report = out or ROOT / "reports" / f"{repo.split('/')[1]}-{pr}{ctx.get('tag', '')}.md"
         write_report(report, ctx)
     else:
-        for name, r in ctx["lanes"].items():
-            if r.get("status") == "ok" and not r.get("tool_calls"):
-                parse_lane_findings(r, run_dir / "lanes" / name)  # applies the 0-tool-call guard
-                r.setdefault("warnings", []).append("reclassified on re-render")
         report = out or ROOT / "reports" / f"{repo.split('/')[1]}-{pr}.md"
         write_report_v1(report, ctx)
     log(f"re-rendered {report}")
