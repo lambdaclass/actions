@@ -86,10 +86,14 @@ DEFAULT_LANES = ["claude", "gpt", "kimi", "glm", "deepseek"]
 # claude_budget is Claude Code's --max-budget-usd (its own price table), the real spend bound.
 LANE_OVERRIDES: dict[str, dict] = {
     "fable": {"effort": "xhigh", "claude_budget": 6.00, "agentic_cap": 10.00, "static_cap": 4.00},
-    # Opus at xhigh (2026-11-11): at high it explored least (10 tool calls) and missed the
-    # lambda_vm #353 completeness bug; at xhigh it found it (17 calls, $0.82 vs $0.50 API-equivalent).
+    # Opus at high (2026-11-26), back from xhigh (2026-11-11) to cut cost. On 2026-11-11, at high it
+    # explored least (10 tool calls) and missed the lambda_vm #353 completeness bug that xhigh found
+    # (17 calls, $0.82 vs $0.50 API-equivalent). Reruns of vertex and ethlambda reviews at xhigh,
+    # high and medium later showed no difference beyond run-to-run noise (two xhigh runs agreed on
+    # only half the bugs), and all three found the 3 real bugs CI had missed. Callers can still ask
+    # for xhigh with the lane_effort input (claude=xhigh).
     # Key headroom for Claude Code's 128k-output requests (x $20/M = $2.56) on top of the spend.
-    "claude": {"effort": "xhigh", "agentic_cap": 6.00},
+    "claude": {"effort": "high", "agentic_cap": 6.00},
     # GPT and GLM get a larger soft budget (2026-11-12): both found the known bugs cheaply
     # (~$0.31 and ~$0.35 per PR) and almost never reached the old 40 / $1 / 10 min limits. Lane cap
     # raised to keep it above the soft $ limit. "soft" overrides FINDER_SOFT / --soft-* per key.
@@ -208,7 +212,7 @@ def judge_soft(n: int) -> dict:
 BUDGET_CODE = secrets.token_hex(3).upper()
 GATE_MARK = f"BUDGET EXHAUSTED [{BUDGET_CODE}]"
 # Claude Code lanes: the same soft budget, enforced with a PreToolUse hook (claude_gate). Tool calls
-# here are finer-grained than Codex commands (one Read = one call), and Opus at xhigh found its bugs in
+# here are finer-grained than Codex commands (one Read = one call), and Opus (then at xhigh) found its bugs in
 # 5-17 calls (2026-11-11), while one 2,450-line unit of a private PR took 42 calls and $2.03.
 CLAUDE_SOFT = {"tools": 80, "usd": 2.50, "time_s": 1800}   # same command count as the prompt states
 SOFT_WARN_AT = 0.75   # BUDGET NOTE in every tool result once any limit is 75% used
@@ -4198,7 +4202,8 @@ def main() -> None:
     ap.add_argument("--finder-prompt", default=None,
                     help="finder prompt file under prompts/ (default finder.md; for prompt experiments)")
     ap.add_argument("--lane-effort", default="",
-                    help="per-lane reasoning effort overrides, e.g. claude=xhigh,grok=medium (default: high; fable xhigh)")
+                    help="per-lane reasoning effort overrides, e.g. claude=xhigh,grok=medium (default: high; fable xhigh). "
+                         "CI passes the lane_effort input")
     ap.add_argument("--sandbox-check", choices=["off", "warn", "strict"], default="off",
                     help="Linux: before any paid call, check that a command in the Codex lane sandbox runs and "
                          "cannot read other processes' environments (strict: stop if not; CI uses strict)")
