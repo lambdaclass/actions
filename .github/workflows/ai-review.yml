@@ -43,6 +43,8 @@ jobs:
       actions: read
     with:
       command: /review
+      lanes: claude
+      lane_effort: claude=bogus
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
