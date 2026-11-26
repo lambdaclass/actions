@@ -1932,8 +1932,10 @@ def run_claude(name: str, model: str, sent_model: str, small_model: str, prompt:
     tools = (["--tools", "", "--system-prompt", STATIC_CLI_SYSTEM_PROMPT] if static else
              ["--tools", "Read,Grep,Glob,Bash", "--allowedTools", "Read,Grep,Glob,Bash",
               "--disallowedTools", "Write,Edit,NotebookEdit,WebFetch,WebSearch,Task,Agent"])
+    run_effort = effort or lane_effort(name)
+    log(f"{label or name}: Claude Code {sent_model}, effort {run_effort}")
     cmd = [claude_bin, "-p", "--output-format", "stream-json", "--verbose",
-           "--model", sent_model, "--effort", effort or lane_effort(name), "--max-budget-usd", f"{budget_usd:.2f}",
+           "--model", sent_model, "--effort", run_effort, "--max-budget-usd", f"{budget_usd:.2f}",
            "--json-schema", schema, "--settings", str(settings_path), "--setting-sources", "user",
            *tools,
            "--permission-mode", "dontAsk", "--strict-mcp-config", "--disable-slash-commands",
@@ -4198,7 +4200,8 @@ def main() -> None:
     ap.add_argument("--finder-prompt", default=None,
                     help="finder prompt file under prompts/ (default finder.md; for prompt experiments)")
     ap.add_argument("--lane-effort", default="",
-                    help="per-lane reasoning effort overrides, e.g. claude=xhigh,grok=medium (default: high; fable xhigh)")
+                    help="per-lane reasoning effort overrides, e.g. claude=high,grok=medium (default: xhigh for the claude (Opus) and fable "
+                         "lanes, high for the rest). CI passes the lane_effort input")
     ap.add_argument("--sandbox-check", choices=["off", "warn", "strict"], default="off",
                     help="Linux: before any paid call, check that a command in the Codex lane sandbox runs and "
                          "cannot read other processes' environments (strict: stop if not; CI uses strict)")

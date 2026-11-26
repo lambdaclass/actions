@@ -38,6 +38,11 @@ on:
         required: false
         type: string
         default: ''
+      lane_effort:
+        description: "Per-reviewer reasoning effort, comma-separated lane=effort (low, medium, high, xhigh, max), e.g. 'claude=high'. Empty = xhigh for the two Claude lanes, claude (Opus 5.5) and fable (Fable 5.2), high for the rest"
+        required: false
+        type: string
+        default: ''
       config_dir:
         description: 'Directory of the reviewed repository holding the optional config.toml and threat_model.md, read from the PR base branch'
         required: false
@@ -289,6 +294,7 @@ jobs:
           COMMAND: ${{ steps.opts.outputs.command }}
           BUDGET: ${{ steps.opts.outputs.budget }}
           LANES: ${{ inputs.lanes }}
+          LANE_EFFORT: ${{ inputs.lane_effort }}
           HOUSEKEEPING: ${{ inputs.housekeeping }}
           SANDBOX_CHECK: ${{ inputs.sandbox_check }}
           CONFIG: ${{ steps.config.outputs.path }}
@@ -300,6 +306,7 @@ jobs:
                 --continue-command "$COMMAND continue")
           if [ "$BUDGET" != 0 ]; then args+=(--pr-budget "$BUDGET"); fi
           if [ -n "$LANES" ]; then args+=(--lanes "$LANES"); fi
+          if [ -n "$LANE_EFFORT" ]; then args+=(--lane-effort "$LANE_EFFORT"); fi
           if [ "$HOUSEKEEPING" != true ]; then args+=(--no-housekeeping); fi
           if [ -n "$CONFIG" ]; then args+=(--repo-config "$CONFIG"); fi
           if [ -n "$PREVIOUS" ]; then args+=(--reuse-from "$PREVIOUS" --reuse-lanes all); fi

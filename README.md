@@ -76,6 +76,7 @@ The comment check matches `/review` alone or followed by options, not words that
 | `pr_budget` | No | `0` | USD limit per review. `0` = $30 |
 | `max_budget` | No | `100` | Highest budget a `budget=N` comment may ask for |
 | `lanes` | No | `''` | Reviewer models, comma-separated: `claude`, `gpt`, `kimi`, `glm`, `deepseek`, `gemini`, `grok`, `fable`. Empty = the first five |
+| `lane_effort` | No | `''` | Reasoning effort per reviewer, comma-separated `lane=effort` with `low`, `medium`, `high`, `xhigh` or `max`, e.g. `claude=high`. Empty = `xhigh` for the two Claude lanes, `claude` (Opus 5.5) and `fable` (Fable 5.2), `high` for the rest |
 | `config_dir` | No | `.github/ai-review` | Directory with the optional `config.toml` and `threat_model.md` in your repository |
 | `housekeeping` | No | `true` | Run the housekeeping reviewer |
 | `sandbox_check` | No | `strict` | Check the Codex reviewers' sandbox before any paid call (not Claude Code's): `strict` stops the review if it fails, `warn` only logs it, `off` skips it ([details](#sandbox-check)) |
