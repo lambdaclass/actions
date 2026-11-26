@@ -4198,8 +4198,8 @@ def main() -> None:
     ap.add_argument("--finder-prompt", default=None,
                     help="finder prompt file under prompts/ (default finder.md; for prompt experiments)")
     ap.add_argument("--lane-effort", default="",
-                    help="per-lane reasoning effort overrides, e.g. claude=high,grok=medium (default: xhigh for claude and fable, high "
-                         "for the rest). CI passes the lane_effort input")
+                    help="per-lane reasoning effort overrides, e.g. claude=high,grok=medium (default: xhigh for the claude (Opus) and fable "
+                         "lanes, high for the rest). CI passes the lane_effort input")
     ap.add_argument("--sandbox-check", choices=["off", "warn", "strict"], default="off",
                     help="Linux: before any paid call, check that a command in the Codex lane sandbox runs and "
                          "cannot read other processes' environments (strict: stop if not; CI uses strict)")

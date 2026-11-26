@@ -39,7 +39,7 @@ on:
         type: string
         default: ''
       lane_effort:
-        description: "Per-reviewer reasoning effort, comma-separated lane=effort (low, medium, high, xhigh, max), e.g. 'claude=high'. Empty = xhigh for claude and fable, high for the rest"
+        description: "Per-reviewer reasoning effort, comma-separated lane=effort (low, medium, high, xhigh, max), e.g. 'claude=high'. Empty = xhigh for the two Claude lanes, claude (Opus 5.5) and fable (Fable 5.2), high for the rest"
         required: false
         type: string
         default: ''
