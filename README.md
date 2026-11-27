@@ -68,6 +68,8 @@ The comment check matches `/review` alone or followed by options, not words that
 | `/review budget=80` | Use $80 for this review (at most `max_budget`) |
 | `/review continue` | Finish an earlier review of the same commit that stopped at its budget or time limit; reviewers that finished are reused |
 
+The request comment gets a 👀 reaction as soon as the run starts, even while it waits behind an earlier review of the same PR. When the review is posted the 👀 becomes a 👍, or a 😕 if the review failed. A request superseded by a newer one before it started only loses its 👀. Label triggers have no comment to react to.
+
 **Inputs:**
 
 | Input | Required | Default | Description |
@@ -88,7 +90,7 @@ The comment check matches `/review` alone or followed by options, not words that
 | `OPENROUTER_API_KEY` | Yes | OpenRouter key for every model but Claude. It must belong to the account that holds the `air-*` provider presets (see below). Give it a credit limit: that limit is the hard ceiling on spend |
 | `ANTHROPIC_API_KEY` | Unless `lanes` leaves out both `claude` and `fable` | Anthropic key for the Opus reviewer. Use a workspace with a monthly spend limit |
 
-The calling job must grant `contents: read`, `pull-requests: write` and `actions: read`. Only the final job, which posts the comment, gets `pull-requests: write`; the jobs that run models get read permissions only. `actions: read` lets `continue` download the earlier review.
+The calling job must grant `contents: read`, `pull-requests: write` and `actions: read`. Only the jobs that react to the request comment and post the review get `pull-requests: write`; the jobs that run models get read permissions only. `actions: read` lets `continue` download the earlier review.
 
 ### Repository config
 
